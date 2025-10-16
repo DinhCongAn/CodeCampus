@@ -2,24 +2,28 @@
 GO
 
 -- Xóa database nếu đã tồn tại, đảm bảo rollback các kết nối
-IF EXISTS (SELECT name FROM sys.databases WHERE name = N'olls')
+IF EXISTS (SELECT name FROM sys.databases WHERE name = N'codecampus_db')
 BEGIN
-    ALTER DATABASE olls SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-    DROP DATABASE olls;
+    ALTER DATABASE codecampus_db SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+    DROP DATABASE codecampus_db;
 END
 GO
 
-CREATE DATABASE olls;
+CREATE DATABASE codecampus_db;
 GO
 
-USE olls;
+USE codecampus_db;
+GO
 
+-- Bảng Vai trò Người dùng
 CREATE TABLE user_roles (
     id INT IDENTITY(1,1) PRIMARY KEY,
     name NVARCHAR(50) NOT NULL UNIQUE,
     description NVARCHAR(MAX)
 );
+GO
 
+-- Bảng Người dùng
 CREATE TABLE users (
     id INT IDENTITY(1,1) PRIMARY KEY,
     email VARCHAR(255) NOT NULL UNIQUE,
@@ -28,14 +32,16 @@ CREATE TABLE users (
     gender NVARCHAR(10),
     mobile VARCHAR(20),
     role_id INT,
-	avatar NTEXT,
-	[address] NTEXT,
+    avatar NTEXT,
+    [address] NTEXT,
     status NVARCHAR(50) DEFAULT 'pending',
     created_at DATETIME DEFAULT GETDATE(),
     updated_at DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (role_id) REFERENCES user_roles(id)
 );
+GO
 
+-- Bảng Cài đặt Hệ thống
 CREATE TABLE settings (
     id INT IDENTITY(1,1) PRIMARY KEY,
     type NVARCHAR(100),
@@ -46,21 +52,24 @@ CREATE TABLE settings (
     setting_value NVARCHAR(MAX),
     description NVARCHAR(MAX)
 );
+GO
 
-
+-- Bảng Danh mục Blog
 CREATE TABLE blog_categories (
     id INT IDENTITY(1,1) PRIMARY KEY,
     name NVARCHAR(100) NOT NULL UNIQUE,
     is_active BIT DEFAULT 1
 );
+GO
 
+-- Bảng Blog
 CREATE TABLE blogs (
     id INT IDENTITY(1,1) PRIMARY KEY,
     title NVARCHAR(255) NOT NULL,
     content NVARCHAR(MAX),
     blog_category_id INT,
     author_id INT,
-	thumbnail_url NTEXT,
+    thumbnail_url NTEXT,
     status NVARCHAR(50) DEFAULT 'draft',
     published_at DATETIME NULL DEFAULT NULL,
     created_at DATETIME DEFAULT GETDATE(),
@@ -68,7 +77,9 @@ CREATE TABLE blogs (
     FOREIGN KEY (blog_category_id) REFERENCES blog_categories(id),
     FOREIGN KEY (author_id) REFERENCES users(id)
 );
+GO
 
+-- Bảng Slider
 CREATE TABLE sliders (
     id INT IDENTITY(1,1) PRIMARY KEY,
     image_url NVARCHAR(255) NOT NULL,
@@ -78,14 +89,18 @@ CREATE TABLE sliders (
     status NVARCHAR(50) DEFAULT 'active',
     order_number INT DEFAULT 0
 );
+GO
 
+-- Bảng Danh mục Khóa học
 CREATE TABLE course_categories (
     id INT IDENTITY(1,1) PRIMARY KEY,
     name NVARCHAR(100) NOT NULL UNIQUE,
     description NVARCHAR(MAX),
     is_active BIT DEFAULT 1
 );
+GO
 
+-- Bảng Khóa học
 CREATE TABLE courses (
     id INT IDENTITY(1,1) PRIMARY KEY,
     name NVARCHAR(255) NOT NULL,
@@ -94,13 +109,15 @@ CREATE TABLE courses (
     status NVARCHAR(50) DEFAULT 'draft',
     is_featured BIT DEFAULT 0,
     owner_id INT,
-	thumbnail_url NTEXT,
+    thumbnail_url NTEXT,
     created_at DATETIME DEFAULT GETDATE(),
     updated_at DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (category_id) REFERENCES course_categories(id),
     FOREIGN KEY (owner_id) REFERENCES users(id)
 );
+GO
 
+-- Bảng Gói giá
 CREATE TABLE price_packages (
     id INT IDENTITY(1,1) PRIMARY KEY,
     course_id INT,
@@ -110,28 +127,36 @@ CREATE TABLE price_packages (
     sale_price DECIMAL(10, 2) CHECK (sale_price >= 0),
     status NVARCHAR(50) DEFAULT 'active',
     description NVARCHAR(MAX),
-	sale DECIMAL(10,2),
+    sale DECIMAL(10,2),
     FOREIGN KEY (course_id) REFERENCES courses(id)
 );
+GO
 
+-- Bảng Loại bài học
 CREATE TABLE lesson_types (
     id INT IDENTITY(1,1) PRIMARY KEY,
     name NVARCHAR(50) NOT NULL UNIQUE,
     description NVARCHAR(MAX)
 );
+GO
 
+-- Bảng Loại bài kiểm tra
 CREATE TABLE test_types (
     id INT IDENTITY(1,1) PRIMARY KEY,
     name NVARCHAR(50) NOT NULL UNIQUE,
     description NVARCHAR(MAX)
 );
+GO
 
+-- Bảng Cấp độ câu hỏi
 CREATE TABLE question_levels (
     id INT IDENTITY(1,1) PRIMARY KEY,
     name NVARCHAR(50) NOT NULL UNIQUE,
     description NVARCHAR(MAX)
 );
+GO
 
+-- Bảng Bài kiểm tra (Quiz)
 CREATE TABLE quizzes (
     id INT IDENTITY(1,1) PRIMARY KEY,
     course_id INT,
@@ -145,7 +170,9 @@ CREATE TABLE quizzes (
     FOREIGN KEY (test_type_id) REFERENCES test_types(id),
     FOREIGN KEY (exam_level_id) REFERENCES question_levels(id)
 );
+GO
 
+-- Bảng Bài học
 CREATE TABLE lessons (
     id INT IDENTITY(1,1) PRIMARY KEY,
     course_id INT,
@@ -157,12 +184,14 @@ CREATE TABLE lessons (
     html_content NVARCHAR(MAX),
     quiz_id INT NULL,
     status NVARCHAR(50) DEFAULT 'active',
-	package_id INT,
+    package_id INT,
     FOREIGN KEY (course_id) REFERENCES courses(id),
     FOREIGN KEY (lesson_type_id) REFERENCES lesson_types(id),
     FOREIGN KEY (quiz_id) REFERENCES quizzes(id)
 );
+GO
 
+-- Bảng Câu hỏi
 CREATE TABLE questions (
     id INT IDENTITY(1,1) PRIMARY KEY,
     course_id INT,
@@ -176,7 +205,9 @@ CREATE TABLE questions (
     FOREIGN KEY (lesson_id) REFERENCES lessons(id),
     FOREIGN KEY (question_level_id) REFERENCES question_levels(id)
 );
+GO
 
+-- Bảng Lựa chọn trả lời
 CREATE TABLE answer_options (
     id INT IDENTITY(1,1) PRIMARY KEY,
     question_id INT,
@@ -185,13 +216,15 @@ CREATE TABLE answer_options (
     order_number INT DEFAULT 0,
     FOREIGN KEY (question_id) REFERENCES questions(id)
 );
+GO
 
+-- Bảng Đăng ký khóa học
 CREATE TABLE registrations (
     id INT IDENTITY(1,1) PRIMARY KEY,
     user_id INT,
     course_id INT,
     package_id INT,
-	order_code NVARCHAR(20) UNIQUE NOT NULL,
+    order_code NVARCHAR(20) UNIQUE NOT NULL,
     registration_time DATETIME NOT NULL DEFAULT GETDATE(),
     total_cost DECIMAL(10, 2) NOT NULL,
     status NVARCHAR(50) DEFAULT 'pending',
@@ -204,8 +237,9 @@ CREATE TABLE registrations (
     FOREIGN KEY (course_id) REFERENCES courses(id),
     FOREIGN KEY (package_id) REFERENCES price_packages(id)
 );
+GO
 
-
+-- Bảng Lượt làm bài quiz
 CREATE TABLE quiz_attempts (
     id INT IDENTITY(1,1) PRIMARY KEY,
     user_id INT,
@@ -215,11 +249,13 @@ CREATE TABLE quiz_attempts (
     score DECIMAL(5, 2) NULL,
     status NVARCHAR(50) DEFAULT 'in_progress',
     result NVARCHAR(50) NULL,
-	ai_hint_count INT NOT NULL DEFAULT 0,
+    ai_hint_count INT NOT NULL DEFAULT 0,
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (quiz_id) REFERENCES quizzes(id)
 );
+GO
 
+-- Bảng Chi tiết câu trả lời trong một lượt làm bài
 CREATE TABLE quiz_attempt_answers (
     id INT IDENTITY(1,1) PRIMARY KEY,
     attempt_id INT,
@@ -232,7 +268,9 @@ CREATE TABLE quiz_attempt_answers (
     FOREIGN KEY (question_id) REFERENCES questions(id),
     FOREIGN KEY (selected_answer_option_id) REFERENCES answer_options(id)
 );
+GO
 
+-- Bảng Khóa học của tôi (theo dõi tiến độ)
 CREATE TABLE my_courses (
     id INT IDENTITY(1,1) PRIMARY KEY,
     user_id INT NOT NULL,
@@ -245,19 +283,22 @@ CREATE TABLE my_courses (
     FOREIGN KEY (course_id) REFERENCES courses(id),
     FOREIGN KEY (last_lesson_id) REFERENCES lessons(id)
 );
+GO
 
+-- Bảng Ghi chú cá nhân
 CREATE TABLE notes(
-	id INT IDENTITY(1,1) PRIMARY KEY,
-	[user_id] INT,
-	lesson_id INT,
-	note TEXT,
-	image_url TEXT,
-	video_url TEXT,
-	FOREIGN KEY ([user_id]) REFERENCES [users]([id]),
-	FOREIGN KEY ([lesson_id]) REFERENCES [lessons]([id])
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    [user_id] INT,
+    lesson_id INT,
+    note TEXT,
+    image_url TEXT,
+    video_url TEXT,
+    FOREIGN KEY ([user_id]) REFERENCES [users]([id]),
+    FOREIGN KEY ([lesson_id]) REFERENCES [lessons]([id])
 );
 GO
 
+-- Bảng Cài đặt Quiz
 CREATE TABLE quiz_settings (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     quiz_id INT NOT NULL,
@@ -267,15 +308,17 @@ CREATE TABLE quiz_settings (
 );
 GO
 
+-- Bảng Nhóm câu hỏi
 CREATE TABLE question_group (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     name NVARCHAR(255),
-	questions_number INT,
+    questions_number INT,
     quiz_setting_id BIGINT NOT NULL,
     FOREIGN KEY (quiz_setting_id) REFERENCES quiz_settings(id)
 );
 GO
 
+-- Bảng nối Quiz và Question (quan hệ nhiều-nhiều)
 CREATE TABLE quiz_questions (
     quiz_id INT NOT NULL,
     question_id INT NOT NULL,
@@ -285,8 +328,7 @@ CREATE TABLE quiz_questions (
 );
 GO
 
-
--- Feedback table
+-- Bảng Phản hồi/Đánh giá
 CREATE TABLE feedbacks (
   id INT IDENTITY(1,1) PRIMARY KEY,
   course_id INT NOT NULL,
@@ -300,7 +342,7 @@ CREATE TABLE feedbacks (
 );
 GO
 
--- Feedback attachments table
+-- Bảng File đính kèm của Phản hồi
 CREATE TABLE feedback_attachments (
   id INT IDENTITY(1,1) PRIMARY KEY,
   feedback_id INT NOT NULL,
@@ -312,7 +354,7 @@ CREATE TABLE feedback_attachments (
 );
 GO
 
--- Trigger for auto-updating updated_at
+-- Trigger tự động cập nhật updated_at cho feedbacks
 CREATE TRIGGER tr_feedbacks_update
 ON feedbacks
 AFTER UPDATE
@@ -325,7 +367,7 @@ BEGIN
 END
 GO
 
--- Add verification_tokens table
+-- Bảng Token xác thực
 IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='verification_tokens' AND xtype='U')
 BEGIN
     CREATE TABLE verification_tokens (
@@ -338,11 +380,12 @@ BEGIN
 END
 GO
 
+-- Bảng Media cho Câu hỏi
 CREATE TABLE question_media (
     id INT IDENTITY(1,1) PRIMARY KEY,
     question_id INT NOT NULL,
     media_url NVARCHAR(MAX) NOT NULL,
-    media_type NVARCHAR(20) NOT NULL, 
+    media_type NVARCHAR(20) NOT NULL,
     file_name NVARCHAR(255),
     description NVARCHAR(500),
     order_number INT DEFAULT 0,
@@ -355,7 +398,7 @@ CREATE TABLE question_media (
 );
 GO
 
--- Trigger cập nhật updated_at khi UPDATE
+-- Trigger tự động cập nhật updated_at cho question_media
 CREATE TRIGGER trg_question_media_update
 ON question_media
 AFTER UPDATE
@@ -367,6 +410,3 @@ BEGIN
     WHERE question_media.id = inserted.id;
 END
 GO
-
-
-
