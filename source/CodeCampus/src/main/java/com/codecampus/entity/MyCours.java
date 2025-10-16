@@ -19,7 +19,7 @@ public class MyCours {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "course_id", nullable = false)
-    private Cours course;
+    private Course course;
 
     @ColumnDefault("0.0")
     @Column(name = "progress_percent", precision = 5, scale = 2)
@@ -53,11 +53,11 @@ public class MyCours {
         this.user = user;
     }
 
-    public Cours getCourse() {
+    public Course getCourse() {
         return course;
     }
 
-    public void setCourse(Cours course) {
+    public void setCourse(Course course) {
         this.course = course;
     }
 

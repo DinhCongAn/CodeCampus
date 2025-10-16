@@ -15,7 +15,7 @@ public class PricePackage {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id")
-    private Cours course;
+    private Course course;
 
     @Nationalized
     @Column(name = "name", nullable = false, length = 100)
@@ -51,11 +51,11 @@ public class PricePackage {
         this.id = id;
     }
 
-    public Cours getCourse() {
+    public Course getCourse() {
         return course;
     }
 
-    public void setCourse(Cours course) {
+    public void setCourse(Course course) {
         this.course = course;
     }
 
