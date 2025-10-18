@@ -1,7 +1,10 @@
-package com.codecampus.repository;
+package com.codecampus.course;
 
 import com.codecampus.entity.Course;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
+
 public interface CourseRepository extends JpaRepository<Course, Long> {
+    List<Course> findByIsFeaturedAndStatus(boolean isFeatured, String status);
 }
