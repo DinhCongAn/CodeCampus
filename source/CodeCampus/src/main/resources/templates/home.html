@@ -1,160 +1,180 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CodeCampus - Học lập trình để đi làm</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title th:text="${pageTitle}">CodeCampus - Học Lập Trình Để Đi Làm</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
-    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
-    <style>
-        /* Thêm một vài custom style nếu cần */
-        .hero-bg {
-            background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=2071&auto=format&fit=crop');
-            background-size: cover;
-            background-position: center;
-        }
-    </style>
+    <link rel="icon" href="/images/logo.png" />
 </head>
-<body class="bg-gray-50">
 
-<header class="bg-white/80 backdrop-blur-sm shadow-md sticky top-0 z-50">
-    <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
-        <a href="/" class="text-2xl font-bold text-gray-800">🚀 CodeCampus</a>
-        <div class="hidden md:flex space-x-6 items-center">
-            <a href="/" class="text-gray-600 hover:text-indigo-600">Trang chủ</a>
-            <a href="/courses" class="text-gray-600 hover:text-indigo-600">Khóa học</a>
-            <a href="/blog" class="text-gray-600 hover:text-indigo-600">Blog</a>
-            <a href="/login" class="text-gray-600 hover:text-indigo-600">Đăng nhập</a>
-            <a href="/register" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">Đăng ký</a>
-        </div>
-        <div class="md:hidden">
-            <button class="text-gray-800">
-                <ion-icon name="menu-outline" class="w-6 h-6"></ion-icon>
+<body class="bg-gray-50 text-gray-800 font-sans">
+<div th:replace="~{header :: header}"></div>
+
+<div class="flex max-w-7xl mx-auto mt-4">
+    <aside class="w-20 flex flex-col items-center space-y-8 pt-6">
+        <a href="#" class="flex flex-col items-center text-gray-600 hover:text-blue-600">
+            <div class="bg-gray-100 p-3 rounded-xl mb-1">🏠</div>
+            <span class="text-sm">Trang chủ</span>
+        </a>
+        <a href="#" class="flex flex-col items-center text-gray-600 hover:text-blue-600">
+            <div class="bg-gray-100 p-3 rounded-xl mb-1">🧭</div>
+            <span class="text-sm">Lộ trình</span>
+        </a>
+        <a href="#" class="flex flex-col items-center text-gray-600 hover:text-blue-600">
+            <div class="bg-gray-100 p-3 rounded-xl mb-1">📝</div>
+            <span class="text-sm">Bài viết</span>
+        </a>
+    </aside>
+
+    <main class="flex-1 px-6 space-y-16">
+        <section class="relative rounded-2xl overflow-hidden shadow-lg group">
+            <div class="flex transition-transform duration-700 ease-in-out" id="slider-wrapper">
+                <div th:each="slider : ${sliders}"
+                     class="min-w-full flex justify-between items-center px-10 py-16 text-white"
+                     style="background: linear-gradient(to right, #6D28D9, #4F46E5);">
+                    <div class="max-w-lg">
+                        <h2 class="text-4xl font-bold mb-4" th:text="${slider.title}">Slider Title</h2>
+                        <p class="mb-6 text-lg" th:text="${slider.description}">Slider Description</p>
+                        <a th:href="${slider.linkUrl}"
+                           class="px-6 py-3 bg-white text-indigo-600 font-semibold rounded-full hover:bg-gray-100">
+                            <span>Xem chi tiết</span>
+                        </a>
+                    </div>
+                    <img th:src="${slider.imageUrl}" alt="Slide Image"
+                         class="hidden md:block w-[420px] rounded-lg"/>
+                </div>
+            </div>
+
+            <!-- Dots -->
+            <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2" id="slider-dots"></div>
+
+            <!-- Nút điều hướng -->
+            <button id="prev-btn"
+                    class="absolute top-1/2 left-3 -translate-y-1/2 bg-white/20 text-white rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-white/40">
+                &#10094;
             </button>
-        </div>
-    </nav>
-</header>
+            <button id="next-btn"
+                    class="absolute top-1/2 right-3 -translate-y-1/2 bg-white/20 text-white rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-white/40">
+                &#10095;
+            </button>
+        </section>
 
-<main>
-    <section class="hero-bg text-white">
-        <div class="container mx-auto px-6 py-32 text-center">
-            <h1 class="text-4xl md:text-6xl font-extrabold leading-tight">Bắt đầu hành trình Code của bạn</h1>
-            <p class="mt-4 text-lg md:text-xl text-gray-200 max-w-2xl mx-auto">
-                Trang bị kỹ năng lập trình vững chắc để sẵn sàng cho sự nghiệp tương lai với các khóa học thực chiến.
-            </p>
-            <div class="mt-8">
-                <a href="/courses" class="bg-indigo-600 text-white px-8 py-4 rounded-md text-lg font-semibold hover:bg-indigo-700 transition duration-300">
-                    Khám phá các khóa học
-                </a>
+
+        <section>
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-2xl font-bold">Khóa học nổi bật
+                    <span class="ml-2 text-sm bg-blue-100 text-blue-700 px-2 py-1 rounded">MỚI</span>
+                </h3>
             </div>
-        </div>
-    </section>
-
-    <section class="py-20">
-        <div class="container mx-auto px-6">
-            <h2 class="text-3xl font-bold text-gray-800 text-center mb-12">Khóa học nổi bật</h2>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-
-                <div th:each="course : ${featuredCourses}" class="bg-white rounded-lg shadow-lg overflow-hidden transform hover:-translate-y-2 transition duration-300">
-                    <a th:href="@{'/courses/' + ${course.id}}" class="block">
-                        <img th:src="${course.thumbnailUrl}" alt="Course Thumbnail" class="w-full h-48 object-cover">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div th:each="course : ${featuredCourses}"
+                     class="rounded-2xl overflow-hidden shadow hover:shadow-xl transition">
+                    <a th:href="@{'/courses/' + ${course.id}}">
+                        <img th:src="${course.thumbnailUrl}" class="w-full h-40 object-cover"/>
                     </a>
-                    <div class="p-6">
-                        <span th:text="${course.category.name}" class="bg-indigo-100 text-indigo-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">Web Development</span>
-                        <h3 class="mt-4 text-xl font-semibold text-gray-800">
-                            <a th:href="@{'/courses/' + ${course.id}}" th:text="${course.name}" class="hover:text-indigo-600">Spring Boot Toàn tập</a>
-                        </h3>
-                        <p class="mt-2 text-gray-600 text-sm" th:text="'GV: ' + ${course.owner.fullName}">GV: Giảng Viên A</p>
-                        <div class="mt-4 flex items-center justify-between">
-                            <span class="text-xl font-bold text-indigo-600">599.000đ</span>
-                            <div class="flex items-center text-yellow-400">
-                                <ion-icon name="star"></ion-icon>
-                                <span class="ml-1 text-gray-600 text-sm">4.8 (2,450)</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-white rounded-lg shadow-lg overflow-hidden transform hover:-translate-y-2 transition duration-300">
-                    <img src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=2070&auto=format&fit=crop" alt="Course Thumbnail" class="w-full h-48 object-cover">
-                    <div class="p-6">
-                        <span class="bg-pink-100 text-pink-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">Frontend</span>
-                        <h3 class="mt-4 text-xl font-semibold text-gray-800">ReactJS cho người mới bắt đầu</h3>
-                        <p class="mt-2 text-gray-600 text-sm">GV: Giảng Viên A</p>
-                        <div class="mt-4 flex items-center justify-between">
-                            <span class="text-xl font-bold text-indigo-600">799.000đ</span>
-                            <div class="flex items-center text-yellow-400">
-                                <ion-icon name="star"></ion-icon>
-                                <span class="ml-1 text-gray-600 text-sm">4.9 (3,120)</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-            <div class="text-center mt-12">
-                <a href="/courses" class="bg-gray-800 text-white px-6 py-3 rounded-md font-semibold hover:bg-gray-900 transition duration-300">
-                    Xem tất cả khóa học
-                </a>
-            </div>
-        </div>
-    </section>
-
-    <section class="bg-gray-100 py-20">
-        <div class="container mx-auto px-6">
-            <h2 class="text-3xl font-bold text-gray-800 text-center mb-12">Bài viết mới nhất từ Blog</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div th:each="blog : ${latestBlogs}" class="bg-white rounded-lg shadow-md overflow-hidden">
-                    <img th:src="${blog.thumbnailUrl}" alt="Blog Image" class="w-full h-56 object-cover">
-                    <div class="p-6">
-                        <h4 class="text-xl font-semibold text-gray-800" th:text="${blog.title}">Top 5 Framework JS 2025</h4>
-                        <p class="mt-2 text-gray-600" th:text="${#strings.abbreviate(blog.content, 150)}">Khám phá các framework JavaScript...</p>
-                        <a th:href="@{'/blog/' + ${blog.id}}" class="text-indigo-600 font-semibold mt-4 inline-block hover:underline">Đọc thêm &rarr;</a>
+                    <div class="bg-white p-4 text-gray-700">
+                        <p class="font-semibold" th:text="${course.name}">Tên khóa học</p>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
-</main>
+        </section>
 
-<footer class="bg-gray-800 text-white py-12">
-    <div class="container mx-auto px-6">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-                <h3 class="text-lg font-bold">🚀 CodeCampus</h3>
-                <p class="mt-4 text-gray-400">Nền tảng học lập trình thực chiến, giúp bạn tự tin trên con đường sự nghiệp.</p>
+        <section>
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-2xl font-bold">Bài viết nổi bật</h3>
+                <a href="/blog" class="text-orange-500 font-semibold hover:underline">Xem tất cả →</a>
             </div>
-            <div>
-                <h3 class="font-semibold">Khóa học</h3>
-                <ul class="mt-4 space-y-2">
-                    <li><a href="#" class="text-gray-400 hover:text-white">Phát triển Web</a></li>
-                    <li><a href="#" class="text-gray-400 hover:text-white">Phát triển Di động</a></li>
-                    <li><a href="#" class="text-gray-400 hover:text-white">Khoa học Dữ liệu</a></li>
-                </ul>
-            </div>
-            <div>
-                <h3 class="font-semibold">Về chúng tôi</h3>
-                <ul class="mt-4 space-y-2">
-                    <li><a href="#" class="text-gray-400 hover:text-white">Giới thiệu</a></li>
-                    <li><a href="#" class="text-gray-400 hover:text-white">Blog</a></li>
-                    <li><a href="#" class="text-gray-400 hover:text-white">Liên hệ</a></li>
-                </ul>
-            </div>
-            <div>
-                <h3 class="font-semibold">Kết nối</h3>
-                <div class="flex space-x-4 mt-4">
-                    <a href="#" class="text-gray-400 hover:text-white"><ion-icon name="logo-facebook" class="w-6 h-6"></ion-icon></a>
-                    <a href="#" class="text-gray-400 hover:text-white"><ion-icon name="logo-youtube" class="w-6 h-6"></ion-icon></a>
-                    <a href="#" class="text-gray-400 hover:text-white"><ion-icon name="logo-tiktok" class="w-6 h-6"></ion-icon></a>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div th:each="post : ${hotPosts}" class="bg-white rounded-2xl shadow hover:shadow-lg transition overflow-hidden">
+                    <a th:href="@{'/blog/' + ${post.id}}">
+                        <img th:src="${post.thumbnailUrl}" alt="Thumbnail"
+                             class="w-full h-40 object-cover"/>
+                    </a>
+                    <div class="p-5">
+                        <h4 th:text="${post.title}" class="font-semibold mb-2">Tiêu đề bài viết</h4>
+                        <p th:text="${#dates.format(post.publishedAt, 'dd-MM-yyyy')}" class="text-sm text-gray-500 mb-4">Ngày đăng</p>
+                        <a th:href="@{'/blog/' + ${post.id}}" class="text-blue-600 font-semibold hover:underline">Xem chi tiết</a>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="mt-8 border-t border-gray-700 pt-6 text-center text-gray-500">
-            <p>&copy; 2025 CodeCampus. All Rights Reserved.</p>
-        </div>
-    </div>
-</footer>
+        </section>
+
+        <section>
+            <h3 class="text-2xl font-bold mb-4">Bài viết mới nhất</h3>
+            <div class="space-y-4">
+                <div th:each="post : ${latestPostsForSidebar}" class="bg-white p-4 rounded-lg shadow-sm flex items-center space-x-4">
+                    <img th:src="${post.thumbnailUrl}" class="w-20 h-20 object-cover rounded-md"/>
+                    <div>
+                        <a th:href="@{'/blog/' + ${post.id}}" class="font-semibold text-gray-800 hover:text-indigo-600" th:text="${post.title}">Tiêu đề bài viết mới</a>
+                        <p class="text-sm text-gray-500" th:text="${#dates.format(post.publishedAt, 'dd-MM-yyyy')}">Ngày đăng</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<div th:replace="~{footer :: footer}"></div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const sliderWrapper = document.getElementById('slider-wrapper');
+        const sliderDotsContainer = document.getElementById('slider-dots');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+
+        if (sliderWrapper && sliderWrapper.children.length > 0) {
+            const slides = sliderWrapper.children;
+            const totalSlides = slides.length;
+            let currentSlide = 0;
+
+            // Tạo dots
+            for (let i = 0; i < totalSlides; i++) {
+                const dot = document.createElement('span');
+                dot.classList.add('w-2', 'h-2', 'bg-white/60', 'rounded-full', 'cursor-pointer');
+                dot.addEventListener('click', () => { goToSlide(i); });
+                sliderDotsContainer.appendChild(dot);
+            }
+            const dots = sliderDotsContainer.children;
+
+            function updateDots() {
+                for (let i = 0; i < dots.length; i++) {
+                    dots[i].classList.remove('w-4', 'bg-white');
+                    dots[i].classList.add('w-2', 'bg-white/60');
+                }
+                dots[currentSlide].classList.add('w-4', 'bg-white');
+                dots[currentSlide].classList.remove('w-2', 'bg-white/60');
+            }
+
+            function goToSlide(slideIndex) {
+                currentSlide = slideIndex;
+                sliderWrapper.style.transform = `translateX(-${currentSlide * 100}%)`;
+                updateDots();
+            }
+
+            function nextSlide() {
+                let next = (currentSlide + 1) % totalSlides;
+                goToSlide(next);
+            }
+
+            function prevSlide() {
+                let prev = (currentSlide - 1 + totalSlides) % totalSlides;
+                goToSlide(prev);
+            }
+
+            // Tự động chạy
+            setInterval(nextSlide, 5000);
+
+            // Thêm event cho nút
+            nextBtn.addEventListener('click', nextSlide);
+            prevBtn.addEventListener('click', prevSlide);
+
+            updateDots();
+        }
+    });
+</script>
 
 </body>
 </html>
