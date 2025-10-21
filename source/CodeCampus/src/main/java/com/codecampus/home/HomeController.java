@@ -22,7 +22,7 @@ public class HomeController {
     @Autowired private BlogRepository blogRepository;
     @Autowired private CourseRepository courseRepository;
 
-    @GetMapping("/")
+    @GetMapping("/home")
     public String showHomePage(Model model) {
 
         // 1. Lấy dữ liệu cho Sliders
