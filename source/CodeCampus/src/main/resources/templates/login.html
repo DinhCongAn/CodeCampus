@@ -75,7 +75,8 @@
         </div>
 
         <div class="alert-container">
-            <div th:if="${loginError}" class="alert alert-danger" th:text="${loginError}">
+            <div th:if="${param.error}" class="alert alert-danger">
+                Email, mật khẩu không đúng hoặc tài khoản chưa được kích hoạt.
             </div>
             <div th:if="${param.logout}" class="alert alert-success">
                 Bạn đã đăng xuất thành công.
@@ -180,6 +181,6 @@
 </div>
 
 <script th:src="@{/login/form-utils.js}"></script>
-<script th:src="@{/login.html/script.js}"></script>
+<script th:src="@{/login/script.js}"></script>
 </body>
 </html>

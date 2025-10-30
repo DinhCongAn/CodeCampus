@@ -166,4 +166,37 @@ public class UserService {
         // Xóa token sau khi đã sử dụng
         tokenRepository.delete(tokenOpt.get());
     }
+    // --- PHƯƠNG THỨC MỚI CHO GOOGLE LOGIN ---
+    @Transactional
+    public User processOAuthPostLogin(String email, String fullName) {
+        Optional<User> userOpt = userRepository.findByEmail(email);
+
+        if (userOpt.isPresent()) {
+            // 1. User đã tồn tại: Cập nhật thông tin và trả về
+            User existingUser = userOpt.get();
+            existingUser.setFullName(fullName);
+            // Bạn có thể thêm cột avatar và cập nhật ở đây
+            return userRepository.save(existingUser);
+        } else {
+            // 2. User mới: Tạo tài khoản mới
+            User newUser = new User();
+            newUser.setEmail(email);
+            newUser.setFullName(fullName);
+            // Trạng thái 'active' ngay vì Google đã xác thực
+            newUser.setStatus("active");
+            // Tạo mật khẩu ngẫu nhiên (vì cột password_hash là NOT NULL)
+            newUser.setPasswordHash(passwordEncoder.encode(UUID.randomUUID().toString()));
+
+            UserRole defaultRole = userRoleRepository.findByName("STUDENT")
+                    .orElseThrow(() -> new RuntimeException("Vai trò 'STUDENT' không tồn tại."));
+            newUser.setRole(defaultRole);
+
+            return userRepository.save(newUser);
+        }
+    }
+
+    public User findUserByEmail(String email) {
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        return userOpt.orElse(null); // Trả về null nếu không tìm thấy
+    }
 }
