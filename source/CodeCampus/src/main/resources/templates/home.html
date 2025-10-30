@@ -9,19 +9,19 @@
 </head>
 
 <body class="bg-gray-50 text-gray-800 font-sans">
-<div th:replace="~{header :: header}"></div>
+<div th:replace="~{fragments/header :: header}"></div>
 
 <div class="flex max-w-7xl mx-auto mt-4">
     <aside class="w-20 flex flex-col items-center space-y-8 pt-6">
-        <a href="#" class="flex flex-col items-center text-gray-600 hover:text-blue-600">
+        <a href="/home" class="flex flex-col items-center text-gray-600 hover:text-blue-600">
             <div class="bg-gray-100 p-3 rounded-xl mb-1">🏠</div>
             <span class="text-sm">Trang chủ</span>
         </a>
-        <a href="#" class="flex flex-col items-center text-gray-600 hover:text-blue-600">
+        <a href="/lotrinh" class="flex flex-col items-center text-gray-600 hover:text-blue-600">
             <div class="bg-gray-100 p-3 rounded-xl mb-1">🧭</div>
             <span class="text-sm">Lộ trình</span>
         </a>
-        <a href="#" class="flex flex-col items-center text-gray-600 hover:text-blue-600">
+        <a href="/baiviet" class="flex flex-col items-center text-gray-600 hover:text-blue-600">
             <div class="bg-gray-100 p-3 rounded-xl mb-1">📝</div>
             <span class="text-sm">Bài viết</span>
         </a>
@@ -116,7 +116,7 @@
     </main>
 </div>
 
-<div th:replace="~{footer :: footer}"></div>
+<div th:replace="~{fragments/footer :: footer}"></div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {

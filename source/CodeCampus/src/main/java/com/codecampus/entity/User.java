@@ -1,156 +1,44 @@
 package com.codecampus.entity;
 
 import jakarta.persistence.*;
-import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.Nationalized;
+import lombok.Getter;
+import lombok.Setter;
+import java.time.LocalDateTime;
 
-import java.time.Instant;
-
+@Getter
+@Setter
 @Entity
 @Table(name = "users")
 public class User {
+
     @Id
-    @Column(name = "id", nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "email", nullable = false)
+    @Column(length = 255, nullable = false, unique = true)
     private String email;
 
-    @Column(name = "password_hash", nullable = false)
-    private String passwordHash;
+    @Column(name = "password_hash", length = 255, nullable = false)
+    private String passwordHash; // Ánh xạ tới cột 'password_hash'
 
-    @Nationalized
-    @Column(name = "full_name")
+    @Column(name = "full_name", length = 255)
     private String fullName;
 
-    @Nationalized
-    @Column(name = "gender", length = 10)
-    private String gender;
+    @Column(length = 50, columnDefinition = "NVARCHAR(50) DEFAULT 'pending'")
+    private String status;
 
-    @Column(name = "mobile", length = 20)
-    private String mobile;
-
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "role_id")
     private UserRole role;
 
-    @Nationalized
-    @Lob
-    @Column(name = "avatar")
-    private String avatar;
+    @Column(name = "created_at", columnDefinition = "DATETIME DEFAULT GETDATE()")
+    private LocalDateTime createdAt;
 
-    @Nationalized
-    @Lob
-    @Column(name = "address")
-    private String address;
-
-    @Nationalized
-    @ColumnDefault("'pending'")
-    @Column(name = "status", length = 50)
-    private String status;
-
-    @ColumnDefault("getdate()")
-    @Column(name = "created_at")
-    private Instant createdAt;
-
-    @ColumnDefault("getdate()")
-    @Column(name = "updated_at")
-    private Instant updatedAt;
-
-    public Integer getId() {
-        return id;
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        if (status == null) {
+            status = "pending"; // Đảm bảo trạng thái 'pending' như trong DB
+        }
     }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPasswordHash() {
-        return passwordHash;
-    }
-
-    public void setPasswordHash(String passwordHash) {
-        this.passwordHash = passwordHash;
-    }
-
-    public String getFullName() {
-        return fullName;
-    }
-
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
-    }
-
-    public String getGender() {
-        return gender;
-    }
-
-    public void setGender(String gender) {
-        this.gender = gender;
-    }
-
-    public String getMobile() {
-        return mobile;
-    }
-
-    public void setMobile(String mobile) {
-        this.mobile = mobile;
-    }
-
-    public UserRole getRole() {
-        return role;
-    }
-
-    public void setRole(UserRole role) {
-        this.role = role;
-    }
-
-    public String getAvatar() {
-        return avatar;
-    }
-
-    public void setAvatar(String avatar) {
-        this.avatar = avatar;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Instant updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
 }

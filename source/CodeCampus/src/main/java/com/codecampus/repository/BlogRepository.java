@@ -1,4 +1,4 @@
-package com.codecampus.blog;
+package com.codecampus.repository;
 
 import com.codecampus.entity.Blog;
 import org.springframework.data.jpa.repository.JpaRepository;

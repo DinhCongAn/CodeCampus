@@ -1,46 +1,22 @@
 package com.codecampus.entity;
 
 import jakarta.persistence.*;
-import org.hibernate.annotations.Nationalized;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "user_roles")
 public class UserRole {
+
     @Id
-    @Column(name = "id", nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Nationalized
-    @Column(name = "name", nullable = false, length = 50)
+    @Column(name = "name", length = 50, nullable = false, unique = true)
     private String name;
 
-    @Nationalized
-    @Lob
     @Column(name = "description")
     private String description;
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
 }

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glassmorphism Sign Up</title>
+    <link rel="stylesheet" th:href="@{/login/style.css}">
+    <style>
+        .alert {padding: 15px; margin-bottom: 20px; border-radius: 8px; font-size: 14px; text-align: center;}
+        .alert-danger {color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb;}
+        /* Lỗi validation của từng trường */
+        .error-message-field {
+            color: #ffb4b4;
+            font-size: 0.8rem;
+            margin-top: 5px;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <h2>Create Account</h2>
+            <p>Join CodeCampus today</p>
+        </div>
+
+        <div th:if="${registrationError}" class="alert alert-danger" th:text="${registrationError}">
+        </div>
+
+        <form class="login-form" id="registerForm" th:action="@{/register}" th:object="${userDto}" method="post" novalidate>
+
+            <div class="form-group">
+                <div class="input-wrapper">
+                    <input type="text" id="fullName" th:field="*{fullName}" required>
+                    <label for="fullName">Full Name</label>
+                    <span class="focus-border"></span>
+                </div>
+                <span class="error-message-field" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></span>
+            </div>
+
+            <div class="form-group">
+                <div class="input-wrapper">
+                    <input type="email" id="email" th:field="*{email}" required autocomplete="email">
+                    <label for="email">Email Address</label>
+                    <span class="focus-border"></span>
+                </div>
+                <span class="error-message-field" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></span>
+            </div>
+
+            <div class="form-group">
+                <div class="input-wrapper password-wrapper">
+                    <input type="password" id="password" th:field="*{password}" required autocomplete="new-password">
+                    <label for="password">Password</label>
+                    <span class="focus-border"></span>
+                </div>
+                <span class="error-message-field" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></span>
+            </div>
+
+            <div class="form-group">
+                <div class="input-wrapper password-wrapper">
+                    <input type="password" id="confirmPassword" th:field="*{confirmPassword}" required autocomplete="new-password">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <span class="focus-border"></span>
+                </div>
+                <span class="error-message-field" th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}"></span>
+            </div>
+
+            <button type="submit" class="login-btn btn">
+                <span class="btn-text">Sign Up</span>
+                <span class="btn-loader"></span>
+            </button>
+        </form>
+
+        <div class="signup-link" style="margin-top: 20px;">
+            <p>Already have an account? <a th:href="@{/login}">Sign in</a></p>
+        </div>
+    </div>
+</div>
+</body>
+</html>

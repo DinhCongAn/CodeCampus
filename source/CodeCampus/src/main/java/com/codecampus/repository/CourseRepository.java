@@ -1,4 +1,4 @@
-package com.codecampus.course;
+package com.codecampus.repository;
 
 import com.codecampus.entity.Course;
 import org.springframework.data.jpa.repository.JpaRepository;

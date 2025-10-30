@@ -1,4 +1,4 @@
-package com.codecampus.slider;
+package com.codecampus.repository;
 
 import com.codecampus.entity.Slider;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -2,11 +2,11 @@ package com.codecampus.home;
 
 import com.codecampus.entity.Blog;
 import com.codecampus.entity.Course;
-import com.codecampus.blog.BlogRepository;
-import com.codecampus.course.CourseRepository;
 import com.codecampus.entity.Setting;
 import com.codecampus.entity.Slider;
-import com.codecampus.slider.SliderRepository;
+import com.codecampus.repository.BlogRepository;
+import com.codecampus.repository.CourseRepository;
+import com.codecampus.repository.SliderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -49,4 +49,3 @@ public class HomeController {
         return "home";
     }
 }
-

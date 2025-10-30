@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <style>
+        body { font-family: sans-serif; display: grid; place-items: center; min-height: 100vh; background: #f4f4f4; }
+        .welcome-box { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center;}
+        a { color: #007bff; text-decoration: none; }
+    </style>
+</head>
+<body>
+<div class="welcome-box">
+    <h1>Chào mừng, <span th:text="${session.loggedInUserFullName}"></span>!</h1>
+    <p>Bạn đã đăng nhập thành công vào CodeCampus.</p>
+    <p><a th:href="@{/logout}">Đăng xuất</a></p>
+</div>
+</body>
+</html>
