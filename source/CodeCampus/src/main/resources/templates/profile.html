@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Chỉnh sửa Hồ sơ</title>
+    <style>
+        .container { max-width: 800px; margin: 50px auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px; }
+        .form-section { margin-bottom: 30px; padding: 20px; border: 1px solid #eee; border-radius: 6px; }
+        .error-message { color: red; font-size: 0.9em; }
+        .success-message { color: green; font-size: 0.9em; }
+        .avatar-preview { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin-bottom: 15px; border: 2px solid #ddd; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Quản lý Hồ sơ Cá nhân</h1>
+
+    <div th:if="${profileSuccess}" class="success-message" th:text="${profileSuccess}"></div>
+    <div th:if="${profileError}" class="error-message" th:text="${profileError}"></div>
+    <div th:if="${passwordSuccess}" class="success-message" th:text="${passwordSuccess}"></div>
+    <div th:if="${passwordError}" class="error-message" th:text="${passwordError}"></div>
+
+    <div th:if="${avatarSuccess}" class="success-message" th:text="${avatarSuccess}"></div>
+    <div th:if="${avatarError}" class="error-message" th:text="${avatarError}"></div>
+
+    <div class="form-section">
+        <h2>1. Ảnh đại diện</h2>
+
+        <img th:if="${user.avatarUrl}"
+             th:src="@{${user.avatarUrl}}"
+             alt="Avatar"
+             class="avatar-preview" />
+
+        <div th:unless="${user.avatarUrl}">
+            <div class="avatar-preview" style="background-color: #ddd; display: flex; align-items: center; justify-content: center;">
+                Chưa có ảnh
+            </div>
+        </div>
+
+        <form th:action="@{/profile/avatar-upload}" method="post" enctype="multipart/form-data">
+            <input type="hidden" th:name="${_csrf?.parameterName}" th:value="${_csrf?.token}" />
+
+            <label for="avatarFile">Chọn ảnh mới (JPG, PNG):</label>
+            <input type="file" id="avatarFile" name="avatarFile" accept="image/png, image/jpeg" required /><br/>
+
+            <button type="submit" style="margin-top: 10px;">Upload Ảnh</button>
+        </form>
+    </div>
+
+    <div class="form-section">
+        <h2>2. Thông tin cá nhân</h2>
+        <form th:action="@{/profile/update}" th:object="${user}" method="post">
+            <input type="hidden" th:name="${_csrf?.parameterName}" th:value="${_csrf?.token}" />
+
+            <label>Họ và tên:</label>
+            <input type="text" th:field="*{fullName}" required /><br/>
+
+            <label>Số điện thoại:</label>
+            <input type="text" th:field="*{mobile}" /><br/>
+
+            <label>Giới tính:</label>
+            <select th:field="*{gender}">
+                <option value="">-- Chọn --</option>
+                <option value="Nam">Nam</option>
+                <option value="Nữ">Nữ</option>
+            </select><br/>
+
+            <label>Địa chỉ:</label>
+            <textarea th:field="*{address}"></textarea><br/>
+
+            <button type="submit">Cập nhật thông tin</button>
+        </form>
+    </div>
+
+    <div class="form-section">
+        <h2>3. Đổi mật khẩu</h2>
+        <form th:action="@{/profile/change-password}" th:object="${passwordDto}" method="post">
+            <input type="hidden" th:name="${_csrf?.parameterName}" th:value="${_csrf?.token}" />
+
+            <label>Mật khẩu cũ:</label>
+            <input type="password" th:field="*{oldPassword}" required /><br/>
+            <span th:if="${#fields.hasErrors('oldPassword')}" th:errors="*{oldPassword}" class="error-message"></span><br/>
+
+            <label>Mật khẩu mới:</label>
+            <input type="password" th:field="*{newPassword}" required /><br/>
+            <span th:if="${#fields.hasErrors('newPassword')}" th:errors="*{newPassword}" class="error-message"></span><br/>
+
+            <label>Xác nhận mật khẩu mới:</label>
+            <input type="password" th:field="*{confirmPassword}" required /><br/>
+            <span th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}" class="error-message"></span><br/>
+
+            <button type="submit">Đổi mật khẩu</button>
+        </form>
+    </div>
+
+</div>
+
+<!-- JavaScript Animation Nâng Cao -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const trigger = document.getElementById('profile-trigger');
+        const menu = document.getElementById('dropdown-menu');
+
+        if (!trigger || !menu) return;
+
+        let isOpen = false;
+
+        const openMenu = () => {
+            if (isOpen) return;
+            isOpen = true;
+            menu.classList.remove('invisible', 'opacity-0', 'dropdown-enter-from', 'dropdown-leave-to');
+            menu.classList.add('opacity-100', 'visible');
+            // Trigger reflow để animation chạy
+            void menu.offsetWidth;
+            menu.classList.add('dropdown-enter-active');
+        };
+
+        const closeMenu = () => {
+            if (!isOpen) return;
+            isOpen = false;
+            menu.classList.remove('opacity-100', 'visible', 'dropdown-enter-active');
+            menu.classList.add('dropdown-leave-active', 'dropdown-leave-to');
+            setTimeout(() => {
+                menu.classList.add('invisible', 'opacity-0');
+                menu.classList.remove('dropdown-leave-active', 'dropdown-leave-to');
+            }, 250);
+        };
+
+        // Mở khi click
+        trigger.addEventListener('click', function (e) {
+            e.stopPropagation();
+            isOpen ? closeMenu() : openMenu();
+        });
+
+        // Đóng khi click ngoài
+        document.addEventListener('click', function (e) {
+            if (!trigger.contains(e.target)) {
+                closeMenu();
+            }
+        });
+
+        // Đóng khi nhấn ESC
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && isOpen) {
+                closeMenu();
+            }
+        });
+    });
+</script>
+</body>
+</html>

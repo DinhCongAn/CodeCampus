@@ -39,7 +39,7 @@ public class SecurityConfig {
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
                         .usernameParameter("email") // Khớp với name="email" trong form
-                        .defaultSuccessUrl("/dashboard", true)
+                        .defaultSuccessUrl("/home", true)
                         .failureUrl("/login?error=true") // Báo lỗi qua param.error
                         .permitAll()
                 )
@@ -49,7 +49,7 @@ public class SecurityConfig {
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(customOAuth2UserService) // Dùng service tùy chỉnh
                         )
-                        .defaultSuccessUrl("/dashboard", true)
+                        .defaultSuccessUrl("/home", true)
                 )
                 // Cấu hình Logout
                 .logout(logout -> logout
