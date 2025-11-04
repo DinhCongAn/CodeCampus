@@ -1,135 +1,57 @@
 package com.codecampus.entity;
 
 import jakarta.persistence.*;
-import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.Nationalized;
+import lombok.Getter;
+import lombok.Setter;
+import java.time.LocalDateTime;
 
-import java.time.Instant;
-
+@Getter
+@Setter
 @Entity
 @Table(name = "blogs")
 public class Blog {
+
     @Id
-    @Column(name = "id", nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Nationalized
-    @Column(name = "title", nullable = false)
+    @Column(nullable = false)
     private String title;
 
-    @Nationalized
-    @Lob
-    @Column(name = "content")
+    @Column(columnDefinition = "NVARCHAR(MAX)")
     private String content;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "blog_category_id")
-    private BlogCategory blogCategory;
+    private BlogCategory category;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id")
-    private User author;
+    private User author; // Liên kết tới bảng 'users'
 
-    @Nationalized
-    @Lob
-    @Column(name = "thumbnail_url")
+    @Column(name = "thumbnail_url", columnDefinition = "NTEXT")
     private String thumbnailUrl;
 
-    @Nationalized
-    @ColumnDefault("'draft'")
-    @Column(name = "status", length = 50)
-    private String status;
+    @Column(length = 50, columnDefinition = "NVARCHAR(50) DEFAULT 'draft'")
+    private String status; // Ví dụ: 'draft', 'published'
 
-    @ColumnDefault("NULL")
     @Column(name = "published_at")
-    private Instant publishedAt;
+    private LocalDateTime publishedAt;
 
-    @ColumnDefault("getdate()")
-    @Column(name = "created_at")
-    private Instant createdAt;
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
 
-    @ColumnDefault("getdate()")
     @Column(name = "updated_at")
-    private Instant updatedAt;
+    private LocalDateTime updatedAt;
 
-    public Integer getId() {
-        return id;
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
     }
 
-    public void setId(Integer id) {
-        this.id = id;
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
     }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public BlogCategory getBlogCategory() {
-        return blogCategory;
-    }
-
-    public void setBlogCategory(BlogCategory blogCategory) {
-        this.blogCategory = blogCategory;
-    }
-
-    public User getAuthor() {
-        return author;
-    }
-
-    public void setAuthor(User author) {
-        this.author = author;
-    }
-
-    public String getThumbnailUrl() {
-        return thumbnailUrl;
-    }
-
-    public void setThumbnailUrl(String thumbnailUrl) {
-        this.thumbnailUrl = thumbnailUrl;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public Instant getPublishedAt() {
-        return publishedAt;
-    }
-
-    public void setPublishedAt(Instant publishedAt) {
-        this.publishedAt = publishedAt;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Instant updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
 }

@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
@@ -93,7 +94,7 @@
                     </a>
                     <div class="p-5">
                         <h4 th:text="${post.title}" class="font-semibold mb-2">Tiêu đề bài viết</h4>
-                        <p th:text="${#dates.format(post.publishedAt, 'dd-MM-yyyy')}" class="text-sm text-gray-500 mb-4">Ngày đăng</p>
+                        <p th:text="${#temporals.format(post.publishedAt, 'dd-MM-yyyy')}" class="text-sm text-gray-500 mb-4">Ngày đăng</p>
                         <a th:href="@{'/blog/' + ${post.id}}" class="text-blue-600 font-semibold hover:underline">Xem chi tiết</a>
                     </div>
                 </div>
@@ -107,7 +108,7 @@
                     <img th:src="${post.thumbnailUrl}" class="w-20 h-20 object-cover rounded-md"/>
                     <div>
                         <a th:href="@{'/blog/' + ${post.id}}" class="font-semibold text-gray-800 hover:text-indigo-600" th:text="${post.title}">Tiêu đề bài viết mới</a>
-                        <p class="text-sm text-gray-500" th:text="${#dates.format(post.publishedAt, 'dd-MM-yyyy')}">Ngày đăng</p>
+                        <p class="text-sm text-gray-500" th:text="${#temporals.format(post.publishedAt, 'dd-MM-yyyy')}">Ngày đăng</p>
                     </div>
                 </div>
             </div>

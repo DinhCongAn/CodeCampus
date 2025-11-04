@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title th:text="${blog.title}">Chi tiết Blog - CodeCampus</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="icon" href="/images/logo.png" />
+    <style>
+        .blog-content h2 { font-size: 1.75rem; font-weight: 700; margin-top: 2rem; margin-bottom: 1rem; }
+        .blog-content p { font-size: 1.125rem; line-height: 1.75; margin-bottom: 1.5rem; }
+        .blog-content code { background-color: #f3f4f6; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
+        .blog-content pre { background-color: #1f2937; color: #f9fafb; padding: 1rem; border-radius: 8px; overflow-x: auto; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans">
+
+<div th:replace="~{fragments/header :: header}"></div>
+
+<div class="max-w-4xl mx-auto px-6 py-12">
+    <article>
+        <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-6" th:text="${blog.title}">
+            Tiêu đề bài viết
+        </h1>
+
+        <div class="flex items-center space-x-4 mb-8 border-b border-gray-200 pb-6">
+            <img th:src="@{${blog.author?.avatarUrl ?: '/images/default-avatar.png'}}"
+                 class="w-12 h-12 rounded-full object-cover" />
+            <div>
+                <p class="font-semibold text-gray-800" th:text="${blog.author?.fullName}">Tên Tác giả</p>
+                <p class="text-sm text-gray-500">
+                    Đăng ngày: <span th:text="${#temporals.format(blog.publishedAt, 'dd-MM-yyyy')}"></span>
+                    &middot; Danh mục: <span class="font-medium text-blue-600" th:text="${blog.category?.name}"></span>
+                </p>
+            </div>
+        </div>
+
+        <img th:src="@{${blog.thumbnailUrl}}" alt="Thumbnail" class="w-full rounded-2xl shadow-lg mb-8" />
+
+        <div class="blog-content text-lg"
+             th:utext="${blog.content}">
+        </div>
+    </article>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>
