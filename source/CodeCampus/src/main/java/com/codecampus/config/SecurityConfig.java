@@ -26,7 +26,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authz -> authz
                         // Cho phép các trang public
                         .requestMatchers(
-                                "/home", "/login", "/register", "/logout",
+                                "/home","/blog/**", "/login", "/register", "/logout",
                                 "/forgot-password", "/reset-password", "/verify",
                                 "/login/**", // Cho phép CSS/JS trong thư mục /login
                                 "/css/**", "/js/**", "/images/**"

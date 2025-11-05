@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<aside class="w-full md:w-1/4 lg:w-1/3 md:pl-8 space-y-6"
+       th:fragment="blog-sidebar">
+
+    <div class="bg-white p-5 rounded-lg shadow-sm">
+        <h3 class="font-bold text-lg mb-3">Tìm kiếm</h3>
+        <form th:action="@{/blog}" method="GET">
+            <input type="text"
+                   name="keyword"
+                   th:value="${keyword}"
+                   placeholder="Nhập từ khóa..."
+                   class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300"/>
+        </form>
+    </div>
+
+    <div class="bg-white p-5 rounded-lg shadow-sm">
+        <h3 class="font-bold text-lg mb-3">Danh mục</h3>
+        <ul class="space-y-2">
+            <li th:each="cat : ${categories}">
+                <a th:href="@{/blog(category=${cat.id})}"
+                   th:text="${cat.name}"
+                   class="text-gray-700 hover:text-blue-600">
+                    Tên Danh mục
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="bg-white p-5 rounded-lg shadow-sm">
+        <h3 class="font-bold text-lg mb-3">Bài viết mới nhất</h3>
+        <ul class="space-y-3">
+            <li th:each="post : ${latestPosts}" class="flex items-center space-x-3">
+                <img th:src="@{${post.thumbnailUrl}}" alt="thumb" class="w-16 h-16 object-cover rounded-md"/>
+                <div>
+                    <a th:href="@{'/blog/' + ${post.id}}"
+                       th:text="${post.title}"
+                       class="font-semibold text-sm leading-tight text-gray-800 hover:text-blue-600">
+                        Tiêu đề bài viết mới
+                    </a>
+                </div>
+            </li>
+        </ul>
+    </div>
+
+    <div class="bg-white p-5 rounded-lg shadow-sm">
+        <h3 class="font-bold text-lg mb-3">Liên hệ</h3>
+        <ul class="space-y-2 text-sm text-gray-700">
+            <li>Email: contact@codecampus.vn</li>
+            <li>Hotline: 1800 1234</li>
+            <li>Facebook: fb.com/codecampus</li>
+        </ul>
+    </div>
+
+</aside>
+
+</body>
+</html>

@@ -18,30 +18,37 @@
 
 <div th:replace="~{fragments/header :: header}"></div>
 
-<div class="max-w-4xl mx-auto px-6 py-12">
-    <article>
-        <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-6" th:text="${blog.title}">
-            Tiêu đề bài viết
-        </h1>
+<div class="max-w-7xl mx-auto px-6 py-12 md:flex">
 
-        <div class="flex items-center space-x-4 mb-8 border-b border-gray-200 pb-6">
-            <img th:src="@{${blog.author?.avatarUrl ?: '/images/default-avatar.png'}}"
-                 class="w-12 h-12 rounded-full object-cover" />
-            <div>
-                <p class="font-semibold text-gray-800" th:text="${blog.author?.fullName}">Tên Tác giả</p>
-                <p class="text-sm text-gray-500">
-                    Đăng ngày: <span th:text="${#temporals.format(blog.publishedAt, 'dd-MM-yyyy')}"></span>
-                    &middot; Danh mục: <span class="font-medium text-blue-600" th:text="${blog.category?.name}"></span>
-                </p>
+    <main class="w-full md:w-3/4 lg:w-2/3 md:pr-8">
+        <article>
+            <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-6" th:text="${blog.title}">
+                Tiêu đề bài viết
+            </h1>
+
+            <div class="flex items-center space-x-4 mb-8 border-b border-gray-200 pb-6">
+                <img th:src="@{${blog.author?.avatarUrl ?: '/images/default-avatar.png'}}"
+                     class="w-12 h-12 rounded-full object-cover" />
+                <div>
+                    <p class="font-semibold text-gray-800" th:text="${blog.author?.fullName}">Tên Tác giả</p>
+                    <p class="text-sm text-gray-500">
+                        Cập nhật: <span th:text="${#temporals.format(blog.updatedAt, 'dd-MM-yyyy')}"></span>
+                        &middot;
+                        <span class="font-medium text-blue-600" th:text="${blog.category?.name}">Danh mục</span>
+                    </p>
+                </div>
             </div>
-        </div>
 
-        <img th:src="@{${blog.thumbnailUrl}}" alt="Thumbnail" class="w-full rounded-2xl shadow-lg mb-8" />
+            <img th:src="@{${blog.thumbnailUrl}}" alt="Thumbnail" class="w-full rounded-2xl shadow-lg mb-8" />
 
-        <div class="blog-content text-lg"
-             th:utext="${blog.content}">
-        </div>
-    </article>
+            <div class="blog-content text-lg"
+                 th:utext="${blog.content}">
+            </div>
+        </article>
+    </main>
+
+    <div th:replace="~{fragments/sidebar :: blog-sidebar}"></div>
+
 </div>
 
 <div th:replace="~{fragments/footer :: footer}"></div>

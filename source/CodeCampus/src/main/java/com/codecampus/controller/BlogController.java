@@ -1,6 +1,7 @@
 package com.codecampus.controller;
 
 import com.codecampus.entity.Blog;
+import com.codecampus.entity.BlogCategory; // Thêm import
 import com.codecampus.service.BlogService;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
@@ -8,6 +9,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.List; // Thêm import
 
 @Controller
 public class BlogController {
@@ -19,32 +22,51 @@ public class BlogController {
     }
 
     /**
-     * Trang 1: Hiển thị DANH SÁCH BLOG (có phân trang)
+     * CẬP NHẬT: Trang Danh sách Blog (List)
      */
     @GetMapping("/blog")
     public String showBlogList(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "9") int size,
+            @RequestParam(required = false) String keyword, // Thêm param tìm kiếm
             Model model) {
 
-        Page<Blog> blogPage = blogService.getPublishedBlogs(page, size);
+        // 1. Lấy danh sách bài viết (đã phân trang và tìm kiếm)
+        Page<Blog> blogPage = blogService.getPublishedBlogs(page, size, keyword);
 
-        model.addAttribute("blogPage", blogPage); // Gửi đối tượng Page sang view
+        // 2. Lấy dữ liệu cho Sidebar
+        List<BlogCategory> categories = blogService.getAllActiveCategories();
+        List<Blog> latestPosts = blogService.getLatestPosts();
+
+        // 3. Gửi dữ liệu sang View
+        model.addAttribute("blogPage", blogPage);
+        model.addAttribute("categories", categories);
+        model.addAttribute("latestPosts", latestPosts);
+        model.addAttribute("keyword", keyword); // Gửi lại từ khóa để giữ trên ô search
 
         return "blog-list"; // Trả về templates/blog-list.html
     }
 
     /**
-     * Trang 2: Hiển thị CHI TIẾT BLOG
+     * CẬP NHẬT: Trang Chi tiết Blog (Details)
      */
     @GetMapping("/blog/{id}")
     public String showBlogDetails(@PathVariable("id") Integer id, Model model) {
         try {
+            // 1. Lấy chi tiết bài viết
             Blog blog = blogService.getPublishedBlogById(id);
+
+            // 2. Lấy dữ liệu cho Sidebar
+            List<BlogCategory> categories = blogService.getAllActiveCategories();
+            List<Blog> latestPosts = blogService.getLatestPosts();
+
+            // 3. Gửi dữ liệu sang View
             model.addAttribute("blog", blog);
+            model.addAttribute("categories", categories);
+            model.addAttribute("latestPosts", latestPosts);
+
             return "blog-details"; // Trả về templates/blog-details.html
         } catch (RuntimeException e) {
-            // Xử lý nếu không tìm thấy blog
             return "redirect:/blog?error=notFound";
         }
     }
