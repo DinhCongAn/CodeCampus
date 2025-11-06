@@ -1,13 +1,15 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security6">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Danh sách Blog - CodeCampus</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link rel="icon" href="/images/logo.png" />
+    <link rel="icon" th:href="@{/images/logo.png}" />
 </head>
+
 <body class="bg-gray-50 text-gray-800 font-sans">
 
 <div th:replace="~{fragments/header :: header}"></div>
@@ -21,6 +23,10 @@
             <h2 class="text-xl">Kết quả tìm kiếm cho:
                 <span class="font-semibold" th:text="${keyword}"></span>
             </h2>
+        </div>
+
+        <div th:if="${param.error == 'notFound'}" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
+            <span class="block sm:inline">Không tìm thấy bài viết bạn yêu cầu.</span>
         </div>
 
         <div class="space-y-8">
@@ -55,24 +61,27 @@
                     </div>
                 </div>
             </div>
-        </div>
+            <div th:if="${blogPage.empty}" class="bg-white p-6 rounded-2xl shadow-lg text-center">
+                <h2 class="text-xl font-semibold text-gray-700">Không tìm thấy bài viết nào</h2>
+                <p class="text-gray-500">Vui lòng thử lại với từ khóa hoặc danh mục khác.</p>
+            </div>
 
+        </div>
         <div class="flex justify-center items-center space-x-4 mt-12"
              th:if="${blogPage.totalPages > 1}">
 
             <a th:if="${!blogPage.isFirst()}"
-               th:href="@{/blog(page=${blogPage.number - 1}, size=${blogPage.size}, keyword=${keyword})}"
+               th:href="@{/blog(page=${blogPage.number - 1}, size=${blogPage.size}, keyword=${keyword}, categoryId=${selectedCategoryId})}"
                class="px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-gray-700 hover:bg-gray-50">
                 &larr; Trang trước
             </a>
             <span class="text-gray-700" th:text="|Trang ${blogPage.number + 1} / ${blogPage.totalPages}|"></span>
             <a th:if="${!blogPage.isLast()}"
-               th:href="@{/blog(page=${blogPage.number + 1}, size=${blogPage.size}, keyword=${keyword})}"
+               th:href="@{/blog(page=${blogPage.number + 1}, size=${blogPage.size}, keyword=${keyword}, categoryId=${selectedCategoryId})}"
                class="px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-gray-700 hover:bg-gray-50">
                 Trang sau &rarr;
             </a>
         </div>
-
     </main>
 
     <div th:replace="~{fragments/sidebar :: blog-sidebar}"></div>
@@ -80,6 +89,8 @@
 </div>
 
 <div th:replace="~{fragments/footer :: footer}"></div>
+
+<script th:src="@{/js/dropdown.js}" sec:authorize="isAuthenticated()"></script>
 
 </body>
 </html>

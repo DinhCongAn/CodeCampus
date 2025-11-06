@@ -15,23 +15,18 @@ public interface BlogRepository extends JpaRepository<Blog, Long> {
     // Tìm 5 bài viết đầu tiên theo status, sắp xếp theo ngày publish giảm dần
     List<Blog> findTop5ByStatusOrderByPublishedAtDesc(String status);
 
-    /**
-     * SỬA LẠI: Tìm tất cả bài blog đã xuất bản, sắp xếp theo NGÀY CẬP NHẬT
-     */
+    // 1. CHỈ TÌM KIẾM THEO TỪ KHÓA (Title)
+    // Sắp xếp theo ngày cập nhật (thay vì publishedAt)
+    Page<Blog> findByStatusAndTitleContainingIgnoreCaseOrderByUpdatedAtDesc(String status, String keyword, Pageable pageable);
+
+    // 2. CHỈ LỌC THEO DANH MỤC (Category)
+    Page<Blog> findByStatusAndCategoryIdOrderByUpdatedAtDesc(String status, Integer categoryId, Pageable pageable);
+
+    // 3. KẾT HỢP: LỌC THEO DANH MỤC VÀ TÌM THEO TỪ KHÓA
+    Page<Blog> findByStatusAndTitleContainingIgnoreCaseAndCategoryIdOrderByUpdatedAtDesc(String status, String keyword, Integer categoryId, Pageable pageable);
+
+    // 4. MẶC ĐỊNH: Lấy tất cả (đã sửa để sắp xếp theo ngày cập nhật)
     Page<Blog> findByStatusOrderByUpdatedAtDesc(String status, Pageable pageable);
-
-    /**
-     * MỚI: Tìm kiếm theo Tiêu đề (Title) VÀ Sắp xếp theo NGÀY CẬP NHẬT
-     */
-    Page<Blog> findByTitleContainingIgnoreCaseAndStatusOrderByUpdatedAtDesc(String keyword, String status, Pageable pageable);
-
-    /**
-     * MỚI: Lấy 5 bài viết mới nhất cho Sidebar
-     */
     List<Blog> findTop5ByStatusOrderByUpdatedAtDesc(String status);
-
-    /**
-     * Giữ nguyên: Tìm chi tiết bài viết
-     */
     Optional<Blog> findByIdAndStatus(Integer id, String status);
 }

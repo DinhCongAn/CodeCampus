@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -33,6 +33,7 @@
     </style>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-purple-600 via-pink-500 to-red-500 dark:from-gray-900 dark:via-purple-900 dark:to-pink-900 text-gray-800 dark:text-gray-100 overflow-x-hidden">
+<div th:replace="~{fragments/header :: header}"></div>
 
 <!-- Nút bay lơ lửng -->
 <a href="/home"
@@ -49,7 +50,6 @@
         <h1 class="text-5xl md:text-6xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-pink-600 animate-pulse">
             Hồ sơ của bạn
         </h1>
-        <p class="mt-4 text-xl text-white/90">Chỉnh sửa chỉ bằng 1 cú click</p>
     </header>
 
     <!-- Thông báo sống động -->
@@ -189,5 +189,7 @@
         });
     });
 </script>
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/dropdown.js}" sec:authorize="isAuthenticated()"></script>
 </body>
 </html>

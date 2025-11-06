@@ -27,24 +27,24 @@ public class BlogController {
     @GetMapping("/blog")
     public String showBlogList(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "9") int size,
-            @RequestParam(required = false) String keyword, // Thêm param tìm kiếm
+            @RequestParam(defaultValue = "3") int size,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Integer categoryId, // THÊM param này
             Model model) {
 
-        // 1. Lấy danh sách bài viết (đã phân trang và tìm kiếm)
-        Page<Blog> blogPage = blogService.getPublishedBlogs(page, size, keyword);
+        // 1. Lấy danh sách bài viết (Service đã xử lý logic)
+        Page<Blog> blogPage = blogService.getPublishedBlogs(page, size, keyword, categoryId);
 
-        // 2. Lấy dữ liệu cho Sidebar
-        List<BlogCategory> categories = blogService.getAllActiveCategories();
-        List<Blog> latestPosts = blogService.getLatestPosts();
+        // 2. Lấy dữ liệu cho Sidebar (Giữ nguyên)
+        model.addAttribute("categories", blogService.getAllActiveCategories());
+        model.addAttribute("latestPosts", blogService.getLatestPosts());
 
         // 3. Gửi dữ liệu sang View
         model.addAttribute("blogPage", blogPage);
-        model.addAttribute("categories", categories);
-        model.addAttribute("latestPosts", latestPosts);
-        model.addAttribute("keyword", keyword); // Gửi lại từ khóa để giữ trên ô search
+        model.addAttribute("keyword", keyword); // Giữ từ khóa trên ô search
+        model.addAttribute("selectedCategoryId", categoryId); // THÊM: Giữ danh mục đã chọn
 
-        return "blog-list"; // Trả về templates/blog-list.html
+        return "blog-list";
     }
 
     /**

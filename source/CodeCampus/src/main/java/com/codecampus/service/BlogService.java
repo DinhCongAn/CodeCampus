@@ -25,16 +25,27 @@ public class BlogService {
     private static final String STATUS_PUBLISHED = "published";
 
     /**
-     * CẬP NHẬT: Lấy danh sách blog (hỗ trợ cả tìm kiếm và phân trang)
+     * CẬP NHẬT: Hỗ trợ tìm kiếm theo cả keyword và categoryId
      */
-    public Page<Blog> getPublishedBlogs(int page, int size, String keyword) {
+    public Page<Blog> getPublishedBlogs(int page, int size, String keyword, Integer categoryId) {
         Pageable pageable = PageRequest.of(page, size);
 
-        if (keyword != null && !keyword.isEmpty()) {
-            // Nếu có từ khóa, thực hiện tìm kiếm
-            return blogRepository.findByTitleContainingIgnoreCaseAndStatusOrderByUpdatedAtDesc(keyword, STATUS_PUBLISHED, pageable);
+        // Kiểm tra xem có giá trị tìm kiếm/lọc không
+        boolean hasKeyword = (keyword != null && !keyword.trim().isEmpty());
+        // Giả sử 0 hoặc null nghĩa là "Tất cả danh mục"
+        boolean hasCategory = (categoryId != null && categoryId > 0);
+
+        if (hasKeyword && hasCategory) {
+            // 1. Tìm theo cả Keyword VÀ Category
+            return blogRepository.findByStatusAndTitleContainingIgnoreCaseAndCategoryIdOrderByUpdatedAtDesc(STATUS_PUBLISHED, keyword, categoryId, pageable);
+        } else if (hasKeyword) {
+            // 2. Chỉ tìm theo Keyword
+            return blogRepository.findByStatusAndTitleContainingIgnoreCaseOrderByUpdatedAtDesc(STATUS_PUBLISHED, keyword, pageable);
+        } else if (hasCategory) {
+            // 3. Chỉ lọc theo Category
+            return blogRepository.findByStatusAndCategoryIdOrderByUpdatedAtDesc(STATUS_PUBLISHED, categoryId, pageable);
         } else {
-            // Nếu không, lấy danh sách tiêu chuẩn
+            // 4. Mặc định (không tìm, không lọc)
             return blogRepository.findByStatusOrderByUpdatedAtDesc(STATUS_PUBLISHED, pageable);
         }
     }
