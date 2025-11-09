@@ -32,18 +32,23 @@
         <section class="relative rounded-2xl overflow-hidden shadow-lg group">
             <div class="flex transition-transform duration-700 ease-in-out" id="slider-wrapper">
                 <div th:each="slider : ${sliders}"
-                     class="min-w-full flex justify-between items-center px-10 py-16 text-white"
-                     style="background: linear-gradient(to right, #6D28D9, #4F46E5);">
-                    <div class="max-w-lg">
-                        <h2 class="text-4xl font-bold mb-4" th:text="${slider.title}">Slider Title</h2>
-                        <p class="mb-6 text-lg" th:text="${slider.description}">Slider Description</p>
-                        <a th:href="${slider.linkUrl}"
-                           class="px-6 py-3 bg-white text-indigo-600 font-semibold rounded-full hover:bg-gray-100">
-                            <span>Xem chi tiết</span>
-                        </a>
+                     class="min-w-full relative"
+                     style="aspect-ratio: 8/2;"> <!-- thấp hơn 16:9 khoảng một nửa -->
+
+                    <div class="absolute inset-0 flex flex-col justify-center px-12 text-white bg-cover bg-center bg-no-repeat"
+                         th:style="'background-image: linear-gradient(to right, rgba(109,40,217,0.6), rgba(79,70,229,0.6)), url(' + ${slider.imageUrl} + '); background-blend-mode: overlay;'">
+
+                        <div class="max-w-xl z-10 space-y-4">
+                            <h2 class="text-5xl font-extrabold leading-tight drop-shadow-lg"
+                                th:text="${slider.title}">Slider Title</h2>
+                            <p class="text-xl opacity-90 leading-relaxed"
+                               th:text="${slider.description}">Slider Description</p>
+                            <a th:href="${slider.linkUrl}"
+                               class="inline-block px-6 py-3 bg-white/90 text-indigo-700 font-semibold rounded-full hover:bg-white transition duration-300 shadow-md hover:shadow-lg">
+                                <span>Xem chi tiết</span>
+                            </a>
+                        </div>
                     </div>
-                    <img th:src="${slider.imageUrl}" alt="Slide Image"
-                         class="hidden md:block w-[420px] rounded-lg"/>
                 </div>
             </div>
 
