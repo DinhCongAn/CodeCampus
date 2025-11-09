@@ -19,12 +19,26 @@
             <p class="text-gray-500 mt-2">Cập nhật thông tin và mật khẩu</p>
         </header>
 
-        <!-- Thông báo -->
-        <div th:if="${profileSuccess}" class="mb-6 p-4 bg-green-100 text-green-800 rounded-lg border border-green-200 text-center text-sm">
+        <!-- Thông báo chung -->
+        <div th:if="${profileSuccess}" class="mb-4 p-4 bg-green-100 text-green-800 rounded-lg border border-green-200 text-center text-sm">
             <p th:text="${profileSuccess}"></p>
         </div>
-        <div th:if="${profileError}" class="mb-6 p-4 bg-red-100 text-red-800 rounded-lg border border-red-200 text-center text-sm">
+        <div th:if="${profileError}" class="mb-4 p-4 bg-red-100 text-red-800 rounded-lg border border-red-200 text-center text-sm">
             <p th:text="${profileError}"></p>
+        </div>
+
+        <div th:if="${passwordSuccess}" class="mb-4 p-4 bg-green-100 text-green-800 rounded-lg border border-green-200 text-center text-sm">
+            <p th:text="${passwordSuccess}"></p>
+        </div>
+        <div th:if="${passwordError}" class="mb-4 p-4 bg-red-100 text-red-800 rounded-lg border border-red-200 text-center text-sm">
+            <p th:text="${passwordError}"></p>
+        </div>
+
+        <div th:if="${avatarSuccess}" class="mb-4 p-4 bg-green-100 text-green-800 rounded-lg border border-green-200 text-center text-sm">
+            <p th:text="${avatarSuccess}"></p>
+        </div>
+        <div th:if="${avatarError}" class="mb-4 p-4 bg-red-100 text-red-800 rounded-lg border border-red-200 text-center text-sm">
+            <p th:text="${avatarError}"></p>
         </div>
 
         <!-- Avatar -->

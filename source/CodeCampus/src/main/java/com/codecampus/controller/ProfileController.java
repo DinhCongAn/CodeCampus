@@ -10,10 +10,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -28,35 +25,27 @@ public class ProfileController {
         this.userService = userService;
     }
 
-    // --- Lấy thông tin User hiện tại ---
+    // --- Lấy User hiện tại từ SecurityContext ---
     private User getCurrentUser(Authentication authentication) {
+        if (authentication == null) return null;
         String email = authentication.getName();
         return userService.findUserByEmail(email);
     }
 
     // ===============================================================
-    // 1. CHỨC NĂNG HIỂN THỊ PROFILE (VÀ TRUYỀN DỮ LIỆU LÊN HEADER)
+    // 1. HIỂN THỊ PROFILE
     // ===============================================================
-
     @GetMapping("/profile")
     public String showProfileForm(Model model, Authentication authentication) {
         User user = getCurrentUser(authentication);
-        if (user == null) {
-            return "redirect:/logout";
+        if (user == null) return "redirect:/logout";
+
+        // Gửi User hiện tại tới form
+        if (!model.containsAttribute("user")) {
+            model.addAttribute("user", user);
         }
 
-//        // --- LOGIC TRUYỀN DỮ LIỆU USER ĐẾN TEMPLATE VÀ HEADER ---
-//        // Các biến này được sử dụng trong header.html
-//        model.addAttribute("fullName", user.getFullName());
-//        model.addAttribute("avatarUrl", user.getAvatarUrl());
-//        model.addAttribute("roleName", user.getRole().getName()); // Dùng cho menu dropdown kiểm tra quyền
-//        model.addAttribute("email", user.getEmail()); // Dùng cho hiển thị email trong dropdown
-//        // ---------------------------------------------------------
-
-        // Gửi đối tượng User hiện tại để điền vào form
-        model.addAttribute("user", user);
-
-        // Gửi đối tượng DTO rỗng để điền vào form đổi mật khẩu
+        // DTO cho đổi mật khẩu
         if (!model.containsAttribute("passwordDto")) {
             model.addAttribute("passwordDto", new PasswordDto());
         }
@@ -67,15 +56,22 @@ public class ProfileController {
     // ===============================================================
     // 2. CẬP NHẬT THÔNG TIN CÁ NHÂN
     // ===============================================================
-
     @PostMapping("/profile/update")
     public String updateProfile(
-            @ModelAttribute("user") User user,
+            @ModelAttribute("user") @Valid User user,
+            BindingResult result,
             Authentication authentication,
             RedirectAttributes redirectAttributes) {
 
         User currentUser = getCurrentUser(authentication);
         if (currentUser == null) return "redirect:/logout";
+
+        if (result.hasErrors()) {
+            redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.user", result);
+            redirectAttributes.addFlashAttribute("user", user);
+            redirectAttributes.addFlashAttribute("profileError", "Thông tin nhập chưa hợp lệ, vui lòng kiểm tra lại.");
+            return "redirect:/profile";
+        }
 
         try {
             userService.updateProfile(
@@ -86,8 +82,8 @@ public class ProfileController {
                     user.getAddress()
             );
             redirectAttributes.addFlashAttribute("profileSuccess", "Thông tin cá nhân đã được cập nhật thành công.");
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("profileError", "Lỗi: " + e.getMessage());
+        } catch (RuntimeException e) {
+            redirectAttributes.addFlashAttribute("profileError", "Lỗi cập nhật: " + e.getMessage());
         }
 
         return "redirect:/profile";
@@ -96,19 +92,18 @@ public class ProfileController {
     // ===============================================================
     // 3. ĐỔI MẬT KHẨU
     // ===============================================================
-
     @PostMapping("/profile/change-password")
     public String changePassword(
             @Valid @ModelAttribute("passwordDto") PasswordDto passwordDto,
             BindingResult result,
             Authentication authentication,
             RedirectAttributes redirectAttributes,
-            // THÊM THAM SỐ NÀY
             HttpServletRequest request) {
 
         if (result.hasErrors()) {
             redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.passwordDto", result);
             redirectAttributes.addFlashAttribute("passwordDto", passwordDto);
+            redirectAttributes.addFlashAttribute("passwordError", "Thông tin nhập chưa hợp lệ, vui lòng kiểm tra lại.");
             return "redirect:/profile";
         }
 
@@ -116,23 +111,14 @@ public class ProfileController {
             String email = authentication.getName();
             userService.changePassword(email, passwordDto);
 
-            // =========================================================
-            // 1. BUỘC ĐĂNG XUẤT THỦ CÔNG (ĐẢM BẢO XÓA SESSION)
-            // =========================================================
-            // Xóa bối cảnh bảo mật (Security Context)
-            SecurityContextHolder.getContext().setAuthentication(null);
-
-            // Hủy session HTTP
+            // Buộc đăng xuất để session cũ hết hiệu lực
+            SecurityContextHolder.clearContext();
             if (request.getSession(false) != null) {
                 request.getSession(false).invalidate();
             }
-            // =========================================================
 
-            redirectAttributes.addFlashAttribute("verificationSuccess",
-                    "Mật khẩu đã được đổi thành công. Vui lòng đăng nhập lại.");
-
-            // Chuyển hướng TRỰC TIẾP đến trang đăng nhập (vì session đã bị hủy)
-            return "redirect:/home";
+            redirectAttributes.addFlashAttribute("passwordSuccess", "Mật khẩu đã được đổi thành công. Vui lòng đăng nhập lại.");
+            return "redirect:/login"; // redirect về login
 
         } catch (RuntimeException e) {
             redirectAttributes.addFlashAttribute("passwordError", e.getMessage());
@@ -141,9 +127,8 @@ public class ProfileController {
     }
 
     // ===============================================================
-    // 4. ĐỔI ẢNH ĐẠI DIỆN (AVATAR)
+    // 4. ĐỔI ẢNH ĐẠI DIỆN
     // ===============================================================
-
     @PostMapping("/profile/avatar-upload")
     public String uploadAvatar(
             @RequestParam("avatarFile") MultipartFile avatarFile,
@@ -153,12 +138,16 @@ public class ProfileController {
         User currentUser = getCurrentUser(authentication);
         if (currentUser == null) return "redirect:/logout";
 
+        if (avatarFile.isEmpty()) {
+            redirectAttributes.addFlashAttribute("avatarError", "Vui lòng chọn file ảnh để upload.");
+            return "redirect:/profile";
+        }
+
         try {
             userService.updateAvatar(currentUser, avatarFile);
             redirectAttributes.addFlashAttribute("avatarSuccess", "Ảnh đại diện đã được cập nhật.");
-
         } catch (RuntimeException e) {
-            redirectAttributes.addFlashAttribute("avatarError", e.getMessage());
+            redirectAttributes.addFlashAttribute("avatarError", "Lỗi upload: " + e.getMessage());
         } catch (IOException e) {
             redirectAttributes.addFlashAttribute("avatarError", "Lỗi lưu file: " + e.getMessage());
         }
