@@ -63,16 +63,51 @@
                 <span class="text-3xl font-bold text-green-600">Miễn phí</span>
             </div>
 
-            <a th:href="@{/register-course/{id}(id=${course.id})}"
-               class="mt-4 block w-full text-center bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 text-lg">
+            <button type="button" id="openRegisterModalButton"
+                    class="mt-4 block w-full text-center bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 text-lg cursor-pointer">
                 Đăng ký ngay
-            </a>
+            </button>
         </div>
     </main>
 
     <div th:replace="~{fragments/course-sidebar :: course-sidebar}"></div>
 </div>
 <div th:replace="~{fragments/footer :: footer}"></div>
+
+
+<div th:if="${course != null and pricePackages != null}"
+     th:replace="~{fragments/register-modal :: register-modal(course=${course}, pricePackages=${pricePackages})}">
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const modal = document.getElementById('registerModal');
+        const openBtn = document.getElementById('openRegisterModalButton');
+        // Nút đóng này (id="closeRegisterModal") phải ở trong file fragment
+        const closeBtn = document.getElementById('closeRegisterModal');
+
+        // 1. Mở Modal
+        if (openBtn) {
+            openBtn.addEventListener('click', () => {
+                if(modal) modal.classList.remove('hidden');
+            });
+        }
+        // 2. Đóng Modal (bằng nút X)
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                if(modal) modal.classList.add('hidden');
+            });
+        }
+        // 3. Đóng Modal (khi click ra ngoài)
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.add('hidden');
+                }
+            });
+        }
+    });
+</script>
 
 </body>
 </html>

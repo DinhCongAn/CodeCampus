@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security6">
+<body>
+
+<div th:fragment="register-modal(course, pricePackages)"
+     id="registerModal"
+     class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 hidden"
+     aria-labelledby="modal-title" role="dialog" aria-modal="true">
+
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-lg p-6 m-4 overflow-y-auto" style="max-height: 90vh;">
+        <div class="flex justify-between items-center border-b pb-3">
+            <h3 class="text-2xl font-semibold" id="modal-title">Đăng ký khóa học</h3>
+            <button type="button" id="closeRegisterModal" class="text-gray-400 hover:text-gray-600">
+                <span class="material-icons">close</span>
+            </button>
+        </div>
+
+        <form th:action="@{/register-process}" method="POST" class="mt-4 space-y-5">
+            <input type="hidden" name="courseId" th:value="${course.id}" />
+            <h4 class="text-lg font-medium">Khóa học: <span class.="font-bold" th:text="${course.name}"></span></h4>
+
+            <div>
+                <label class="block text-base font-semibold text-gray-700 mb-2">Chọn gói học phí:</label>
+                <div class="space-y-2">
+                    <div th:each="pkg, iter : ${pricePackages}" class="border rounded-md p-3">
+                        <input type="radio" th:id="'pkg_' + ${pkg.id}" name="packageId" th:value="${pkg.id}" th:checked="${iter.index == 0}" class="mr-2">
+                        <label th:for="'pkg_' + ${pkg.id}" class="font-medium">
+                            <span th:text="${pkg.name}"></span> -
+                            <span class="text-red-600 font-bold" th:text="${#numbers.formatDecimal(pkg.salePrice != null ? pkg.salePrice : pkg.listPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div sec:isAnonymous="" class="space-y-4 pt-4 border-t">
+                <h4 class="text-lg font-medium">Thông tin liên hệ</h4>
+                <div>
+                    <label for="fullName" class="block text-sm font-medium">Họ và tên</label>
+                    <input type="text" name="fullName" id="fullName" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                </div>
+                <div>
+                    <label for="email" class="block text-sm font-medium">Email</label>
+                    <input type="email" name="email" id="email" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                </div>
+                <div>
+                    <label for="mobile" class="block text-sm font-medium">Số điện thoại</label>
+                    <input type="tel" name="mobile" id="mobile" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                </div>
+                <div>
+                    <label for="gender" class="block text-sm font-medium">Giới tính</label>
+                    <select name="gender" id="gender" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 bg-white">
+                        <option value="MALE">Nam</option>
+                        <option value="FEMALE">Nữ</option>
+                        <option value="OTHER">Khác</option>
+                    </select>
+                </div>
+            </div>
+
+            <div sec:isAuthenticated="" class="pt-4 border-t">
+                <p>Bạn đăng ký với tài khoản: <strong sec:authentication="principal.username"></strong>.</p>
+            </div>
+
+            <div class="pt-5 border-t">
+                <button type="submit" class="w-full flex justify-center py-3 px-4 rounded-md shadow-sm text-lg font-medium text-white bg-red-600 hover:bg-red-700">
+                    Đến trang thanh toán
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

@@ -2,7 +2,10 @@ package com.codecampus.controller;
 
 import com.codecampus.entity.Course;
 import com.codecampus.entity.CourseCategory;
+import com.codecampus.entity.PricePackage; // BỔ SUNG
+import com.codecampus.repository.UserRepository;
 import com.codecampus.service.CourseService;
+import com.codecampus.service.PricePackageService; // BỔ SUNG
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,9 +19,14 @@ import java.util.List;
 public class CourseController {
 
     private final CourseService courseService;
+    private final PricePackageService pricePackageService; // BỔ SUNG
+    private final UserRepository userRepository; // BỔ SUNG
 
-    public CourseController(CourseService courseService) {
+    // BỔ SUNG PricePackageService vào constructor
+    public CourseController(CourseService courseService, PricePackageService pricePackageService,UserRepository userRepository) {
         this.courseService = courseService;
+        this.pricePackageService = pricePackageService; // BỔ SUNG
+        this.userRepository = userRepository; // BỔ SUNG
     }
 
     /**
@@ -37,23 +45,19 @@ public class CourseController {
     @GetMapping("/courses")
     public String showCourseList(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "3") int size,
+            @RequestParam(defaultValue = "4") int size,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Integer categoryId,
             Model model) {
 
         loadSidebarData(model);
-
         Page<Course> coursePage = courseService.getPublishedCourses(page, size, keyword, categoryId);
-
         model.addAttribute("coursePage", coursePage);
         model.addAttribute("keyword", keyword);
         model.addAttribute("selectedCategoryId", categoryId);
-
-        // Đưa courseService vào model để gọi getLowestPrice bên trong view
         model.addAttribute("courseService", courseService);
 
-        return "course-list"; // Trả về template course-list.html
+        return "course-list";
     }
 
     /**
@@ -63,14 +67,18 @@ public class CourseController {
     public String showCourseDetails(@PathVariable("id") Integer id, Model model) {
         try {
             loadSidebarData(model);
-
             Course course = courseService.getPublishedCourseById(id);
             model.addAttribute("course", course);
-
-            // Thêm lowestPriceOpt luôn, dù rỗng
             model.addAttribute("lowestPriceOpt", courseService.getLowestPrice(id));
 
-            return "course-details"; // Trả về template course-details.html
+            // ===== BẮT BUỘC BỔ SUNG DÒNG NÀY =====
+            // Lấy danh sách gói giá để truyền ra Modal
+            List<PricePackage> packages = pricePackageService.getPackagesByCourseId(id);
+            model.addAttribute("pricePackages", packages);
+            // ===================================
+
+
+            return "course-details"; // Trả về file course-details.html
         } catch (RuntimeException e) {
             return "redirect:/courses?error=notFound";
         }
