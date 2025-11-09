@@ -21,6 +21,10 @@
 <div class="max-w-7xl mx-auto px-6 py-12 md:flex">
 
     <main class="w-full md:w-3/4 lg:w-2/3 md:pr-8">
+        <a th:href="@{/blog}" class="inline-flex items-center text-blue-600 hover:text-blue-800 mb-4 group">
+            <span class="material-icons mr-1 transition-transform group-hover:-translate-x-1">arrow_back</span>
+            Quay lại danh sách
+        </a>
         <article>
             <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-6" th:text="${blog.title}">
                 Tiêu đề bài viết
