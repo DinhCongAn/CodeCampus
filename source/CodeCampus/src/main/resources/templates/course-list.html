@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security6">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Danh sách Khóa học - CodeCampus</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="icon" th:href="@{/images/logo.png}" />
+    <link rel="stylesheet" th:href="@{/css/main.css}"> </head>
+<body class="bg-gray-50 text-gray-800 font-sans">
+
+<div th:replace="~{fragments/header :: header}"></div>
+
+<div class="max-w-7xl mx-auto px-6 py-12 md:flex">
+
+    <main class="w-full md:w-3/4 lg:w-2/3 md:pr-8">
+        <h1 class="text-4xl font-bold text-gray-900 mb-10">Tất cả Khóa học</h1>
+
+        <div th:if="${param.error == 'notFound'}" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
+            <span class="block sm:inline">Không tìm thấy khóa học bạn yêu cầu.</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+            <div th:each="course : ${coursePage.content}"
+                 class="bg-white rounded-2xl shadow-lg overflow-hidden transition-transform duration-300 hover:scale-105">
+
+                <a th:href="@{'/courses/' + ${course.id}}">
+                    <img th:src="@{${course.thumbnailUrl}}" alt="Thumbnail" class="w-full h-48 object-cover" />
+                </a>
+
+                <div class="p-6">
+                    <span class="text-sm font-semibold text-blue-600" th:text="${course.category?.name}">Danh mục</span>
+
+                    <a th:href="@{'/courses/' + ${course.id}}">
+                        <h2 class="text-xl font-bold text-gray-900 my-2" th:text="${course.name}">Tiêu đề khóa học</h2>
+                    </a>
+
+                    <div class="mt-4">
+                        <div th:with="lowestPriceOpt=${courseService.getLowestPrice(course.id)}">
+                            <div th:if="${lowestPriceOpt.isPresent()}">
+                                <div th:with="lowestPrice=${lowestPriceOpt.get()}">
+                                    <span th:if="${lowestPrice.salePrice != null}"
+                                          class="text-2xl font-bold text-red-600"
+                                          th:text="${#numbers.formatDecimal(lowestPrice.salePrice, 0, 'COMMA', 0, 'POINT') + ' đ'}">
+                                    </span>
+                                    <span th:if="${lowestPrice.salePrice != null}"
+                                          class="text-lg text-gray-500 line-through ml-2"
+                                          th:text="${#numbers.formatDecimal(lowestPrice.listPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}">
+                                    </span>
+                                    <span th:unless="${lowestPrice.salePrice != null}"
+                                          class="text-2xl font-bold text-gray-900"
+                                          th:text="${#numbers.formatDecimal(lowestPrice.listPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}">
+                                    </span>
+                                </div>
+                            </div>
+                            <div th:unless="${lowestPriceOpt.isPresent()}">
+                                <span class="text-xl font-bold text-green-600">Miễn phí</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <a th:href="@{'/courses/' + ${course.id}}"
+                       class="mt-5 block w-full text-center bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700">
+                        Xem chi tiết
+                    </a>
+                </div>
+            </div>
+            <div th:if="${#lists.isEmpty(coursePage.content)}" class="bg-white p-6 rounded-2xl shadow-lg text-center md:col-span-2">                <h2 class="text-xl font-semibold text-gray-700">Không tìm thấy khóa học nào</h2>
+                <p class="text-gray-500">Vui lòng thử lại với từ khóa hoặc danh mục khác.</p>
+            </div>
+
+        </div>
+
+        <div class="flex justify-center items-center space-x-4 mt-12"
+             th:if="${coursePage.totalPages > 1}">
+            <a th:if="${!coursePage.isFirst()}"
+               th:href="@{/courses(page=${coursePage.number - 1}, size=${coursePage.size}, keyword=${keyword}, categoryId=${selectedCategoryId})}"
+               class="px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-gray-700 hover:bg-gray-50">
+                &larr; Trang trước
+            </a>
+            <span class="text-gray-700" th:text="|Trang ${coursePage.number + 1} / ${coursePage.totalPages}|"></span>
+            <a th:if="${!coursePage.isLast()}"
+               th:href="@{/courses(page=${coursePage.number + 1}, size=${coursePage.size}, keyword=${keyword}, categoryId=${selectedCategoryId})}"
+               class="px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-gray-700 hover:bg-gray-50">
+                Trang sau &rarr;
+            </a>
+        </div>
+
+    </main>
+
+    <div th:replace="~{fragments/course-sidebar :: course-sidebar}"></div>
+
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>

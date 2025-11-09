@@ -1,38 +1,31 @@
 package com.codecampus.entity;
 
 import jakarta.persistence.*;
-import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.Nationalized;
+import lombok.Getter;
+import lombok.Setter;
+import java.time.LocalDateTime;
 
-import java.time.Instant;
-
+@Getter
+@Setter
 @Entity
 @Table(name = "courses")
 public class Course {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
     private Integer id;
 
-    @Nationalized
-    @Column(name = "name", nullable = false)
-    private String name;
+    @Column(nullable = false)
+    private String name; // (title trong mô tả)
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
-    private CourseCategory category;
+    private CourseCategory category; // (tag line trong mô tả)
 
-    @Nationalized
-    @Lob
-    @Column(name = "description")
-    private String description;
+    @Column(columnDefinition = "NVARCHAR(MAX)")
+    private String description; // (product description)
 
-    @Nationalized
-    @ColumnDefault("'draft'")
-    @Column(name = "status", length = 50)
     private String status;
 
-    @ColumnDefault("0")
     @Column(name = "is_featured")
     private Boolean isFeatured;
 
@@ -40,97 +33,14 @@ public class Course {
     @JoinColumn(name = "owner_id")
     private User owner;
 
-    @Nationalized
-    @Lob
-    @Column(name = "thumbnail_url")
+    @Column(name = "thumbnail_url", columnDefinition = "NTEXT")
     private String thumbnailUrl;
 
-    @ColumnDefault("getdate()")
-    @Column(name = "created_at")
-    private Instant createdAt;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
-    @ColumnDefault("getdate()")
-    @Column(name = "updated_at")
-    private Instant updatedAt;
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public CourseCategory getCategory() {
-        return category;
-    }
-
-    public void setCategory(CourseCategory category) {
-        this.category = category;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public Boolean getIsFeatured() {
-        return isFeatured;
-    }
-
-    public void setIsFeatured(Boolean isFeatured) {
-        this.isFeatured = isFeatured;
-    }
-
-    public User getOwner() {
-        return owner;
-    }
-
-    public void setOwner(User owner) {
-        this.owner = owner;
-    }
-
-    public String getThumbnailUrl() {
-        return thumbnailUrl;
-    }
-
-    public void setThumbnailUrl(String thumbnailUrl) {
-        this.thumbnailUrl = thumbnailUrl;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Instant updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
+    @PrePersist
+    protected void onCreate() { createdAt = LocalDateTime.now(); updatedAt = LocalDateTime.now(); }
+    @PreUpdate
+    protected void onUpdate() { updatedAt = LocalDateTime.now(); }
 }
