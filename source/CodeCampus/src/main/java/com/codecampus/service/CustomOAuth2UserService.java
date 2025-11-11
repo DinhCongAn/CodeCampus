@@ -29,6 +29,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String email = (String) attributes.get("email");
         String name = (String) attributes.get("name");
         // String avatarUrl = (String) attributes.get("picture"); // Lấy avatar nếu muốn
+        System.out.println("OAuth2 attributes: " + attributes);
 
         // 2. Xử lý (lưu/cập nhật vào DB) bằng UserService của chúng ta
         User user = userService.processOAuthPostLogin(email, name);
