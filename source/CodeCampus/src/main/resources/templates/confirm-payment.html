@@ -2,67 +2,50 @@
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Xác nhận thanh toán</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+<body>
+<h2>Thanh toán khóa học: <span th:text="${registration.course.name}"></span></h2>
+<p>Số tiền: <strong th:text="${#numbers.formatDecimal(registration.totalCost,0,'COMMA',0,'POINT')} + ' đ'"></strong></p>
 
-<div class.="bg-white p-8 rounded-lg shadow-xl max-w-md w-full text-center">
-    <div id="pending-state">
-        <h2 class="text-2xl font-bold mb-4">Quét mã để thanh toán</h2>
-        <p class="text-gray-600 mb-6">Sử dụng ứng dụng ngân hàng để quét mã QR và hoàn tất đăng ký.</p>
+<p>Order Code: <span id="orderCode" th:text="${registration.orderCode}"></span>
+    <button onclick="copyOrderCode()">Copy</button></p>
 
-        <img th:src="'data:image/png;base64,' + ${qrCodeBase64}" alt="VietQR" class="w-64 h-64 mx-auto border"/>
+<p>QR Code thanh toán:</p>
+<div id="qrcode"></div>
+<p><a th:href="${registration.paymentUrl}" target="_blank">Thanh toán nếu không quét QR</a></p>
 
-        <div class="mt-6 text-left bg-gray-50 p-4 rounded-lg">
-            <p><strong>Ngân hàng:</strong> <span th:text="${bankName}"></span></p>
-            <p><strong>Chủ tài khoản:</strong> <span th:text="${bankAccountName}"></span></p>
-            <p><strong>Số tài khoản:</strong> <span th:text="${bankAccountNo}"></span></p>
-            <hr class="my-2">
-            <p><strong>Số tiền:</strong> <span class="text-red-600" th:text="${#numbers.formatDecimal(registration.totalCost, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span></p>
-            <p><strong>Nội dung:</strong> <span class="text-blue-600" th:text="${registration.orderCode}"></span></p>
-            <p class="text-sm text-red-500 mt-2">(*) Vui lòng giữ nguyên nội dung chuyển khoản.</p>
-        </div>
-    </div>
+<p id="status" style="color:red;">Chưa thanh toán</p>
 
-    <div id="success-state" class="hidden">
-        <span class="material-icons text-green-500" style="font-size: 80px;">check_circle</span>
-        <h2 class="text-2xl font-bold text-green-600 mt-4">Thanh toán thành công!</h2>
-        <p class="text-gray-700 mt-2">Cảm ơn bạn. Email xác nhận đã được gửi đến <strong th:text="${registration.user.email}"></strong>.</p>
-        <p class="mt-6">Bạn sẽ được chuyển hướng sau 5 giây...</p>
-    </div>
-</div>
+<script>
+    // Tạo QR Code
+    new QRCode(document.getElementById("qrcode"), {
+        text: /*[[${registration.paymentUrl}]]*/ "",
+        width: 200,
+        height: 200
+    });
 
-<script th:inline="javascript">
-    /* Lấy ID đơn hàng từ Model (Thymeleaf) */
-    const registrationId = /*[[${registration.id}]]*/ 'defaultId';
-
-    function checkPaymentStatus() {
-        // Gọi API /api/registration/status/{id}
-        fetch(`/api/registration/status/${registrationId}`)
-            .then(response => response.json())
-            .then(data => {
-                // Nếu status là COMPLETED (do Webhook đã cập nhật)
-                if (data.status === 'COMPLETED') {
-                    // 1. Ẩn QR, Hiện thông báo thành công
-                    document.getElementById('pending-state').classList.add('hidden');
-                    document.getElementById('success-state').classList.remove('hidden');
-
-                    // 2. Dừng polling
-                    clearInterval(pollingInterval);
-
-                    // 3. Chuyển hướng
-                    setTimeout(() => {
-                        window.location.href = '/my-courses'; // Về trang khóa học của tôi
-                    }, 5000);
-                }
-                // Nếu vẫn là PENDING, không làm gì, chờ lần poll tiếp theo
-            });
+    // Copy orderCode
+    function copyOrderCode() {
+        const orderCode = document.getElementById("orderCode").innerText;
+        navigator.clipboard.writeText(orderCode).then(() => alert("Copied!"));
     }
 
-    // Bắt đầu polling, gọi hàm kiểm tra mỗi 5 giây
-    const pollingInterval = setInterval(checkPaymentStatus, 5000);
+    // Auto check status mỗi 3s
+    setInterval(() => {
+        fetch("/api/registration/status/" + document.getElementById("orderCode").innerText)
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "COMPLETED") {
+                    document.getElementById("status").innerText = "Đã thanh toán ✅";
+                    setTimeout(() => {
+                        window.location.href = "/courses"; // quay về trang khóa học
+                    }, 2000);
+                }
+            });
+    }, 3000);
 </script>
 </body>
 </html>
