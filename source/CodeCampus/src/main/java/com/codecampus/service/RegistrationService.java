@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class RegistrationService {
@@ -27,9 +28,25 @@ public class RegistrationService {
     @Transactional
     public Registration createPendingRegistrationAndSendEmail(RegistrationRequest request, String loggedInUsername) {
 
-        // 1. Lấy thông tin
         User user = userRepository.findByEmail(loggedInUsername)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy User: " + loggedInUsername));
+
+        // ===== BỔ SUNG: KIỂM TRA TRÙNG LẶP =====
+        boolean alreadyPending = registrationRepository.existsByUserIdAndCourseIdAndPricePackageIdAndStatus(
+                user.getId(),
+                request.getCourseId(),
+                request.getPackageId(),
+                "PENDING"
+        );
+
+        if (alreadyPending) {
+            // TRƯỜNG HỢP 1: ĐÃ TỒN TẠI ĐƠN HÀNG PENDING CHO GÓI NÀY
+            // Văng lỗi để Controller bắt và thông báo
+            throw new RuntimeException("Bạn đã có đơn chờ duyệt cho gói này. Vui lòng kiểm tra 'Khóa học của tôi'.");
+        }
+        // ======================================
+
+        // TRƯỜNG HỢP 2: CHƯA TỒN TẠI (Tạo đơn mới)
 
         // SỬA LỖI: Bỏ .longValue() vì Course ID là Integer (theo DBScript)
         Course course = courseRepository.findById(request.getCourseId().longValue())
@@ -42,25 +59,24 @@ public class RegistrationService {
                 ? pricePackage.getSalePrice()
                 : pricePackage.getListPrice();
 
-        // 2. Tạo đối tượng Registration
-        Registration reg = new Registration();
-        reg.setUser(user);
-        reg.setCourse(course);
-        reg.setPricePackage(pricePackage);
-        reg.setTotalCost(totalCost);
-        reg.setRegistrationTime(LocalDateTime.now());
-        reg.setStatus("PENDING");
-        reg.setOrderCode("CC-" + System.currentTimeMillis());
-        reg.setUpdatedAt(LocalDateTime.now());
+        // 2. Tạo đối tượng Registration MỚI
+        Registration newReg = new Registration();
+        newReg.setUser(user);
+        newReg.setCourse(course);
+        newReg.setPricePackage(pricePackage);
+        newReg.setTotalCost(totalCost);
+        newReg.setRegistrationTime(LocalDateTime.now());
+        newReg.setStatus("PENDING");
+        newReg.setOrderCode("CC-" + System.currentTimeMillis());
+        newReg.setUpdatedAt(LocalDateTime.now());
 
         // 3. Lưu vào DB
-        registrationRepository.save(reg);
+        registrationRepository.save(newReg);
 
         // 4. GỬI MAIL "CHỜ DUYỆT"
-        // (Sửa lại nội dung mail này nếu cần)
-        emailService.sendRegistrationPendingEmail(reg);
-
-        return reg;
+        emailService.sendRegistrationPendingEmail(newReg);
+        System.out.println("Gửi mail chờ duyệt thành công");
+        return newReg;
     }
 
     // 3. Khi Admin bấm "Xác nhận"

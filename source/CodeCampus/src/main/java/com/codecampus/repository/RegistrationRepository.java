@@ -54,4 +54,12 @@ public interface RegistrationRepository extends JpaRepository<Registration, Inte
     List<Registration> findByStatus(String status);
 
     boolean existsByUserIdAndCourseIdAndStatus(Integer userId, Integer courseId, String status);
+
+    /**
+     * Tìm một đơn hàng PENDING (chờ duyệt)
+     * của một user, cho một khóa học, VÀ cho một gói giá cụ thể.
+     */
+    boolean existsByUserIdAndCourseIdAndPricePackageIdAndStatus(
+            Integer userId, Integer courseId, Integer pricePackageId, String status
+    );
 }

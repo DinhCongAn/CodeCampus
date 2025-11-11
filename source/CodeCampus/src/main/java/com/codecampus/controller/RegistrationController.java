@@ -38,6 +38,7 @@ public class RegistrationController {
     @GetMapping("/registration/checkout")
     public String showCheckoutPage(@RequestParam("courseId") Integer courseId,
                                    @RequestParam("packageId") Integer packageId,
+                                   @ModelAttribute("errorMessage") String errorMessage,
                                    Model model) {
         try {
             // Lấy thông tin (chưa lưu) để hiển thị
@@ -55,6 +56,10 @@ public class RegistrationController {
             model.addAttribute("pricePackage", pricePackage);
             model.addAttribute("registrationRequest", request); // Gửi DTO rỗng
 
+            // BỔ SUNG: Đẩy lỗi ra view (nếu có)
+            if (errorMessage != null && !errorMessage.isEmpty()) {
+                model.addAttribute("errorMessage", errorMessage);
+            }
             return "pending-approval"; // Trả về trang thanh toán (QR cố định)
 
         } catch (Exception e) {
@@ -68,7 +73,7 @@ public class RegistrationController {
      */
     @PostMapping("/registration/confirm-payment")
     public String handleRegistration(
-            @ModelAttribute RegistrationRequest request, // DTO (chỉ có 2 trường)
+            @ModelAttribute("registrationRequest") RegistrationRequest request,
             Authentication authentication,
             RedirectAttributes redirectAttributes) {
 
@@ -76,7 +81,7 @@ public class RegistrationController {
         if (currentUser == null) return "redirect:/login";
 
         try {
-            // Hàm này (sửa ở bước 3) sẽ VỪA LƯU DB, VỪA GỬI MAIL
+            // Hàm service (đã sửa) giờ sẽ văng lỗi nếu PENDING bị trùng
             registrationService.createPendingRegistrationAndSendEmail(
                     request,
                     currentUser.getEmail()
@@ -89,8 +94,14 @@ public class RegistrationController {
             return "redirect:/my-courses"; // Chuyển hướng về Khóa học của tôi
 
         } catch (Exception e) {
+            // Gửi thông báo lỗi
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
-            return "redirect:/courses/" + request.getCourseId();
+
+            // Chuyển hướng (redirect) NGƯỢC LẠI trang checkout (trang QR)
+            // Kèm theo courseId và packageId để trang đó load lại
+            return "redirect:/registration/checkout?courseId="
+                    + request.getCourseId() + "&packageId=" + request.getPackageId();
+            // =========================
         }
     }
 
@@ -114,5 +125,32 @@ public class RegistrationController {
 
         return "redirect:/my-courses";
     }
+    /**
+     * 3. Hiển thị lại trang "Chờ duyệt" (Khi bấm "Xem thanh toán" ở /my-courses)
+     */
+    @GetMapping("/registration/pending/{orderCode}")
+    public String showPendingPage(@PathVariable("orderCode") String orderCode, Model model) {
+        try {
+            // Lấy đơn hàng (ĐÃ TỒN TẠI)
+            Registration reg = registrationService.getRegistrationByOrderCode(orderCode);
 
+            // Tạo một DTO rỗng (chỉ để form không bị lỗi)
+            RegistrationRequest request = new RegistrationRequest();
+            request.setCourseId(reg.getCourse().getId());
+            request.setPackageId(reg.getPricePackage().getId());
+
+            // Gửi dữ liệu ra (lấy từ đơn hàng đã lưu)
+            model.addAttribute("course", reg.getCourse());
+            model.addAttribute("pricePackage", reg.getPricePackage());
+            model.addAttribute("registrationRequest", request); // DTO
+
+            // SỬA: Thêm chính 'registration' để lấy orderCode
+            model.addAttribute("registration", reg);
+
+            return "pending-approval"; // Trả về trang QR
+
+        } catch (Exception e) {
+            return "redirect:/my-courses";
+        }
+    }
 }
