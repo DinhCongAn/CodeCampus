@@ -28,14 +28,30 @@ public interface RegistrationRepository extends JpaRepository<Registration, Inte
      * 3. Hỗ trợ hàm getCoursesByUserId (Trang Khóa học của tôi)
      * (Lấy luôn User và Course để hiển thị ra HTML)
      */
-    @Query("SELECT r FROM Registration r JOIN FETCH r.user u JOIN FETCH r.course c " +
-            "WHERE u.id = :userId ORDER BY r.registrationTime DESC")
-    List<Registration> findByUserIdWithDetails(@Param("userId") Integer userId);
-
+    /**
+     * Hỗ trợ hàm getCoursesByUserId (Trang Khóa học của tôi)
+     * (BỔ SUNG: JOIN FETCH r.pricePackage p)
+     */
+    @Query("SELECT r FROM Registration r " +
+            "JOIN FETCH r.user u " +
+            "JOIN FETCH r.course c " +
+            "JOIN FETCH r.pricePackage p " +
+            "JOIN c.category cat " + // Join với category để lọc
+            "WHERE u.id = :userId " + // Lọc theo User
+            // Lọc theo keyword (nếu có)
+            "AND (:keyword IS NULL OR c.name LIKE %:keyword%) " +
+            // Lọc theo categoryId (nếu có)
+            "AND (:categoryId IS NULL OR cat.id = :categoryId) " +
+            "ORDER BY r.registrationTime DESC")
+    List<Registration> findByUserIdWithDetails(
+            @Param("userId") Integer userId,
+            @Param("keyword") String keyword,
+            @Param("categoryId") Integer categoryId
+    );
     /**
      * 4. Hỗ trợ hàm getPendingRegistrations (Trang Admin)
      */
     List<Registration> findByStatus(String status);
 
-
+    boolean existsByUserIdAndCourseIdAndStatus(Integer userId, Integer courseId, String status);
 }

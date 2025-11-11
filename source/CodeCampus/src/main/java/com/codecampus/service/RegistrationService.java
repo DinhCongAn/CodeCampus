@@ -88,17 +88,38 @@ public class RegistrationService {
             emailService.sendPaymentSuccessEmail(reg); // Gửi mail "thành công"
         }
     }
+    // BỔ SUNG TÍNH NĂNG HỦY (CANCEL)
+    // ==========================================================
+    @Transactional
+    public void cancelRegistration(Integer registrationId, Integer currentUserId) {
+        Registration reg = registrationRepository.findById(registrationId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng."));
 
+        // Kiểm tra bảo mật: User này có đúng là chủ của đơn hàng không?
+        if (!reg.getUser().getId().equals(currentUserId)) {
+            throw new RuntimeException("Bạn không có quyền hủy đơn hàng này.");
+        }
+
+        // Chỉ cho phép hủy đơn PENDING
+        if (!"PENDING".equals(reg.getStatus())) {
+            throw new RuntimeException("Không thể hủy đơn hàng đã được xử lý.");
+        }
+
+        // Xóa đơn hàng (Logic đơn giản nhất)
+        // (Nếu muốn lưu vết, bạn có thể đổi status thành "CANCELLED")
+        registrationRepository.delete(reg);
+    }
 
     /**
      * 4. Lấy danh sách cho trang "Khóa học của tôi"
      * (Đây là hàm bạn yêu cầu)
      */
     @Transactional(readOnly = true)
-    public List<Registration> getCoursesByUserId(Integer userId) {
-        // Gọi hàm JOIN FETCH trong Repository
-        return registrationRepository.findByUserIdWithDetails(userId);
+    public List<Registration> getCoursesByUserId(Integer userId, String keyword, Integer categoryId) {
+        // Gọi hàm @Query đã được cập nhật
+        return registrationRepository.findByUserIdWithDetails(userId, keyword, categoryId);
     }
+    // =============================
 
     /**
      * 5. Lấy đơn hàng (cho trang chờ /pending-approval)
@@ -110,12 +131,10 @@ public class RegistrationService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
     }
 
-    /**
-     * 6. Kiểm tra (cho trang /courses/{id})
-     */
     @Transactional(readOnly = true)
     public boolean hasUserRegistered(Integer userId, Integer courseId) {
-        return registrationRepository.existsByUserIdAndCourseId(userId, courseId);
+        // Gọi phương thức Repository mới, chỉ kiểm tra "COMPLETED"
+        return registrationRepository.existsByUserIdAndCourseIdAndStatus(userId, courseId, "COMPLETED");
     }
 
     /**
@@ -125,4 +144,6 @@ public class RegistrationService {
     public List<Registration> getPendingRegistrations() {
         return registrationRepository.findByStatus("PENDING");
     }
+
+
 }

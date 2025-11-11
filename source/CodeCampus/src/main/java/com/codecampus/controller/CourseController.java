@@ -82,33 +82,35 @@ public class CourseController {
      * Màn hình 11: Hiển thị CHI TIẾT KHÓA HỌC (Details)
      */
     @GetMapping("/courses/{id}")
-    public String showCourseDetails(@PathVariable("id") Integer id, Model model, Authentication authentication) {
+    public String showCourseDetails(@PathVariable("id") Integer id,
+                                    Model model,
+                                    Authentication authentication) {
         try {
             loadSidebarData(model);
             Course course = courseService.getPublishedCourseById(id);
             model.addAttribute("course", course);
             model.addAttribute("lowestPriceOpt", courseService.getLowestPrice(id));
 
-            // Lấy danh sách gói giá để truyền ra Modal
-            List<PricePackage> packages = pricePackageRepository.getPackagesByCourseId(id);
+            // ===== BẮT BUỘC BỔ SUNG DÒNG NÀY =====
+            // (Pop-up của bạn cần ${pricePackages})
+            List<PricePackage> packages = pricePackageRepository.findByCourseId(id);
             model.addAttribute("pricePackages", packages);
             // ===================================
 
-            // ===== BỔ SUNG LOGIC KIỂM TRA ĐĂNG KÝ =====
+            // ===== Logic kiểm tra đăng ký (Đã đúng) =====
             User currentUser = getCurrentUser(authentication);
-            boolean isRegistered = false; // Mặc định là chưa
+            boolean isRegistered = false;
 
             if (currentUser != null) {
                 model.addAttribute("loggedInUser", currentUser);
-                // Gọi Service để kiểm tra
+                // Hàm này giờ chỉ kiểm tra "COMPLETED"
                 isRegistered = registrationService.hasUserRegistered(currentUser.getId(), id);
             }
 
-            // Đẩy biến boolean này ra HTML
             model.addAttribute("isRegistered", isRegistered);
             // ========================================
 
-            return "course-details"; // Trả về file course-details.html
+            return "course-details";
         } catch (RuntimeException e) {
             return "redirect:/courses?error=notFound";
         }

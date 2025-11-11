@@ -1,8 +1,10 @@
 // src/main/java/com/codecampus/controller/MyCoursesController.java
 package com.codecampus.controller;
 
+import com.codecampus.entity.CourseCategory;
 import com.codecampus.entity.Registration;
 import com.codecampus.entity.User;
+import com.codecampus.service.CourseService;
 import com.codecampus.service.RegistrationService;
 import com.codecampus.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -21,7 +24,7 @@ public class MyCoursesController {
 
     @Autowired
     private RegistrationService registrationService;
-
+    @Autowired private CourseService courseService; // BỔ SUNG
     /**
      * Helper: Lấy thông tin User đang đăng nhập
      */
@@ -41,24 +44,37 @@ public class MyCoursesController {
     /**
      * Xử lý hiển thị trang "Khóa học của tôi"
      */
+
+    // --- BỔ SUNG: Helper tải dữ liệu Sidebar ---
+    // (Logic này giống hệt CourseController)
+    private void loadSidebarData(Model model) {
+        List<CourseCategory> categories = courseService.getAllActiveCategories();
+        model.addAttribute("courseCategories", categories);
+        // (Thêm featuredCourses nếu fragment sidebar của bạn cần)
+    }
     @GetMapping("/my-courses")
-    public String showMyCourses(Model model, Authentication authentication) {
+    public String showMyCourses(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Integer categoryId, Model model, Authentication authentication) {
         User currentUser = getCurrentUser(authentication);
 
-        // Nếu chưa đăng nhập, chuyển về trang login
-        if (currentUser == null) {
-            return "redirect:/login";
-        }
+        // 1. Tải dữ liệu cho Sidebar (Danh mục)
+        loadSidebarData(model);
 
-        // 1. Gọi service để lấy danh sách khóa học
-        // (Đây là hàm getCoursesByUserId() trong RegistrationService)
-        List<Registration> myRegistrations = registrationService.getCoursesByUserId(currentUser.getId());
+        // 2. Lấy danh sách khóa học (ĐÃ LỌC)
+        List<Registration> myRegistrations = registrationService.getCoursesByUserId(
+                currentUser.getId(),
+                keyword,
+                categoryId
+        );
 
-        // 2. Đẩy (Push) danh sách này ra Model với tên là "registrations"
-        // (File HTML của bạn sẽ dùng th:each="reg : ${registrations}")
+        // 3. Gửi danh sách ra HTML
         model.addAttribute("registrations", myRegistrations);
 
-        // 3. Trả về tên file HTML (my-courses.html)
+        // 4. Gửi lại các giá trị lọc để Sidebar hiển thị
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("selectedCategoryId", categoryId);
+
         return "my-courses";
     }
 }
