@@ -16,4 +16,6 @@ public interface PricePackageRepository extends JpaRepository<PricePackage, Inte
             nativeQuery = true)
     Optional<PricePackage> findLowestPricePackageByCourseId(Integer courseId);
     List<PricePackage> findByCourseId(Integer courseId);
+    List<PricePackage> getPackagesByCourseId(Integer courseId);
+
 }

@@ -8,18 +8,20 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
+
 <body class="bg-gray-50 text-gray-800 font-sans">
 
+<!-- Header -->
 <div th:replace="~{fragments/header :: header}"></div>
 
 <div class="max-w-7xl mx-auto px-6 py-12 md:flex">
-
     <main class="w-full md:w-3/4 lg:w-2/3 md:pr-8">
-
         <a th:href="@{/courses}" class="inline-flex items-center text-blue-600 hover:text-blue-800 mb-4 group">
             <span class="material-icons mr-1 transition-transform group-hover:-translate-x-1">arrow_back</span>
             Quay lại danh sách
         </a>
+
+        <!-- COURSE INFO -->
         <article>
             <span class="text-lg font-semibold text-blue-600" th:text="${course.category?.name}">Danh mục</span>
 
@@ -34,12 +36,10 @@
 
             <img th:src="@{${course.thumbnailUrl}}" alt="Thumbnail" class="w-full rounded-2xl shadow-lg mb-8" />
 
-            <div class="prose prose-lg max-w-none blog-content"
-                 th:utext="${course.description}">
-            </div>
-
+            <div class="prose prose-lg max-w-none blog-content" th:utext="${course.description}"></div>
         </article>
 
+        <!-- PRICE & REGISTER -->
         <div class="bg-white p-5 rounded-lg shadow-sm border border-blue-600 mt-8">
             <h3 class="font-bold text-lg mb-3">Đăng ký ngay</h3>
 
@@ -47,16 +47,13 @@
                 <div th:with="lowestPrice=${lowestPriceOpt.get()}">
                     <span th:if="${lowestPrice.salePrice != null}"
                           class="text-3xl font-bold text-red-600"
-                          th:text="${#numbers.formatDecimal(lowestPrice.salePrice, 0, 'COMMA', 0, 'POINT') + ' đ'}">
-                    </span>
+                          th:text="${#numbers.formatDecimal(lowestPrice.salePrice, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
                     <span th:if="${lowestPrice.salePrice != null}"
                           class="text-xl text-gray-500 line-through ml-2"
-                          th:text="${#numbers.formatDecimal(lowestPrice.listPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}">
-                    </span>
+                          th:text="${#numbers.formatDecimal(lowestPrice.listPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
                     <span th:unless="${lowestPrice.salePrice != null}"
                           class="text-3xl font-bold text-gray-900"
-                          th:text="${#numbers.formatDecimal(lowestPrice.listPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}">
-                    </span>
+                          th:text="${#numbers.formatDecimal(lowestPrice.listPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
                 </div>
             </div>
             <div th:unless="${lowestPriceOpt.isPresent()}">
@@ -72,42 +69,76 @@
 
     <div th:replace="~{fragments/course-sidebar :: course-sidebar}"></div>
 </div>
+
 <div th:replace="~{fragments/footer :: footer}"></div>
 
+<!-- ========== MODALS ========== -->
+<!-- Modal chọn gói học phí -->
+<div th:replace="~{fragments/register-modal :: register-modal(course=${course}, pricePackages=${pricePackages})}"></div>
 
-<div th:if="${course != null and pricePackages != null}"
-     th:replace="~{fragments/register-modal :: register-modal(course=${course}, pricePackages=${pricePackages})}">
+<!-- Modal: yêu cầu đăng nhập -->
+<div id="loginPromptModal"
+     class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 text-center space-y-4">
+        <h3 class="text-xl font-semibold text-red-600">Vui lòng đăng nhập</h3>
+        <p class="text-gray-700">Bạn cần đăng nhập để có thể đăng ký khóa học này.</p>
+        <div class="flex flex-col gap-3">
+            <a th:href="@{/login(redirectUrl=${'/courses/' + course.id})}"
+               class="bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg">Đăng nhập ngay</a>
+            <p class="text-sm text-gray-500 mt-2">
+                Chưa có tài khoản? <a th:href="@{/register}" class="text-blue-600 hover:underline">Đăng ký ngay</a>
+            </p>
+            <button class="closeModal text-gray-600 hover:text-gray-800">Đóng</button>
+        </div>
+    </div>
 </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const modal = document.getElementById('registerModal');
-        const openBtn = document.getElementById('openRegisterModalButton');
-        // Nút đóng này (id="closeRegisterModal") phải ở trong file fragment
-        const closeBtn = document.getElementById('closeRegisterModal');
+<!-- Modal: đã đăng ký -->
+<div id="alreadyRegisteredModal"
+     class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 text-center space-y-4">
+        <h3 class="text-xl font-semibold text-green-600">Bạn đã đăng ký khóa học này</h3>
+        <p class="text-gray-700">Hãy truy cập “Khóa học của tôi” để học tiếp nhé!</p>
+        <div class="flex flex-col gap-3">
+            <a th:href="@{/my-courses}"
+               class="bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg">Đi đến Khóa học của tôi</a>
+            <button class="closeModal text-gray-600 hover:text-gray-800">Đóng</button>
+        </div>
+    </div>
+</div>
 
-        // 1. Mở Modal
+<!-- ========== SCRIPT ========== -->
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function () {
+        const openBtn = document.getElementById('openRegisterModalButton');
+        const registerModal = document.getElementById('registerModal');
+        const loginPromptModal = document.getElementById('loginPromptModal');
+        const alreadyRegisteredModal = document.getElementById('alreadyRegisteredModal');
+        const closeBtns = document.querySelectorAll('.closeModal, #closeRegisterModal');
+
+        const isLoggedIn = /*[[${loggedInUser != null}]]*/ false;
+        const isRegistered = /*[[${isRegistered}]]*/ false;
+
+        function openModal(modal) { if (modal) modal.classList.remove('hidden'); }
+        function closeAll() {
+            [registerModal, loginPromptModal, alreadyRegisteredModal].forEach(m => m && m.classList.add('hidden'));
+        }
+
+        closeBtns.forEach(btn => btn.addEventListener('click', closeAll));
+
         if (openBtn) {
             openBtn.addEventListener('click', () => {
-                if(modal) modal.classList.remove('hidden');
+                if (!isLoggedIn) openModal(loginPromptModal);
+                else if (isRegistered) openModal(alreadyRegisteredModal);
+                else openModal(registerModal);
             });
         }
-        // 2. Đóng Modal (bằng nút X)
-        if (closeBtn) {
-            closeBtn.addEventListener('click', () => {
-                if(modal) modal.classList.add('hidden');
-            });
-        }
-        // 3. Đóng Modal (khi click ra ngoài)
-        if (modal) {
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    modal.classList.add('hidden');
-                }
-            });
-        }
+
+        [registerModal, loginPromptModal, alreadyRegisteredModal].forEach(modal => {
+            if (!modal) return;
+            modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.add('hidden'); });
+        });
     });
 </script>
-
 </body>
 </html>

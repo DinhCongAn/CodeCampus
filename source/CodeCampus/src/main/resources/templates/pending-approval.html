@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security6">
+<head>
+    <meta charset="UTF-8">
+    <title>Xác nhận thanh toán</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+
+<!-- Header -->
+<div th:replace="~{fragments/header :: header}"></div>
+
+<!-- Container chính -->
+<div class="container mx-auto max-w-lg p-6 my-12">
+    <div class="bg-white p-8 rounded-xl shadow-xl text-center">
+
+        <h2 class="text-2xl font-bold mb-6 text-gray-800">Thanh toán (Bước 2/2)</h2>
+
+        <!-- Mã QR -->
+        <div id="qrcode" class="flex justify-center mb-6">
+            <img th:src="@{/images/qr.jpg}" alt="Quét mã QR" class="rounded-lg shadow-lg w-60 h-60 object-cover border">
+        </div>
+
+        <!-- Thông tin thanh toán -->
+        <div class="mt-6 text-left bg-gray-50 p-5 rounded-lg border">
+            <p><strong>Ngân hàng:</strong> <span class="text-gray-800">MBBANK</span></p>
+            <p><strong>Chủ tài khoản:</strong> <span class="text-gray-800">DINH CONG AN</span></p>
+            <p><strong>Số tài khoản:</strong> <span class="text-gray-800">0932383167</span></p>
+            <hr class="my-3">
+
+            <p><strong>Khóa học:</strong> <span th:text="${course.name}"></span></p>
+            <p><strong>Số tiền:</strong>
+                <strong class="text-red-600"
+                        th:text="${#numbers.formatDecimal(pricePackage.salePrice != null ? pricePackage.salePrice : pricePackage.listPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}">
+                </strong>
+            </p>
+            <hr class="my-3">
+
+            <div class="mt-2">
+                <p class="font-bold text-red-600">Nội dung chuyển khoản (BẮT BUỘC):</p>
+
+                <!-- Nội dung chuyển khoản -->
+                <div class="flex items-center bg-blue-50 border border-blue-300 rounded-lg px-3 py-2 justify-between">
+                    <span id="transferContent" th:text="${#authentication.name}" class="font-semibold text-blue-700 text-lg truncate">
+                        (Email của bạn)
+                    </span> <button type="button" onclick="copyOrderCode()"
+                            class="ml-3 bg-blue-500 hover:bg-blue-600 text-white font-medium px-3 py-1 rounded-lg text-sm transition">
+                        Sao chép
+                    </button>
+                </div>
+
+                <p class="text-sm text-red-500 mt-2">
+                    (*) Vui lòng điền **chính xác nội dung này** khi chuyển khoản để hệ thống xác nhận.
+                </p>
+            </div>
+        </div>
+
+        <!-- Form xác nhận -->
+        <form th:action="@{/registration/confirm-payment}"
+              th:object="${registrationRequest}" method="POST" class="mt-4"
+              onsubmit="return confirm('Bạn xác nhận đã chuyển khoản thành công?');">
+
+            <input type="hidden" th:field="*{courseId}" />
+            <input type="hidden" th:field="*{packageId}" />
+
+            <button type="submit"
+                    class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg text-lg transition">
+                Tôi đã chuyển khoản
+            </button>
+        </form>
+
+        <a th:href="@{/my-courses}" class="mt-6 inline-block text-blue-600 hover:underline font-medium">
+            Hủy và quay về
+        </a>
+    </div>
+</div>
+
+<!-- Footer -->
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<!-- Script copy -->
+<script>
+    function copyOrderCode() {
+        const textElement = document.getElementById("transferContent");
+        const text = textElement.innerText.trim();
+
+        navigator.clipboard.writeText(text).then(() => {
+            // Hiệu ứng flash nền khi copy thành công
+            textElement.classList.add("bg-green-100", "transition");
+            alert("✅ Đã sao chép nội dung chuyển khoản: " + text);
+
+            // Xóa hiệu ứng sau 1s
+            setTimeout(() => {
+                textElement.classList.remove("bg-green-100");
+            }, 1000);
+        }).catch(() => {
+            alert("❌ Sao chép thất bại, vui lòng thử lại!");
+        });
+    }
+</script>
+
+
+</body>
+</html>

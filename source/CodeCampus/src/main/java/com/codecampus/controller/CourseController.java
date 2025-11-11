@@ -3,9 +3,13 @@ package com.codecampus.controller;
 import com.codecampus.entity.Course;
 import com.codecampus.entity.CourseCategory;
 import com.codecampus.entity.PricePackage; // BỔ SUNG
+import com.codecampus.entity.User;
+import com.codecampus.repository.PricePackageRepository;
 import com.codecampus.repository.UserRepository;
 import com.codecampus.service.CourseService;
-import com.codecampus.service.PricePackageService; // BỔ SUNG
+import com.codecampus.service.RegistrationService;
+import com.codecampus.service.UserService;
+import org.springframework.security.core.Authentication; // <-- THÊM DÒNG NÀY
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,19 +23,33 @@ import java.util.List;
 public class CourseController {
 
     private final CourseService courseService;
-    private final PricePackageService pricePackageService; // BỔ SUNG
-    private final UserRepository userRepository; // BỔ SUNG
+    private final PricePackageRepository pricePackageRepository; // THAY ĐỔI
+    private final UserService userService;
+    private final RegistrationService registrationService;
 
-    // BỔ SUNG PricePackageService vào constructor
-    public CourseController(CourseService courseService, PricePackageService pricePackageService,UserRepository userRepository) {
+    // THAY ĐỔI: Xóa PricePackageService, thay bằng PricePackageRepository
+    public CourseController(CourseService courseService,
+                            PricePackageRepository pricePackageRepository,
+                            UserService userService,
+                            RegistrationService registrationService) {
         this.courseService = courseService;
-        this.pricePackageService = pricePackageService; // BỔ SUNG
-        this.userRepository = userRepository; // BỔ SUNG
+        this.pricePackageRepository = pricePackageRepository; // THAY ĐỔI
+        this.userService = userService;
+        this.registrationService = registrationService;
     }
 
-    /**
-     * Phương thức chung để tải dữ liệu Sidebar
-     */
+    // --- Helper lấy User (Giữ nguyên) ---
+    private User getCurrentUser(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) return null;
+        String email = authentication.getName();
+        try {
+            return userService.findUserByEmail(email);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    // (loadSidebarData và showCourseList giữ nguyên)
     private void loadSidebarData(Model model) {
         List<CourseCategory> categories = courseService.getAllActiveCategories();
         List<Course> featuredCourses = courseService.getFeaturedCourses();
@@ -64,19 +82,31 @@ public class CourseController {
      * Màn hình 11: Hiển thị CHI TIẾT KHÓA HỌC (Details)
      */
     @GetMapping("/courses/{id}")
-    public String showCourseDetails(@PathVariable("id") Integer id, Model model) {
+    public String showCourseDetails(@PathVariable("id") Integer id, Model model, Authentication authentication) {
         try {
             loadSidebarData(model);
             Course course = courseService.getPublishedCourseById(id);
             model.addAttribute("course", course);
             model.addAttribute("lowestPriceOpt", courseService.getLowestPrice(id));
 
-            // ===== BẮT BUỘC BỔ SUNG DÒNG NÀY =====
             // Lấy danh sách gói giá để truyền ra Modal
-            List<PricePackage> packages = pricePackageService.getPackagesByCourseId(id);
+            List<PricePackage> packages = pricePackageRepository.getPackagesByCourseId(id);
             model.addAttribute("pricePackages", packages);
             // ===================================
 
+            // ===== BỔ SUNG LOGIC KIỂM TRA ĐĂNG KÝ =====
+            User currentUser = getCurrentUser(authentication);
+            boolean isRegistered = false; // Mặc định là chưa
+
+            if (currentUser != null) {
+                model.addAttribute("loggedInUser", currentUser);
+                // Gọi Service để kiểm tra
+                isRegistered = registrationService.hasUserRegistered(currentUser.getId(), id);
+            }
+
+            // Đẩy biến boolean này ra HTML
+            model.addAttribute("isRegistered", isRegistered);
+            // ========================================
 
             return "course-details"; // Trả về file course-details.html
         } catch (RuntimeException e) {

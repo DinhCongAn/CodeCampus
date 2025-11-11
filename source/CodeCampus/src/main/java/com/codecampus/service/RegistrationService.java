@@ -1,0 +1,128 @@
+// src/main/java/com/codecampus/service/RegistrationService.java
+package com.codecampus.service;
+
+import com.codecampus.dto.RegistrationRequest;
+import com.codecampus.entity.*;
+import com.codecampus.repository.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Service
+public class RegistrationService {
+
+    @Autowired private UserRepository userRepository;
+    @Autowired private CourseRepository courseRepository;
+    @Autowired private PricePackageRepository pricePackageRepository;
+    @Autowired private RegistrationRepository registrationRepository;
+    @Autowired private EmailService emailService;
+
+    /**
+     * (MỚI) HÀM GỘP 2 CHỨC NĂNG: LƯU DB + GỬI MAIL
+     * Được gọi khi người dùng bấm "Tôi đã chuyển khoản"
+     */
+    @Transactional
+    public Registration createPendingRegistrationAndSendEmail(RegistrationRequest request, String loggedInUsername) {
+
+        // 1. Lấy thông tin
+        User user = userRepository.findByEmail(loggedInUsername)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy User: " + loggedInUsername));
+
+        // SỬA LỖI: Bỏ .longValue() vì Course ID là Integer (theo DBScript)
+        Course course = courseRepository.findById(request.getCourseId().longValue())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy Khóa học"));
+
+        PricePackage pricePackage = pricePackageRepository.findById(request.getPackageId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy Gói giá"));
+
+        BigDecimal totalCost = pricePackage.getSalePrice() != null
+                ? pricePackage.getSalePrice()
+                : pricePackage.getListPrice();
+
+        // 2. Tạo đối tượng Registration
+        Registration reg = new Registration();
+        reg.setUser(user);
+        reg.setCourse(course);
+        reg.setPricePackage(pricePackage);
+        reg.setTotalCost(totalCost);
+        reg.setRegistrationTime(LocalDateTime.now());
+        reg.setStatus("PENDING");
+        reg.setOrderCode("CC-" + System.currentTimeMillis());
+        reg.setUpdatedAt(LocalDateTime.now());
+
+        // 3. Lưu vào DB
+        registrationRepository.save(reg);
+
+        // 4. GỬI MAIL "CHỜ DUYỆT"
+        // (Sửa lại nội dung mail này nếu cần)
+        emailService.sendRegistrationPendingEmail(reg);
+
+        return reg;
+    }
+
+    // 3. Khi Admin bấm "Xác nhận"
+    @Transactional
+    public void confirmPayment(Integer registrationId) {
+        Registration reg = registrationRepository.findById(registrationId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+
+        if ("PENDING".equals(reg.getStatus())) {
+            reg.setStatus("COMPLETED");
+            reg.setUpdatedAt(LocalDateTime.now());
+
+            LocalDateTime now = LocalDateTime.now();
+            int duration = reg.getPricePackage().getDurationMonths();
+            reg.setValidFrom(now);
+            reg.setValidTo(now.plusMonths(duration));
+            registrationRepository.save(reg);
+
+            User user = reg.getUser();
+            if ("PENDING".equals(user.getStatus())) {
+                user.setStatus("ACTIVE");
+                userRepository.save(user);
+            }
+
+            emailService.sendPaymentSuccessEmail(reg); // Gửi mail "thành công"
+        }
+    }
+
+
+    /**
+     * 4. Lấy danh sách cho trang "Khóa học của tôi"
+     * (Đây là hàm bạn yêu cầu)
+     */
+    @Transactional(readOnly = true)
+    public List<Registration> getCoursesByUserId(Integer userId) {
+        // Gọi hàm JOIN FETCH trong Repository
+        return registrationRepository.findByUserIdWithDetails(userId);
+    }
+
+    /**
+     * 5. Lấy đơn hàng (cho trang chờ /pending-approval)
+     */
+    @Transactional(readOnly = true)
+    public Registration getRegistrationByOrderCode(String orderCode) {
+        // Gọi hàm JOIN FETCH trong Repository
+        return registrationRepository.findByOrderCode(orderCode)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+    }
+
+    /**
+     * 6. Kiểm tra (cho trang /courses/{id})
+     */
+    @Transactional(readOnly = true)
+    public boolean hasUserRegistered(Integer userId, Integer courseId) {
+        return registrationRepository.existsByUserIdAndCourseId(userId, courseId);
+    }
+
+    /**
+     * 7. Lấy đơn hàng (cho Admin sau này)
+     */
+    @Transactional(readOnly = true)
+    public List<Registration> getPendingRegistrations() {
+        return registrationRepository.findByStatus("PENDING");
+    }
+}
