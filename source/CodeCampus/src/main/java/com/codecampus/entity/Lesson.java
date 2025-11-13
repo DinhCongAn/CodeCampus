@@ -1,143 +1,52 @@
 package com.codecampus.entity;
 
 import jakarta.persistence.*;
-import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.Nationalized;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "lessons")
+@Getter @Setter @NoArgsConstructor
 public class Lesson {
+
     @Id
-    @Column(name = "id", nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "course_id")
     private Course course;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "lesson_type_id")
     private LessonType lessonType;
 
-    @Nationalized
-    @Column(name = "name", nullable = false)
     private String name;
-
-    @Nationalized
-    @Column(name = "topic")
     private String topic;
 
-    @ColumnDefault("0")
     @Column(name = "order_number")
     private Integer orderNumber;
 
-    @Nationalized
     @Column(name = "video_url")
     private String videoUrl;
 
-    @Nationalized
-    @Lob
-    @Column(name = "html_content")
+    @Column(name = "html_content", columnDefinition = "NVARCHAR(MAX)")
     private String htmlContent;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    // 1 Bài học có thể là 1 Quiz
+    @OneToOne
     @JoinColumn(name = "quiz_id")
     private Quiz quiz;
 
-    @Nationalized
-    @ColumnDefault("'active'")
-    @Column(name = "status", length = 50)
+    // 1 Bài học có thể là 1 Lab (MỚI)
+    @OneToOne
+    @JoinColumn(name = "lab_id")
+    private Lab lab;
+
     private String status;
 
+    // (Trường package_id trong DB có vẻ dùng để giới hạn bài học theo gói)
     @Column(name = "package_id")
     private Integer packageId;
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public Course getCourse() {
-        return course;
-    }
-
-    public void setCourse(Course course) {
-        this.course = course;
-    }
-
-    public LessonType getLessonType() {
-        return lessonType;
-    }
-
-    public void setLessonType(LessonType lessonType) {
-        this.lessonType = lessonType;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getTopic() {
-        return topic;
-    }
-
-    public void setTopic(String topic) {
-        this.topic = topic;
-    }
-
-    public Integer getOrderNumber() {
-        return orderNumber;
-    }
-
-    public void setOrderNumber(Integer orderNumber) {
-        this.orderNumber = orderNumber;
-    }
-
-    public String getVideoUrl() {
-        return videoUrl;
-    }
-
-    public void setVideoUrl(String videoUrl) {
-        this.videoUrl = videoUrl;
-    }
-
-    public String getHtmlContent() {
-        return htmlContent;
-    }
-
-    public void setHtmlContent(String htmlContent) {
-        this.htmlContent = htmlContent;
-    }
-
-    public Quiz getQuiz() {
-        return quiz;
-    }
-
-    public void setQuiz(Quiz quiz) {
-        this.quiz = quiz;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public Integer getPackageId() {
-        return packageId;
-    }
-
-    public void setPackageId(Integer packageId) {
-        this.packageId = packageId;
-    }
-
 }

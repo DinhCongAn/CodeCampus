@@ -66,7 +66,7 @@ public class RegistrationService {
         newReg.setPricePackage(pricePackage);
         newReg.setTotalCost(totalCost);
         newReg.setRegistrationTime(LocalDateTime.now());
-        newReg.setStatus("PENDING");
+        newReg.setStatus("COMPLETED");
         newReg.setOrderCode("CC-" + System.currentTimeMillis());
         newReg.setUpdatedAt(LocalDateTime.now());
 

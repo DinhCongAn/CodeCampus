@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quiz: <span th:text="${currentLesson.name}"></span></title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body class="bg-gray-100 font-sans">
+<div class="flex h-screen">
+
+    <aside class="w-80 bg-white h-screen ...">
+    </aside>
+
+    <main class="flex-1 h-screen overflow-y-auto bg-gray-50">
+        <div class="p-8 max-w-3xl mx-auto">
+
+            <div th:if="${lastAttempt != null}" class="bg-white p-8 rounded-lg shadow-xl text-center">
+                <h1 class="text-3xl font-bold text-gray-800">Kết quả bài làm</h1>
+                <p class="text-lg text-gray-600 mt-2" th:text="${quiz.name}"></p>
+
+                <div th:if="${lastAttempt.result == 'Pass'}" class="mt-6">
+                    <span class="material-icons text-green-500" style="font-size: 80px;">check_circle</span>
+                    <h2 class="text-4xl font-bold text-green-600 mt-2" th:text="${#numbers.formatDecimal(lastAttempt.score, 0, 'COMMA', 0, 'POINT')} + '/100'"></h2>
+                    <p class="text-2xl font-semibold text-gray-700">Chúc mừng! Bạn đã Đạt.</p>
+                </div>
+                <div th:if="${lastAttempt.result != 'Pass'}" class="mt-6">
+                    <span class="material-icons text-red-500" style="font-size: 80px;">cancel</span>
+                    <h2 class="text-4xl font-bold text-red-500 mt-2" th:text="${#numbers.formatDecimal(lastAttempt.score, 0, 'COMMA', 0, 'POINT')} + '/100'"></h2>
+                    <p class="text-2xl font-semibold text-gray-700">Rất tiếc! Bạn Không Đạt.</p>
+                </div>
+
+                <div class="mt-8 flex flex-col sm:flex-row justify-center gap-4">
+                    <form th:action="@{/quiz/start}" method="POST">
+                        <input type="hidden" name="quizId" th:value="${quiz.id}">
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-lg">
+                            Làm lại bài
+                        </button>
+                    </form>
+                    <a th:href="@{/quiz/review/{id}(id=${lastAttempt.id})}"
+                       class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-6 rounded-lg text-lg">
+                        Xem lại đáp án
+                    </a>
+                </div>
+            </div>
+
+            <div th:if="${lastAttempt == null}" class="bg-white p-8 rounded-lg shadow-xl text-center">
+                <span class="material-icons text-blue-500" style="font-size: 80px;">assignment</span>
+                <h1 class="text-3xl font-bold text-gray-800 mt-4" th:text="${quiz.name}"></h1>
+                <p class="text-lg text-gray-600 mt-2" th:text="${quiz.description}">Mô tả ngắn về bài kiểm tra.</p>
+
+                <div class="mt-8 flex justify-center gap-8 text-gray-700">
+                    <div class="text-center">
+                        <span class="material-icons text-xl">schedule</span>
+                        <p class="font-semibold" th:text="${quiz.durationMinutes} + ' phút'"></p>
+                    </div>
+                    <div class="text-center">
+                        <span class="material-icons text-xl">help_outline</span>
+                        <p class="font-semibold" th:text="${totalQuestions} + ' câu hỏi'"></p>
+                    </div>
+                    <div class="text-center">
+                        <span class="material-icons text-xl">grading</span>
+                        <p class="font-semibold" th:text="'Cần ' + ${quiz.passRatePercentage} + '% để Đạt'"></p>
+                    </div>
+                </div>
+
+                <div class="mt-10">
+                    <form th:action="@{/quiz/start}" method="POST">
+                        <input type="hidden" name="quizId" th:value="${quiz.id}">
+                        <button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-8 rounded-lg text-xl shadow-lg">
+                            Bắt đầu làm bài
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="flex justify-between mt-12 pt-6 border-t">
+                <a th:if="${prevLesson != null}" ...>Bài trước</a>
+                <span th:unless="${prevLesson != null}"></span>
+                <a th:if="${nextLesson != null}" ...>Bài sau</a>
+            </div>
+
+        </div>
+    </main>
+</div>
+</body>
+</html>

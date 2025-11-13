@@ -1,106 +1,53 @@
 package com.codecampus.entity;
 
 import jakarta.persistence.*;
-import org.hibernate.annotations.Nationalized;
-
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import java.math.BigDecimal;
+import java.util.List;
 
 @Entity
 @Table(name = "quizzes")
+@Getter @Setter @NoArgsConstructor
 public class Quiz {
+
     @Id
-    @Column(name = "id", nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "course_id")
     private Course course;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "test_type_id")
     private TestType testType;
 
-    @Nationalized
-    @Column(name = "name", nullable = false)
-    private String name;
-
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "exam_level_id")
-    private QuestionLevel examLevel;
+    private QuestionLevel examLevel; // (DB dùng exam_level_id)
+
+    @OneToOne(mappedBy = "quiz") // 1-1 ngược lại Lesson
+    private Lesson lesson;
+
+    private String name;
 
     @Column(name = "duration_minutes")
     private Integer durationMinutes;
 
-    @Column(name = "pass_rate_percentage", precision = 5, scale = 2)
+    @Column(name = "pass_rate_percentage")
     private BigDecimal passRatePercentage;
 
-    @Nationalized
-    @Lob
-    @Column(name = "description")
     private String description;
 
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public Course getCourse() {
-        return course;
-    }
-
-    public void setCourse(Course course) {
-        this.course = course;
-    }
-
-    public TestType getTestType() {
-        return testType;
-    }
-
-    public void setTestType(TestType testType) {
-        this.testType = testType;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public QuestionLevel getExamLevel() {
-        return examLevel;
-    }
-
-    public void setExamLevel(QuestionLevel examLevel) {
-        this.examLevel = examLevel;
-    }
-
-    public Integer getDurationMinutes() {
-        return durationMinutes;
-    }
-
-    public void setDurationMinutes(Integer durationMinutes) {
-        this.durationMinutes = durationMinutes;
-    }
-
-    public BigDecimal getPassRatePercentage() {
-        return passRatePercentage;
-    }
-
-    public void setPassRatePercentage(BigDecimal passRatePercentage) {
-        this.passRatePercentage = passRatePercentage;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
+    // Quan hệ Nhiều-Nhiều với Question (qua bảng quiz_questions)
+    @ManyToMany
+    @JoinTable(
+            name = "quiz_questions",
+            joinColumns = @JoinColumn(name = "quiz_id"),
+            inverseJoinColumns = @JoinColumn(name = "question_id")
+    )
+    @OrderBy("id ASC") // Sắp xếp câu hỏi theo ID
+    private List<Question> questions;
 }

@@ -1,109 +1,55 @@
 package com.codecampus.entity;
 
 import jakarta.persistence.*;
-import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.Nationalized;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import java.util.List;
 
 @Entity
 @Table(name = "questions")
+@Getter @Setter @NoArgsConstructor
 public class Question {
+
     @Id
-    @Column(name = "id", nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "course_id")
-    private Course course;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "lesson_id")
-    private Lesson lesson;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "question_level_id")
-    private QuestionLevel questionLevel;
-
-    @Nationalized
-    @ColumnDefault("'draft'")
-    @Column(name = "status", length = 50)
-    private String status;
-
-    @Nationalized
-    @Lob
-    @Column(name = "content", nullable = false)
+    @Column(name = "content", columnDefinition = "NVARCHAR(MAX)")
     private String content;
 
-    @Nationalized
+    @Column(name = "explanation", columnDefinition = "NVARCHAR(MAX)")
+    private String explanation; // Giải thích (dùng cho Review)
+
+    @Column(name = "status")
+    private String status;
+
     @Column(name = "media_url")
     private String mediaUrl;
 
-    @Nationalized
-    @Lob
-    @Column(name = "explanation")
-    private String explanation;
+    @ManyToOne
+    @JoinColumn(name = "course_id")
+    private Course course;
 
-    public Integer getId() {
-        return id;
-    }
+    @ManyToOne
+    @JoinColumn(name = "lesson_id")
+    private Lesson lesson;
 
-    public void setId(Integer id) {
-        this.id = id;
-    }
+    @ManyToOne
+    @JoinColumn(name = "question_level_id")
+    private QuestionLevel questionLevel;
 
-    public Course getCourse() {
-        return course;
-    }
+    // 1-Nhiều với các lựa chọn (Lấy luôn đáp án)
+    @OneToMany(mappedBy = "question", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OrderBy("orderNumber ASC")
+    private List<AnswerOption> answerOptions;
 
-    public void setCourse(Course course) {
-        this.course = course;
-    }
+    // Nhiều-Nhiều ngược lại Quiz
+    @ManyToMany(mappedBy = "questions")
+    private List<Quiz> quizzes;
 
-    public Lesson getLesson() {
-        return lesson;
-    }
-
-    public void setLesson(Lesson lesson) {
-        this.lesson = lesson;
-    }
-
-    public QuestionLevel getQuestionLevel() {
-        return questionLevel;
-    }
-
-    public void setQuestionLevel(QuestionLevel questionLevel) {
-        this.questionLevel = questionLevel;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public String getMediaUrl() {
-        return mediaUrl;
-    }
-
-    public void setMediaUrl(String mediaUrl) {
-        this.mediaUrl = mediaUrl;
-    }
-
-    public String getExplanation() {
-        return explanation;
-    }
-
-    public void setExplanation(String explanation) {
-        this.explanation = explanation;
-    }
-
+    // 1-Nhiều với Media (bảng question_media)
+    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
+    @OrderBy("orderNumber ASC")
+    private List<QuestionMedia> questionMediaList;
 }
