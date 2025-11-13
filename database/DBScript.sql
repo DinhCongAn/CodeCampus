@@ -410,3 +410,40 @@ BEGIN
     WHERE question_media.id = inserted.id;
 END
 GO
+
+
+-- (Thêm vào cuối DBScript.sql)
+GO
+-- Bảng 19: Định nghĩa LAB (Đề bài)
+CREATE TABLE labs (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    name NVARCHAR(255) NOT NULL,
+    description NVARCHAR(MAX), -- Mô tả/Hướng dẫn lab
+    lab_type NVARCHAR(50) DEFAULT 'coding', -- (ví dụ: 'coding', 'sql', 'devops')
+    evaluation_criteria NVARCHAR(MAX), -- Tiêu chí chấm (cho AI)
+    created_at DATETIME DEFAULT GETDATE()
+);
+GO
+-- Bảng 20: Lượt làm LAB
+CREATE TABLE lab_attempts (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    lab_id INT NOT NULL,
+    user_id INT NOT NULL,
+    status NVARCHAR(50) DEFAULT 'in_progress', -- ('in_progress', 'submitted', 'grading', 'graded')
+    submitted_content NVARCHAR(MAX), -- Code/Script/File của user
+    ai_grade DECIMAL(5, 2) NULL, -- Điểm AI chấm
+    ai_feedback NVARCHAR(MAX) NULL, -- Nhận xét của AI
+    started_at DATETIME DEFAULT GETDATE(),
+    completed_at DATETIME NULL,
+    FOREIGN KEY (lab_id) REFERENCES labs(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+GO
+
+-- Sửa bảng 'lessons'
+ALTER TABLE lessons
+ADD lab_id INT NULL;
+GO
+ALTER TABLE lessons
+ADD CONSTRAINT fk_lessons_lab FOREIGN KEY (lab_id) REFERENCES labs(id);
+GO
