@@ -62,4 +62,6 @@ public interface RegistrationRepository extends JpaRepository<Registration, Inte
     boolean existsByUserIdAndCourseIdAndPricePackageIdAndStatus(
             Integer userId, Integer courseId, Integer pricePackageId, String status
     );
+
+    Optional<Registration> findByUserIdAndCourseId(Integer userId, Integer courseId);
 }
