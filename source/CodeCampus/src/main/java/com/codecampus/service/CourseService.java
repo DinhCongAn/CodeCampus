@@ -61,6 +61,12 @@ public class CourseService {
     }
 
     public List<CourseCategory> getAllActiveCategories() {
+
         return categoryRepository.findByIsActive(true);
+    }
+
+    public Course findCourseById(Integer id) {
+        return courseRepository.findById(Long.valueOf(id))
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học với ID: " + id));
     }
 }

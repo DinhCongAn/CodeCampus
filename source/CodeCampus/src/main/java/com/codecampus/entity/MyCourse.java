@@ -3,13 +3,14 @@ package com.codecampus.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "notes")
+@Table(name = "my_courses")
 @Getter
 @Setter
-public class Note {
+public class MyCourse {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -19,11 +20,15 @@ public class Note {
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "lesson_id")
-    private Lesson lesson;
+    @JoinColumn(name = "course_id")
+    private Course course;
 
-    @Column(columnDefinition = "NVARCHAR(MAX)")
-    private String note;
+    @Column(name = "progress_percent")
+    private BigDecimal progressPercent;
 
-    // (Thêm các cột video_url, image_url nếu cần)
+    @Column(name = "last_lesson_id")
+    private Long lastLessonId;
+
+    @Column(name = "last_accessed")
+    private LocalDateTime lastAccessed;
 }

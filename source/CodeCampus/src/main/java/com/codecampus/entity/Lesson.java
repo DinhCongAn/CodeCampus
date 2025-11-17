@@ -2,28 +2,18 @@ package com.codecampus.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @Table(name = "lessons")
-@Getter @Setter @NoArgsConstructor
+@Getter
+@Setter
 public class Lesson {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
-
-    @ManyToOne
-    @JoinColumn(name = "course_id")
-    private Course course;
-
-    @ManyToOne
-    @JoinColumn(name = "lesson_type_id")
-    private LessonType lessonType;
+    private Long id;
 
     private String name;
-    private String topic;
 
     @Column(name = "order_number")
     private Integer orderNumber;
@@ -34,19 +24,32 @@ public class Lesson {
     @Column(name = "html_content", columnDefinition = "NVARCHAR(MAX)")
     private String htmlContent;
 
-    // 1 Bài học có thể là 1 Quiz
-    @OneToOne
-    @JoinColumn(name = "quiz_id")
-    private Quiz quiz;
+    // === SỬA Ở ĐÂY ===
+    // Thay vì private Integer quizId;
+    /**
+     * Định nghĩa quan hệ: Một Lesson có thể liên kết đến một Quiz.
+     * 'lessons' là bên sở hữu (owning side) vì nó giữ khóa ngoại 'quiz_id'.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "quiz_id") // Cột khóa ngoại trong bảng 'lessons'
+    private Quiz quiz; // (Bạn sẽ cần tạo Entity 'Quiz.java')
 
-    // 1 Bài học có thể là 1 Lab (MỚI)
-    @OneToOne
-    @JoinColumn(name = "lab_id")
-    private Lab lab;
+    // === SỬA Ở ĐÂY ===
+    // Thay vì private Integer labId;
+    /**
+     * Định nghĩa quan hệ: Một Lesson có thể liên kết đến một Lab.
+     * 'lessons' là bên sở hữu (owning side) vì nó giữ khóa ngoại 'lab_id'.
+     */
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "lab_id") // Cột khóa ngoại trong bảng 'lessons'
+    private Lab lab; // Đây chính là thuộc tính "lab" mà 'Lab.java' đang tìm kiếm
 
-    private String status;
+    // --- (Phần còn lại giữ nguyên) ---
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "course_id")
+    private Course course;
 
-    // (Trường package_id trong DB có vẻ dùng để giới hạn bài học theo gói)
-    @Column(name = "package_id")
-    private Integer packageId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "lesson_type_id")
+    private LessonType lessonType;
 }

@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.math.BigDecimal;
-import java.util.List;
+import java.util.List; // Phải là List (hoặc Set)
 
 @Entity
 @Table(name = "quizzes")
@@ -16,38 +16,38 @@ public class Quiz {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @ManyToOne
+    // (...các trường course, testType, examLevel, name, v.v...)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id")
     private Course course;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "test_type_id")
     private TestType testType;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "exam_level_id")
-    private QuestionLevel examLevel; // (DB dùng exam_level_id)
-
-    @OneToOne(mappedBy = "quiz") // 1-1 ngược lại Lesson
-    private Lesson lesson;
+    private QuestionLevel examLevel;
 
     private String name;
+    // ...
 
-    @Column(name = "duration_minutes")
-    private Integer durationMinutes;
+    // === SỬA Ở ĐÂY ===
+    /**
+     * ĐÂY LÀ BÊN KHÔNG SỞ HỮU (Inverse Side) - Quan hệ OneToMany.
+     * 'mappedBy = "quiz"' trỏ đến thuộc tính 'private Quiz quiz' trong Lesson.java.
+     * Một Quiz có thể nằm trong NHIỀU Lesson.
+     */
+    @OneToMany(mappedBy = "quiz", fetch = FetchType.LAZY)
+    private List<Lesson> lessons; // Thay thế cho private Lesson lesson;
 
-    @Column(name = "pass_rate_percentage")
-    private BigDecimal passRatePercentage;
-
-    private String description;
-
-    // Quan hệ Nhiều-Nhiều với Question (qua bảng quiz_questions)
-    @ManyToMany
+    // (Quan hệ ManyToMany với Question giữ nguyên)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "quiz_questions",
             joinColumns = @JoinColumn(name = "quiz_id"),
             inverseJoinColumns = @JoinColumn(name = "question_id")
     )
-    @OrderBy("id ASC") // Sắp xếp câu hỏi theo ID
+    @OrderBy("id ASC")
     private List<Question> questions;
 }

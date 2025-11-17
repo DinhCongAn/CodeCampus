@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security6">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}" th:if="${_csrf}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" th:if="${_csrf}"/>
+
+    <title>Bài học: <span th:text="${currentLesson.name}"></span></title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        .video-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; background: #000; }
+        .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        /* Style cho nội dung text */
+        .lesson-content h1 { font-size: 1.5em; font-weight: bold; margin-top: 1em;}
+        .lesson-content h2 { font-size: 1.25em; font-weight: bold; margin-top: 0.8em;}
+        .lesson-content p { margin-bottom: 1em; line-height: 1.6;}
+        .lesson-content code { background-color: #f4f4f4; padding: 2px 4px; border-radius: 4px; }
+        .lesson-content pre { background-color: #2d2d2d; color: #f8f8f2; padding: 1em; border-radius: 8px; overflow-x: auto;}
+
+        /* Style cho Tab */
+        [x-cloak] { display: none; }
+        .tab-button.active { border-color: #3B82F6; color: #3B82F6; font-weight: 600; }
+    </style>
+    <script src="//unpkg.com/alpinejs" defer></script>
+</head>
+<body class="bg-gray-100 font-sans">
+
+<div class="flex h-screen">
+
+    <aside class="w-80 bg-white h-screen shadow-lg flex flex-col overflow-y-auto">
+        <div class="p-4 border-b">
+            <h2 class="text-xl font-bold text-gray-800" th:text="${course.name}">Tên Khóa học</h2>
+            <a th:href="@{/my-courses}" class="text-sm text-blue-600 hover:underline">&larr; Quay về Khóa học của tôi</a>
+        </div>
+        <nav class="flex-1">
+            <ul class="space-y-1 p-2">
+                <li th:each="lesson : ${allLessons}">
+                    <a th:href="@{/learning/{courseId}/{lessonId}(courseId=${course.id}, lessonId=${lesson.id})}"
+                       class="flex items-center p-3 rounded-lg transition-colors"
+                       th:classappend="${lesson.id == currentLesson.id} ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-100'">
+                        <span class="material-icons mr-3 text-lg"
+                              th:text="${lesson.lessonType?.name == 'Video'} ? 'play_circle_outline' : (${lesson.lessonType?.name == 'Quiz'} ? 'quiz' : 'article')">
+                        </span>
+                        <span class="flex-1" th:text="${lesson.name}">Tên bài học</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <main class="flex-1 h-screen overflow-y-auto bg-gray-50">
+        <div class="p-8 max-w-4xl mx-auto">
+            <h1 class="text-3xl font-bold text-gray-900 mb-6" th:text="${currentLesson.name}"></h1>
+
+            <div x-data="{ activeTab: 'content' }">
+                <div class="border-b border-gray-200 mb-6">
+                    <nav class="-mb-px flex space-x-6">
+                        <button @click="activeTab = 'content'"
+                                :class="{ 'active': activeTab === 'content' }"
+                                class="tab-button py-3 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                            Nội dung bài học
+                        </button>
+                        <button @click="activeTab = 'notes'; loadNotes()"
+                                :class="{ 'active': activeTab === 'notes' }"
+                                class="tab-button py-3 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                            Ghi chú của tôi
+                        </button>
+                    </nav>
+                </div>
+
+                <div x-show="activeTab === 'content'" x-cloak>
+                    <div th:if="${currentLesson.videoUrl != null and !currentLesson.videoUrl.isEmpty()}"
+                         class="video-container rounded-lg overflow-hidden shadow-lg">
+                        <iframe th:src="${currentLesson.videoUrl}" frameborder="0" allowfullscreen></iframe>
+                    </div>
+                    <div th:if="${currentLesson.htmlContent != null and !currentLesson.htmlContent.isEmpty()}"
+                         class="lesson-content mt-4 p-6 bg-white rounded-lg shadow"
+                         th:utext="${currentLesson.htmlContent}">
+                    </div>
+                </div>
+
+                <div x-show="activeTab === 'notes'" x-cloak>
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="text-xl font-semibold mb-4">Ghi chú cá nhân</h3>
+
+                        <div>
+                            <textarea id="note-content" rows="6" class="w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                                      placeholder="Viết ghi chú của bạn ở đây..."></textarea>
+
+                            <div class="flex justify-between items-center mt-3">
+                                <button id="btn-ai-summary" onclick="getAiSummary()"
+                                        class="inline-flex items-center px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg">
+                                    <span class="material-icons mr-2 text-sm">auto_awesome</span>
+                                    AI Tóm tắt bài học
+                                </button>
+                                <button id="btn-save-note" onclick="saveNote()"
+                                        class="px-5 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700">
+                                    Lưu Ghi chú
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mt-8 border-t pt-6">
+                            <h4 class="text-lg font-semibold mb-3">Các ghi chú đã lưu</h4>
+                            <div id="notes-list" class="space-y-4">
+                                <p id="notes-loading" class="text-gray-500">Đang tải ghi chú...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class.="flex justify-between mt-12 pt-6 border-t">
+                <a th:if="${prevLesson != null}"
+                   th:href="@{/learning/{cid}/{lid}(cid=${prevLesson.course.id}, lid=${prevLesson.id})}"
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-100">
+                    <span class="material-icons mr-2">chevron_left</span>
+                    Bài trước
+                </a>
+                <span th:unless="${prevLesson != null}"></span>
+                <a th:if="${nextLesson != null}"
+                   th:href="@{/learning/{cid}/{lid}(cid=${nextLesson.course.id}, lid=${nextLesson.id})}"
+                   class="inline-flex items-center px-4 py-2 rounded-lg text-white bg-blue-600 hover:bg-blue-700">
+                    Bài sau
+                    <span class="material-icons ml-2">chevron_right</span>
+                </a>
+            </div>
+        </div>
+    </main>
+</div>
+
+<div th:replace="~{fragments/chat-assistant :: chat-assistant}"></div>
+
+
+<script th:inline="javascript">
+    /* Lấy các biến từ Thymeleaf */
+    const LESSON_ID = /*[[${currentLesson.id}]]*/ null;
+    const USER_ID = /*[[${currentUserId}]]*/ null;
+
+    /* Lấy CSRF token (Nếu dùng Spring Security) */
+    const csrfHeaderName = document.querySelector('meta[name="_csrf_header"]')?.content;
+    const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
+
+    const headers = {
+        'Content-Type': 'application/json'
+    };
+    if (csrfHeaderName && csrfToken) {
+        headers[csrfHeaderName] = csrfToken;
+    }
+
+    // (Script cho Chat Assistant - giữ nguyên)
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.setChatContext) {
+            window.setChatContext(
+                'lesson',
+                LESSON_ID,
+                /*[[${currentLesson.name}]]*/ ''
+            );
+        }
+
+        if (window.handleAiQuery) {
+            window.handleAiQuery = async (question) => {
+                const response = await fetch('/learning/api/ask-ai', {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify({
+                        lessonId: LESSON_ID,
+                        question: question
+                    })
+                });
+                const data = await response.json();
+                return data.answer;
+            };
+        }
+    });
+
+    // --- JavaScript cho Tab Ghi chú ---
+
+    async function loadNotes() {
+        const listDiv = document.getElementById('notes-list');
+        listDiv.innerHTML = '<p id="notes-loading" class="text-gray-500">Đang tải ghi chú...</p>';
+
+        try {
+            const response = await fetch(`/learning/api/notes/${LESSON_ID}`);
+            const notes = await response.json();
+
+            listDiv.innerHTML = ''; // Xóa text "Đang tải..."
+            if (notes.length === 0) {
+                listDiv.innerHTML = '<p class="text-gray-500">Bạn chưa có ghi chú nào cho bài học này.</p>';
+            } else {
+                notes.forEach(note => {
+                    // === SỬA Ở ĐÂY: Tạo cấu trúc HTML phức tạp hơn ===
+                    const noteEl = document.createElement('div');
+                    noteEl.id = `note-container-${note.id}`; // ID cho cả container
+                    noteEl.className = 'p-4 bg-gray-50 border rounded-md';
+
+                    // Cấu trúc HTML cho một ghi chú (gồm 2 chế độ: View và Edit)
+                    noteEl.innerHTML = `
+                        <div id="note-view-${note.id}">
+                            <p class="text-gray-800" style="white-space: pre-wrap;">${escapeHTML(note.note)}</p>
+                            <div class="flex justify-end space-x-2 mt-3">
+                                <button onclick="showEditMode(${note.id})" class="text-sm text-blue-600 hover:underline">Sửa</button>
+                                <button onclick="deleteNote(${note.id})" class="text-sm text-red-600 hover:underline">Xóa</button>
+                            </div>
+                        </div>
+
+                        <div id="note-edit-${note.id}" style="display:none;">
+                            <textarea id="note-textarea-${note.id}" rows="5" class="w-full p-2 border border-gray-300 rounded-md">${escapeHTML(note.note)}</textarea>
+                            <div class="flex justify-end space-x-2 mt-3">
+                                <button onclick="cancelEdit(${note.id})" class="text-sm text-gray-600 hover:underline">Hủy</button>
+                                <button onclick="updateNote(${note.id})" class="text-sm px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700">Lưu</button>
+                            </div>
+                        </div>
+                    `;
+                    listDiv.appendChild(noteEl);
+                });
+            }
+        } catch (error) {
+            console.error('Lỗi tải ghi chú:', error);
+            listDiv.innerHTML = '<p class="text-red-500">Không thể tải ghi chú.</p>';
+        }
+    }
+
+    // (Hàm saveNote - giữ nguyên)
+    async function saveNote() {
+        const content = document.getElementById('note-content').value;
+        if (!content.trim()) {
+            alert('Vui lòng nhập nội dung ghi chú.');
+            return;
+        }
+        try {
+            const response = await fetch('/learning/api/notes/save', {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify({
+                    lessonId: LESSON_ID,
+                    content: content
+                })
+            });
+            if (response.ok) {
+                document.getElementById('note-content').value = '';
+                loadNotes(); // Tải lại danh sách
+            } else {
+                alert('Lỗi lưu ghi chú.');
+            }
+        } catch (error) {
+            console.error('Lỗi lưu ghi chú:', error);
+        }
+    }
+
+    // (Hàm getAiSummary - giữ nguyên)
+    async function getAiSummary() {
+        const btn = document.getElementById('btn-ai-summary');
+        const noteTextarea = document.getElementById('note-content');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-icons mr-2 text-sm animate-spin">refresh</span> Đang tóm tắt...';
+        try {
+            const response = await fetch(`/learning/api/summarize/${LESSON_ID}`);
+            const data = await response.json();
+            noteTextarea.value = data.summary;
+        } catch (error) {
+            console.error('Lỗi lấy tóm tắt AI:', error);
+            alert('Không thể lấy tóm tắt từ AI.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-icons mr-2 text-sm">auto_awesome</span> AI Tóm tắt bài học';
+        }
+    }
+
+    // === HÀM MỚI: HIỂN THỊ CHẾ ĐỘ SỬA ===
+    function showEditMode(noteId) {
+        document.getElementById(`note-view-${noteId}`).style.display = 'none';
+        document.getElementById(`note-edit-${noteId}`).style.display = 'block';
+    }
+
+    // === HÀM MỚI: HỦY SỬA ===
+    function cancelEdit(noteId) {
+        document.getElementById(`note-view-${noteId}`).style.display = 'block';
+        document.getElementById(`note-edit-${noteId}`).style.display = 'none';
+    }
+
+    // === HÀM MỚI: GỌI API XÓA ===
+    async function deleteNote(noteId) {
+        if (!confirm('Bạn có chắc chắn muốn xóa ghi chú này không?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/learning/api/notes/${noteId}`, {
+                method: 'DELETE',
+                headers: headers
+            });
+
+            if (response.ok) {
+                // Xóa khỏi giao diện
+                document.getElementById(`note-container-${noteId}`).remove();
+            } else {
+                alert('Lỗi: Không thể xóa ghi chú.');
+            }
+        } catch (error) {
+            console.error('Lỗi khi xóa ghi chú:', error);
+        }
+    }
+
+    // === HÀM MỚI: GỌI API CẬP NHẬT ===
+    async function updateNote(noteId) {
+        const newContent = document.getElementById(`note-textarea-${noteId}`).value;
+        if (!newContent.trim()) {
+            alert('Nội dung ghi chú không được để trống.');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/learning/api/notes/update/${noteId}`, {
+                method: 'PUT',
+                headers: headers,
+                body: JSON.stringify({ content: newContent })
+            });
+
+            if (response.ok) {
+                const updatedNote = await response.json();
+
+                // Cập nhật lại nội dung ở chế độ View
+                const viewP = document.querySelector(`#note-view-${noteId} p`);
+                viewP.textContent = updatedNote.note;
+
+                // Quay về chế độ View
+                cancelEdit(noteId);
+            } else {
+                alert('Lỗi: Không thể cập nhật ghi chú.');
+            }
+        } catch (error) {
+            console.error('Lỗi khi cập nhật ghi chú:', error);
+        }
+    }
+
+    // Helper: Chống lỗi XSS (Scripting) khi hiển thị
+    function escapeHTML(str) {
+        return str.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+</script>
+
+</body>
+</html>
