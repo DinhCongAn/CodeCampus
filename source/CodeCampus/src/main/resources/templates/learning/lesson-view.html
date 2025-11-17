@@ -140,7 +140,7 @@
     const LESSON_ID = /*[[${currentLesson.id}]]*/ null;
     const USER_ID = /*[[${currentUserId}]]*/ null;
 
-    /* Lấy CSRF token (Nếu dùng Spring Security) */
+    /* Lấy CSRF token */
     const csrfHeaderName = document.querySelector('meta[name="_csrf_header"]')?.content;
     const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
 
@@ -151,34 +151,94 @@
         headers[csrfHeaderName] = csrfToken;
     }
 
-    // (Script cho Chat Assistant - giữ nguyên)
-    document.addEventListener('DOMContentLoaded', function() {
-        if (window.setChatContext) {
-            window.setChatContext(
-                'lesson',
-                LESSON_ID,
-                /*[[${currentLesson.name}]]*/ ''
-            );
+    // --- LOGIC CHO CẦU NỐI AI CHAT ---
+    async function handleAiQuery(question) {
+        try {
+            const response = await fetch('/learning/api/ask-ai', {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify({
+                    lessonId: LESSON_ID,
+                    question: question
+                })
+            });
+            if (!response.ok) {
+                return "Xin lỗi, tôi gặp lỗi khi kết nối với AI.";
+            }
+            const data = await response.json();
+            return data.answer; // Trả về câu trả lời của AI
+        } catch (error) {
+            console.error("Lỗi gọi API /api/ask-ai:", error);
+            return "Lỗi mạng. Vui lòng kiểm tra kết nối.";
         }
+    }
 
-        if (window.handleAiQuery) {
-            window.handleAiQuery = async (question) => {
-                const response = await fetch('/learning/api/ask-ai', {
-                    method: 'POST',
-                    headers: headers,
-                    body: JSON.stringify({
-                        lessonId: LESSON_ID,
-                        question: question
-                    })
+    // --- HÀM KHỞI TẠO CHO ALPINE.JS (QUAN TRỌNG) ---
+    function chatAssistant() {
+        return {
+            isOpen: false,
+            isMinimized: false,
+            query: '',
+            messages: [],
+            isLoading: false,
+
+            minimize() {
+                this.isMinimized = true;
+                this.isOpen = false;
+            },
+
+            restore() {
+                this.isMinimized = false;
+                this.isOpen = true;
+            },
+
+            closePanel() {
+                this.isOpen = false;
+                this.isMinimized = false;
+            },
+
+            scrollToBottom() {
+                this.$nextTick(() => {
+                    const box = this.$refs.messagesContainer;
+                    box.scrollTop = box.scrollHeight;
                 });
-                const data = await response.json();
-                return data.answer;
-            };
-        }
-    });
+            },
 
-    // --- JavaScript cho Tab Ghi chú ---
+            async sendMessage() {
+                if (!this.query.trim() || this.isLoading) return;
 
+                this.messages.push({
+                    id: Date.now(),
+                    sender: 'user',
+                    text: this.query
+                });
+
+                this.scrollToBottom();
+
+                const userText = this.query;
+                this.query = '';
+                this.isLoading = true;
+
+                const response = await handleAiQuery(userText);
+
+                this.messages.push({
+                    id: Date.now() + 1,
+                    sender: 'ai',
+                    text: response
+                });
+
+                this.isLoading = false;
+                this.scrollToBottom();
+            }
+        };
+    }
+
+
+    // --- JavaScript cho Tab Ghi chú (Sửa/Xóa) ---
+
+    /**
+     * TẢI DANH SÁCH GHI CHÚ
+     */
     async function loadNotes() {
         const listDiv = document.getElementById('notes-list');
         listDiv.innerHTML = '<p id="notes-loading" class="text-gray-500">Đang tải ghi chú...</p>';
@@ -192,7 +252,6 @@
                 listDiv.innerHTML = '<p class="text-gray-500">Bạn chưa có ghi chú nào cho bài học này.</p>';
             } else {
                 notes.forEach(note => {
-                    // === SỬA Ở ĐÂY: Tạo cấu trúc HTML phức tạp hơn ===
                     const noteEl = document.createElement('div');
                     noteEl.id = `note-container-${note.id}`; // ID cho cả container
                     noteEl.className = 'p-4 bg-gray-50 border rounded-md';
@@ -224,7 +283,9 @@
         }
     }
 
-    // (Hàm saveNote - giữ nguyên)
+    /**
+     * LƯU GHI CHÚ MỚI
+     */
     async function saveNote() {
         const content = document.getElementById('note-content').value;
         if (!content.trim()) {
@@ -241,7 +302,7 @@
                 })
             });
             if (response.ok) {
-                document.getElementById('note-content').value = '';
+                document.getElementById('note-content').value = ''; // Xóa textarea
                 loadNotes(); // Tải lại danh sách
             } else {
                 alert('Lỗi lưu ghi chú.');
@@ -251,16 +312,22 @@
         }
     }
 
-    // (Hàm getAiSummary - giữ nguyên)
+    /**
+     * LẤY TÓM TẮT TỪ AI
+     */
     async function getAiSummary() {
         const btn = document.getElementById('btn-ai-summary');
         const noteTextarea = document.getElementById('note-content');
+
         btn.disabled = true;
         btn.innerHTML = '<span class="material-icons mr-2 text-sm animate-spin">refresh</span> Đang tóm tắt...';
+
         try {
             const response = await fetch(`/learning/api/summarize/${LESSON_ID}`);
             const data = await response.json();
-            noteTextarea.value = data.summary;
+
+            noteTextarea.value = data.summary; // Đưa tóm tắt vào textarea
+
         } catch (error) {
             console.error('Lỗi lấy tóm tắt AI:', error);
             alert('Không thể lấy tóm tắt từ AI.');
@@ -270,19 +337,25 @@
         }
     }
 
-    // === HÀM MỚI: HIỂN THỊ CHẾ ĐỘ SỬA ===
+    /**
+     * BẬT CHẾ ĐỘ SỬA
+     */
     function showEditMode(noteId) {
         document.getElementById(`note-view-${noteId}`).style.display = 'none';
         document.getElementById(`note-edit-${noteId}`).style.display = 'block';
     }
 
-    // === HÀM MỚI: HỦY SỬA ===
+    /**
+     * TẮT CHẾ ĐỘ SỬA
+     */
     function cancelEdit(noteId) {
         document.getElementById(`note-view-${noteId}`).style.display = 'block';
         document.getElementById(`note-edit-${noteId}`).style.display = 'none';
     }
 
-    // === HÀM MỚI: GỌI API XÓA ===
+    /**
+     * XÓA GHI CHÚ
+     */
     async function deleteNote(noteId) {
         if (!confirm('Bạn có chắc chắn muốn xóa ghi chú này không?')) {
             return;
@@ -297,6 +370,11 @@
             if (response.ok) {
                 // Xóa khỏi giao diện
                 document.getElementById(`note-container-${noteId}`).remove();
+                // Kiểm tra xem còn ghi chú nào không
+                const listDiv = document.getElementById('notes-list');
+                if (!listDiv.hasChildNodes()) {
+                    listDiv.innerHTML = '<p class="text-gray-500">Bạn chưa có ghi chú nào cho bài học này.</p>';
+                }
             } else {
                 alert('Lỗi: Không thể xóa ghi chú.');
             }
@@ -305,7 +383,9 @@
         }
     }
 
-    // === HÀM MỚI: GỌI API CẬP NHẬT ===
+    /**
+     * CẬP NHẬT GHI CHÚ
+     */
     async function updateNote(noteId) {
         const newContent = document.getElementById(`note-textarea-${noteId}`).value;
         if (!newContent.trim()) {
@@ -337,11 +417,13 @@
         }
     }
 
-    // Helper: Chống lỗi XSS (Scripting) khi hiển thị
+    /**
+     * Helper: Chống lỗi XSS (Scripting) khi hiển thị
+     */
     function escapeHTML(str) {
+        if (!str) return '';
         return str.replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
-
 </script>
 
 </body>

@@ -1,208 +1,107 @@
-<!-- Chat Assistant Widget Fragment -->
-<div th:fragment="chat-assistant">
-    <div id="chatAssistant" class="fixed bottom-4 right-4 z-50">
-        <!-- Chat Button (Floating) -->
-        <button id="chatToggleBtn"
-                class="bg-indigo-600 text-white rounded-full p-4 shadow-lg hover:bg-indigo-700 transition-all duration-300 flex items-center justify-center w-16 h-16"
-                title="Chat với AI trợ lý">
-            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
-            </svg>
-        </button>
+<div th:fragment="chat-assistant"
+     x-data="chatAssistant()"
+     class="fixed bottom-6 right-6 z-50"
+     style="font-family: inherit;">
 
-        <!-- Chat Window -->
-        <div id="chatWindow"
-             class="hidden absolute bottom-20 right-0 w-96 h-[600px] bg-white rounded-lg shadow-2xl flex flex-col border border-gray-200">
-            <!-- Chat Header -->
-            <div class="bg-indigo-600 text-white p-4 rounded-t-lg flex items-center justify-between">
-                <div class="flex items-center space-x-2">
-                    <div class="w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center">
-                        <span class="text-sm">🤖</span>
-                    </div>
-                    <div>
-                        <h3 class="font-semibold">Trợ lý AI</h3>
-                        <p class="text-xs text-indigo-200">Hỗ trợ học tập</p>
-                    </div>
-                </div>
-                <button id="chatCloseBtn" class="text-white hover:text-gray-200">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
+    <!-- CHAT PANEL -->
+    <div x-show="isOpen"
+         x-transition
+         x-cloak
+         class="flex flex-col bg-white shadow-xl border border-gray-300 rounded-xl"
+         style="width: 380px; height: 520px;"> <!-- FIXED SIZE -->
+
+        <!-- HEADER -->
+        <div class="flex items-center justify-between p-3 bg-gray-100 border-b">
+            <div class="flex items-center space-x-2">
+                <span class="material-icons text-blue-600">smart_toy</span>
+                <h3 class="font-semibold text-gray-800">AI Trợ giảng</h3>
+            </div>
+
+            <div class="flex space-x-2">
+                <!-- MINIMIZE BTN -->
+                <button @click="minimize()" class="text-gray-500 hover:text-gray-700">
+                    <span class="material-icons">expand_more</span>
+                </button>
+
+                <!-- CLOSE BTN -->
+                <button @click="closePanel()" class="text-gray-500 hover:text-gray-700">
+                    <span class="material-icons">close</span>
                 </button>
             </div>
+        </div>
 
-            <!-- Chat Messages -->
-            <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50" style="max-height: 500px; word-wrap: break-word;">
-                <div class="flex items-start space-x-2">
-                    <div class="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center flex-shrink-0">
-                        <span class="text-sm">🤖</span>
-                    </div>
-                    <div class="flex-1 bg-white p-3 rounded-lg shadow-sm">
-                        <p class="text-sm text-gray-700">
-                            Xin chào! Tôi là trợ lý AI của bạn. Tôi có thể giúp bạn:
-                            <br>• Giải thích khái niệm
-                            <br>• Hướng dẫn làm bài tập
-                            <br>• Trả lời câu hỏi về bài học
-                            <br><br>Hãy đặt câu hỏi để bắt đầu!
-                        </p>
-                    </div>
+        <!-- CONTENT (scrollable) -->
+        <div x-ref="messagesContainer"
+             class="flex-1 overflow-y-auto p-4 space-y-4"
+             style="min-height: 0;"> <!-- PREVENT HEIGHT BUG -->
+
+            <!-- INTRO MSG -->
+            <div class="flex justify-start">
+                <div class="bg-gray-100 text-gray-800 p-3 rounded-lg max-w-xs shadow-sm">
+                    Xin chào 👋! Bạn cần hỗ trợ gì trong bài học?
                 </div>
             </div>
 
-            <!-- Chat Input -->
-            <div class="p-4 border-t border-gray-200 bg-white rounded-b-lg">
-                <div class="flex space-x-2">
-                    <input type="text"
-                           id="chatInput"
-                           placeholder="Nhập câu hỏi của bạn..."
-                           class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                           onkeypress="if(event.key === 'Enter') sendChatMessage()">
-                    <button id="chatSendBtn"
-                            onclick="sendChatMessage()"
-                            class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
-                        </svg>
+            <!-- MESSAGES -->
+            <template x-for="message in messages" :key="message.id">
+                <div class="flex"
+                     :class="message.sender === 'user' ? 'justify-end' : 'justify-start'">
+
+                    <div class="p-3 rounded-lg max-w-xs shadow-sm"
+                         :class="{
+                             'bg-blue-600 text-white': message.sender === 'user',
+                             'bg-gray-100 text-gray-800': message.sender === 'ai'
+                         }">
+                        <p x-text="message.text"
+                           style="white-space: pre-wrap; word-wrap: break-word;"></p>
+                    </div>
+
+                </div>
+            </template>
+
+            <!-- LOADING -->
+            <div x-show="isLoading" class="flex justify-start">
+                <div class="bg-gray-100 text-gray-500 italic p-3 rounded-lg shadow-sm">
+                    AI đang trả lời...
+                </div>
+            </div>
+
+        </div>
+
+        <!-- INPUT AREA -->
+        <div class="border-t bg-gray-50 p-3">
+            <form @submit.prevent="sendMessage()">
+                <div class="flex items-center space-x-2">
+                    <input x-model="query"
+                           type="text"
+                           placeholder="Đặt câu hỏi..."
+                           class="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                           :disabled="isLoading">
+
+                    <button type="submit"
+                            class="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                            :disabled="isLoading">
+                        <span class="material-icons">send</span>
                     </button>
                 </div>
-            </div>
+            </form>
         </div>
+
     </div>
 
-    <script>
-        // Chat context - sẽ được set từ trang sử dụng
-        window.chatContext = {
-            context: 'general',
-            contextId: '',
-            contextName: ''
-        };
+    <!-- MINIMIZED BUBBLE -->
+    <button x-show="isMinimized"
+            x-transition
+            @click="restore()"
+            class="p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700">
+        <span class="material-icons">expand_less</span>
+    </button>
 
-        // Toggle chat window
-        document.addEventListener('DOMContentLoaded', function() {
-            const chatAssistant = document.getElementById('chatAssistant');
-            const chatToggleBtn = document.getElementById('chatToggleBtn');
-            const chatCloseBtn = document.getElementById('chatCloseBtn');
-            const chatWindow = document.getElementById('chatWindow');
-
-            // Ensure chat assistant is visible
-            if (chatAssistant) {
-                chatAssistant.style.display = 'block';
-            }
-
-            chatToggleBtn.addEventListener('click', function() {
-                chatWindow.classList.toggle('hidden');
-            });
-
-            chatCloseBtn.addEventListener('click', function() {
-                chatWindow.classList.add('hidden');
-            });
-        });
-
-        // Send chat message
-        function sendChatMessage() {
-            const input = document.getElementById('chatInput');
-            const message = input.value.trim();
-
-            if (!message) return;
-
-            // Add user message to chat
-            addMessageToChat('user', message);
-            input.value = '';
-
-            // Disable send button
-            const sendBtn = document.getElementById('chatSendBtn');
-            sendBtn.disabled = true;
-
-            // Show loading indicator
-            const loadingId = addMessageToChat('assistant', 'Đang suy nghĩ...', true);
-
-            // Send to API
-            fetch('/api/chat', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    message: message,
-                    context: window.chatContext.context || 'general',
-                    contextId: window.chatContext.contextId || '',
-                    contextName: window.chatContext.contextName || ''
-                })
-            })
-                .then(response => response.json())
-                .then(data => {
-                    // Remove loading message
-                    const loadingMsg = document.getElementById(loadingId);
-                    if (loadingMsg) loadingMsg.remove();
-
-                    if (data.success) {
-                        addMessageToChat('assistant', data.message);
-                    } else {
-                        addMessageToChat('assistant', 'Xin lỗi, đã xảy ra lỗi: ' + (data.error || 'Không thể kết nối với AI'));
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    const loadingMsg = document.getElementById(loadingId);
-                    if (loadingMsg) loadingMsg.remove();
-                    addMessageToChat('assistant', 'Xin lỗi, không thể kết nối với server. Vui lòng thử lại sau.');
-                })
-                .finally(() => {
-                    sendBtn.disabled = false;
-                });
-        }
-
-        // Add message to chat
-        function addMessageToChat(sender, text, isLoading = false) {
-            const messagesContainer = document.getElementById('chatMessages');
-            const messageId = 'msg-' + Date.now();
-
-            const messageDiv = document.createElement('div');
-            messageDiv.id = messageId;
-            messageDiv.className = 'flex items-start space-x-2 ' + (sender === 'user' ? 'flex-row-reverse space-x-reverse' : '');
-
-            const avatarDiv = document.createElement('div');
-            avatarDiv.className = 'w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ' +
-                (sender === 'user' ? 'bg-indigo-600' : 'bg-indigo-100');
-            avatarDiv.innerHTML = sender === 'user'
-                ? '<span class="text-white text-xs">👤</span>'
-                : '<span class="text-sm">🤖</span>';
-
-            const contentDiv = document.createElement('div');
-            contentDiv.className = 'flex-1 p-3 rounded-lg shadow-sm ' +
-                (sender === 'user' ? 'bg-indigo-600 text-white' : 'bg-white');
-
-            const textP = document.createElement('p');
-            textP.className = 'text-sm ' + (sender === 'user' ? 'text-white' : 'text-gray-700');
-            textP.style.wordWrap = 'break-word';
-            textP.style.whiteSpace = 'pre-wrap';
-            textP.textContent = text;
-            contentDiv.appendChild(textP);
-
-            if (isLoading) {
-                contentDiv.classList.add('animate-pulse');
-            }
-
-            messageDiv.appendChild(avatarDiv);
-            messageDiv.appendChild(contentDiv);
-            messagesContainer.appendChild(messageDiv);
-
-            // Scroll to bottom
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-
-            return messageId;
-        }
-
-        // Function to set chat context (call from parent page)
-        window.setChatContext = function(context, contextId, contextName) {
-            window.chatContext = {
-                context: context || 'general',
-                contextId: contextId || '',
-                contextName: contextName || ''
-            };
-        };
-    </script>
+    <!-- MAIN BUTTON -->
+    <button x-show="!isOpen && !isMinimized"
+            x-transition
+            @click="isOpen = true"
+            class="p-4 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700">
+        <span class="material-icons">smart_toy</span>
+    </button>
 </div>
-

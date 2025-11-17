@@ -1,6 +1,11 @@
 package com.codecampus.service;
 
+import com.codecampus.dto.QuestionReviewDto;
+import com.codecampus.dto.QuizReviewDto;
 import com.codecampus.entity.Lesson; // <-- THÊM MỚI
+import com.codecampus.entity.Question;
+import com.codecampus.entity.Quiz;
+import com.codecampus.repository.QuestionRepository;
 import com.google.genai.Client;
 import com.google.genai.types.Content;
 import com.google.genai.types.GenerateContentConfig;
@@ -16,9 +21,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.annotation.Autowired; // <-- THÊM MỚI
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 @Service
 public class AiLearningService { // <-- Đổi tên thành AiLearningService
@@ -32,6 +39,14 @@ public class AiLearningService { // <-- Đổi tên thành AiLearningService
 
     @Autowired // <-- THÊM MỚI
     private LessonService lessonService; // <-- Dịch vụ để lấy nội dung bài học
+    @Autowired
+    private QuizService quizService; // Tiêm QuizService
+
+    @Autowired
+    private QuestionRepository questionRepository;
+
+    @Autowired
+    private QuizAttemptService quizAttemptService;
 
     /** Khởi tạo Gemini Client (giữ nguyên code của bạn) */
     @PostConstruct
@@ -72,18 +87,34 @@ public class AiLearningService { // <-- Đổi tên thành AiLearningService
 
         // 2. Xây dựng Prompt
         String prompt = String.format(
-                "Bạn là một trợ giảng AI, chỉ được phép trả lời dựa vào nội dung được cung cấp.\n" +
-                        "--- BẮT ĐẦU NỘI DUNG BÀI HỌC (Tên: %s) ---\n" +
-                        "%s\n" +
-                        "--- KẾT THÚC NỘI DUNG BÀI HỌC ---\n\n" +
-                        "Câu hỏi của học viên: \"%s\"\n\n" +
-                        "Hãy trả lời câu hỏi trên một cách ngắn gọn (tối đa 150 từ) và sư phạm. " +
-                        "Nếu câu hỏi KHÔNG LIÊN QUAN đến nội dung, hãy lịch sự từ chối.",
+                """
+                Bạn là một trợ giảng AI thông minh và thân thiện.
+        
+                Nhiệm vụ của bạn:
+                1) Ưu tiên trả lời dựa trên NỘI DUNG BÀI HỌC được cung cấp.
+                2) Nếu không tìm thấy thông tin liên quan TRONG bài học:
+                   → Hãy mở rộng bằng kiến thức tương tự (related knowledge) từ cùng chủ đề.
+                   → Tuyệt đối không nói sai, không phóng đoán.
+                3) Câu trả lời phải rõ ràng, dễ hiểu, tối đa 150 từ.
+                4) Giữ phong cách sư phạm và giải thích hợp lý.
+                5) Nếu câu hỏi quá xa chủ đề (ví dụ hỏi về nấu ăn trong bài lập trình):
+                   → Lịch sự từ chối và gợi ý quay lại nội dung bài học.
+        
+                --- BẮT ĐẦU NỘI DUNG BÀI HỌC (Tên: %s) ---
+                %s
+                --- KẾT THÚC NỘI DUNG BÀI HỌC ---
+        
+                Câu hỏi của học viên: "%s"
+        
+                Hãy đưa ra câu trả lời phù hợp nhất theo 3 mức độ ưu tiên:
+                1) Trích từ đúng nội dung bài học → nếu có.
+                2) Suy luận từ các khái niệm liên quan → nếu phù hợp.
+                3) Từ chối lịch sự → nếu câu hỏi không liên quan.
+                """,
                 lesson.getName(),
                 lessonContent,
                 userQuestion
         );
-
         // 3. Gọi Helper API
         return callGeminiApi(prompt, "getContextualAnswer");
     }
@@ -119,6 +150,158 @@ public class AiLearningService { // <-- Đổi tên thành AiLearningService
         return callGeminiApi(prompt, "summarizeLesson");
     }
 
+    // === THÊM PHƯƠNG THỨC MỚI CHO MH-16 ===
+
+
+
+    /**
+     * MỚI (Cho MH-16): Lấy gợi ý ôn tập nhanh trước Quiz
+     */
+    public String getQuizPreparationTips(Integer quizId) {
+        logger.info("AiLearningService: Lấy gợi ý ôn tập cho quizId: {}", quizId);
+
+        Quiz quiz;
+        try {
+            quiz = quizService.findQuizById(quizId);
+        } catch (Exception e) {
+            logger.error("❌ Lỗi getQuizPreparationTips (không tìm thấy quiz): {}", e.getMessage());
+            return "Lỗi: Không tìm thấy thông tin quiz.";
+        }
+
+        // Lấy ngữ cảnh từ Tên/Mô tả của Quiz và Khóa học
+        String quizName = quiz.getName();
+        String quizDesc = stripHtml(quiz.getDescription()); // Dùng lại hàm stripHtml
+        String courseName = quiz.getCourse().getName();
+
+        // Xây dựng Prompt
+        String prompt = String.format(
+                "Bạn là một trợ giảng AI. Học viên sắp làm bài quiz có tên \"%s\" " +
+                        "thuộc khóa học \"%s\".\n" +
+                        "Mô tả của quiz: \"%s\".\n\n" +
+                        "Hãy đưa ra 3-5 gạch đầu dòng (bullet points) về các khái niệm quan trọng nhất " +
+                        "mà học viên nên ôn tập. Trả lời NGẮN GỌN, súc tích, bằng Tiếng Việt.",
+                quizName,
+                courseName,
+                quizDesc
+        );
+
+        // Gọi Helper API (hàm callGeminiApi đã có)
+        return callGeminiApi(prompt, "getQuizPreparationTips");
+    }
+
+    // === THÊM PHƯƠNG THỨC MỚI CHO MH-17 ===
+    /**
+     * MỚI (Cho MH-17): Lấy gợi ý AI cho một câu hỏi cụ thể
+     */
+    public String getQuizQuestionHint(Integer questionId) {
+        logger.info("AiLearningService: Lấy gợi ý cho questionId: {}", questionId);
+
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy câu hỏi"));
+
+        String questionContent = stripHtml(question.getContent());
+
+        // Tạo danh sách các lựa chọn (chỉ lấy nội dung)
+        String optionsText = question.getAnswerOptions().stream()
+                .map(option -> "- " + stripHtml(option.getContent()))
+                .collect(Collectors.joining("\n"));
+
+        // Xây dựng Prompt
+        String prompt = String.format(
+                "Bạn là một trợ giảng AI. Hãy đưa ra một GỢI Ý NGẮN GỌN (dưới 25 từ) " +
+                        "cho câu hỏi trắc nghiệm sau. \n" +
+                        "TUYỆT ĐỐI KHÔNG được tiết lộ đáp án đúng. \n" +
+                        "Chỉ đưa ra một câu hỏi dẫn dắt hoặc một định nghĩa liên quan.\n" +
+                        "Trả lời bằng Tiếng Việt.\n\n" +
+                        "--- CÂU HỎI ---\n" +
+                        "%s\n\n" +
+                        "--- CÁC LỰA CHỌN ---\n" +
+                        "%s\n\n" +
+                        "Gợi ý của bạn:",
+                questionContent,
+                optionsText
+        );
+
+        return callGeminiApi(prompt, "getQuizQuestionHint");
+    }
+
+    // === THÊM PHƯƠNG THỨC MỚI CHO MH-18 ===
+
+    /**
+     * MỚI (MH-18): Giải thích lỗi sai
+     */
+    public String getMistakeExplanation(Integer attemptId, Integer questionId, Integer userId) {
+        logger.info("AiLearningService: Lấy gợi ý cho questionId: {}", questionId);
+        logger.info("AiLearningService: Giải thích lỗi sai cho attempt {} / question {} / user {}", attemptId, questionId, userId);
+
+        // === SỬA Ở ĐÂY ===
+        // Truyền userId thật sự vào
+        QuizReviewDto review = quizAttemptService.getQuizReview(attemptId, userId);
+
+        QuestionReviewDto q = review.getQuestions().stream()
+                .filter(qr -> qr.getQuestionId().equals(questionId))
+                .findFirst().orElse(null);
+
+        if (q == null) {
+            return "Lỗi: Không tìm thấy dữ liệu câu hỏi để review.";
+        }
+        if (q.isCorrect()) {
+            return "Câu này đã trả lời đúng.";
+        }
+
+        String prompt = String.format(
+                "Bạn là một gia sư AI. Một học viên đã trả lời SAI một câu hỏi.\n" +
+                        "Nhiệm vụ của bạn là giải thích một cách sư phạm, ngắn gọn, tập trung vào LÝ DO tại sao đáp án của họ sai.\n" +
+                        "KHÔNG sử dụng markdown.\n\n" +
+                        "--- CÂU HỎI ---\n%s\n\n" +
+                        "--- ĐÁP ÁN ĐÚNG ---\n%s\n\n" +
+                        "--- HỌC VIÊN ĐÃ CHỌN (SAI) ---\n%s\n\n" +
+                        "Giải thích tại sao lựa chọn của học viên lại sai và tại sao đáp án đúng là chính xác:",
+                stripHtml(q.getContent()),
+                stripHtml(q.getCorrectAnswerContent()),
+                stripHtml(q.getUserAnswerContent())
+        );
+
+        return callGeminiApi(prompt, "getMistakeExplanation");
+    }
+
+    /**
+     * SỬA LẠI (MH-18): Phân tích hiệu suất
+     * Bổ sung (Integer userId)
+     */
+    public String getPerformanceAnalysis(Integer attemptId, Integer userId) {
+        logger.info("AiLearningService: Phân tích hiệu suất cho attemptId: {}", attemptId);
+
+        // === SỬA Ở ĐÂY ===
+        // Truyền userId thật sự vào
+        QuizReviewDto review = quizAttemptService.getQuizReview(attemptId, userId);
+
+        List<String> incorrectQuestions = review.getQuestions().stream()
+                .filter(q -> !q.isCorrect())
+                .map(q -> stripHtml(q.getContent()))
+                .toList();
+
+        if (incorrectQuestions.isEmpty()) {
+            return "Tuyệt vời! Bạn đã trả lời đúng tất cả các câu hỏi. Hãy tiếp tục phát huy!";
+        }
+
+        String prompt = String.format(
+                "Một học viên vừa làm bài quiz và sai %d/%d câu.\n" +
+                        "Đây là danh sách nội dung các câu hỏi họ đã làm sai:\n" +
+                        "--- DANH SÁCH CÂU SAI ---\n" +
+                        "%s\n" +
+                        "--- KẾT THÚC DANH SÁCH ---\n\n" +
+                        "Nhiệm vụ của bạn: " +
+                        "1. Phân tích các câu hỏi này và tìm ra 1-2 chủ đề (mẫu lỗi sai) chung nhất.\n" +
+                        "2. Đưa ra nhận xét tổng quan và lời khuyên (dưới 100 từ) về các chủ đề cần ôn tập.\n" +
+                        "Trả lời bằng Tiếng Việt.",
+                incorrectQuestions.size(),
+                review.getTotalQuestions(),
+                String.join("\n- ", incorrectQuestions)
+        );
+
+        return callGeminiApi(prompt, "getPerformanceAnalysis");
+    }
     // --- CÁC TÍNH NĂNG CÓ SẴN CỦA BẠN (CHO QUIZ VÀ LAB) ---
     // (Giữ nguyên các phương thức này cho MH-17 và MH-19)
 

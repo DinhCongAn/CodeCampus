@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kết quả Quiz: <span th:text="${review.quizName}"></span></title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="//unpkg.com/alpinejs" defer></script>
+    <style>
+        [x-cloak] { display: none; }
+        .answer-correct { background-color: #F0FDF4; border-left: 4px solid #4ADE80; }
+        .answer-incorrect { background-color: #FEF2F2; border-left: 4px solid #F87171; }
+        .answer-neutral { border-left: 4px solid #E5E7EB; }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+<div class="container mx-auto max-w-4xl p-4 md:p-8 mt-10" x-data="aiReviewModals()">
+
+    <!-- Header + Result -->
+    <div class="bg-white rounded-lg shadow-lg p-6 md:p-8">
+        <div class="flex flex-col md:flex-row justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900" th:text="${review.quizName}">Tên Quiz</h1>
+                <p class="text-lg text-gray-500">Xem lại kết quả của bạn</p>
+            </div>
+            <div th:if="${review.result == 'Pass'}"
+                 class="mt-4 md:mt-0 px-6 py-3 bg-green-100 text-green-800 rounded-lg text-2xl font-bold">
+                <span class="material-icons align-middle mr-2">check_circle</span>
+                ĐẠT
+            </div>
+            <div th:if="${review.result == 'Fail'}"
+                 class="mt-4 md:mt-0 px-6 py-3 bg-red-100 text-red-800 rounded-lg text-2xl font-bold">
+                <span class="material-icons align-middle mr-2">cancel</span>
+                KHÔNG ĐẠT
+            </div>
+        </div>
+
+        <!-- Score + Correct Count -->
+        <div class="grid grid-cols-2 gap-4 mt-6 text-center">
+            <div class="p-4 bg-blue-50 rounded-lg">
+                <span class="block text-3xl font-semibold text-blue-800"
+                      th:text="${#numbers.formatDecimal(review.score, 1, 1)} + ' / 100'"></span>
+                <span class="text-sm text-gray-500">Điểm số</span>
+            </div>
+            <div class="p-4 bg-green-50 rounded-lg">
+                <span class="block text-3xl font-semibold text-green-800"
+                      th:text="${review.correctCount} + ' / ' + ${review.totalQuestions}"></span>
+                <span class="text-sm text-gray-500">Số câu đúng</span>
+            </div>
+        </div>
+
+        <!-- AI Analysis Button -->
+        <div class="mt-6 border-t pt-6">
+            <button @click="loadAnalysis()"
+                    class="w-full py-3 px-6 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-md transition duration-300 text-lg flex items-center justify-center">
+                <span class="material-icons mr-2">auto_awesome</span>
+                AI Phân tích Hiệu suất
+            </button>
+        </div>
+    </div>
+
+    <!-- Chi tiết câu trả lời -->
+    <div class="mt-8 space-y-6">
+        <h2 class="text-2xl font-semibold text-gray-800">Chi tiết câu trả lời</h2>
+
+        <div th:each="q, iter : ${review.questions}" class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <h3 class="text-lg font-semibold" th:text="|Câu ${iter.count}: ${q.content}|"></h3>
+
+            <div class="px-6 py-4"
+                 th:classappend="${q.isCorrect} ? 'answer-correct' : 'answer-incorrect'">
+                <p class="text-sm font-medium text-gray-500">Bạn đã chọn:</p>
+                <p class="text-gray-800" th:text="${q.userAnswerContent}"></p>
+            </div>
+
+            <div th:if="${!q.isCorrect}" class="px-6 py-4 answer-neutral">
+                <p class="text-sm font-medium text-gray-500">Đáp án đúng:</p>
+                <p class="text-gray-800 font-semibold" th:text="${q.correctAnswerContent}"></p>
+            </div>
+
+            <div class="px-6 py-4 bg-gray-50 border-t">
+                <p class="text-sm font-medium text-gray-500">Giải thích:</p>
+
+                <p th:if="${q.explanation != null and !q.explanation.isEmpty()}"
+                   class="text-gray-700 mt-1" th:text="${q.explanation}"></p>
+
+                <div th:if="${!q.isCorrect}">
+                    <!-- Nút hỏi AI: mở modal giống Phân tích -->
+                    <button
+                            @click="loadExplanation(${review.attemptId}, ${q.questionId}); analysisModalOpen = true; modalTitle='AI Giải thích'; modalIcon='help_outline'"
+                            class="mt-2 text-sm text-blue-600 hover:underline flex items-center">
+                        <span class="material-icons text-sm mr-1">help_outline</span>
+                        Tại sao tôi sai? (Hỏi AI)
+                    </button>
+                </div>
+
+                <p th:if="${q.isCorrect}" class="text-gray-700 mt-1 italic">Chính xác!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Analysis / AI chung -->
+    <div x-show="analysisModalOpen" @click.away="analysisModalOpen = false" x-cloak
+         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-lg shadow-xl max-w-lg w-full p-6">
+            <h3 class="text-xl font-semibold flex items-center mb-4">
+                <span class="material-icons text-blue-500 mr-2" x-text="modalIcon"></span>
+                <span x-text="modalTitle"></span>
+            </h3>
+            <div x-show="isLoading" class="text-center text-gray-500">Đang phân tích...</div>
+            <p x-show="!isLoading" class="text-gray-700" style="white-space: pre-wrap;" x-text="content"></p>
+            <button @click="analysisModalOpen = false" class="mt-6 w-full bg-blue-600 text-white py-2 rounded-lg">
+                Đã hiểu
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<script th:inline="javascript">
+    function aiReviewModals() {
+        return {
+            isLoading: false,
+            content: '',
+            analysisModalOpen: false,
+            modalTitle: 'AI Phân tích Hiệu suất',
+            modalIcon: 'auto_awesome',
+
+            async loadAnalysis() {
+                this.isLoading = true;
+                this.analysisModalOpen = true;
+                this.content = 'Đang phân tích...';
+                this.modalTitle = 'AI Phân tích Hiệu suất';
+                this.modalIcon = 'auto_awesome';
+
+                try {
+                    const attemptId = /*[[${review.attemptId}]]*/ 0;
+                    const response = await fetch(`/learning/review/api/analysis/${attemptId}`);
+                    const data = await response.json();
+                    this.content = data.analysis;
+                } catch (e) {
+                    this.content = 'Lỗi kết nối đến AI. Vui lòng thử lại.';
+                } finally {
+                    this.isLoading = false;
+                }
+            },
+
+            async loadExplanation(attemptId, questionId) {
+                this.isLoading = true;
+                this.analysisModalOpen = true;
+                this.content = 'AI đang suy nghĩ...';
+                this.modalTitle = 'AI Giải thích';
+                this.modalIcon = 'help_outline';
+
+                try {
+                    const response = await fetch(`/learning/review/api/explain-mistake/${attemptId}/${questionId}`);
+                    const data = await response.json();
+                    this.content = data.explanation;
+                } catch (e) {
+                    this.content = 'Lỗi kết nối đến AI. Vui lòng thử lại.';
+                } finally {
+                    this.isLoading = false;
+                }
+            }
+        }
+    }
+</script>
+
+</body>
+</html>

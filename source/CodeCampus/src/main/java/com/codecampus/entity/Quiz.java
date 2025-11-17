@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.math.BigDecimal;
-import java.util.List; // Phải là List (hoặc Set)
+import java.util.List;
 
 @Entity
 @Table(name = "quizzes")
@@ -16,7 +16,6 @@ public class Quiz {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    // (...các trường course, testType, examLevel, name, v.v...)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id")
     private Course course;
@@ -29,19 +28,25 @@ public class Quiz {
     @JoinColumn(name = "exam_level_id")
     private QuestionLevel examLevel;
 
+    @Column(nullable = false)
     private String name;
-    // ...
 
-    // === SỬA Ở ĐÂY ===
-    /**
-     * ĐÂY LÀ BÊN KHÔNG SỞ HỮU (Inverse Side) - Quan hệ OneToMany.
-     * 'mappedBy = "quiz"' trỏ đến thuộc tính 'private Quiz quiz' trong Lesson.java.
-     * Một Quiz có thể nằm trong NHIỀU Lesson.
-     */
+    // === BỔ SUNG CÁC TRƯỜNG BỊ THIẾU ===
+
+    @Column(name = "duration_minutes")
+    private Integer durationMinutes;
+
+    @Column(name = "pass_rate_percentage")
+    private BigDecimal passRatePercentage;
+
+    @Column(columnDefinition = "NVARCHAR(MAX)")
+    private String description; // <-- LỖI CỦA BẠN LÀ DO THIẾU TRƯỜNG NÀY
+
+    // ==================================
+
     @OneToMany(mappedBy = "quiz", fetch = FetchType.LAZY)
-    private List<Lesson> lessons; // Thay thế cho private Lesson lesson;
+    private List<Lesson> lessons;
 
-    // (Quan hệ ManyToMany với Question giữ nguyên)
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "quiz_questions",

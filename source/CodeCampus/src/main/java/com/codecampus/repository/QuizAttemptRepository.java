@@ -6,27 +6,23 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
-import java.util.List; // (Bạn có thể cần import này)
 
 @Repository
 public interface QuizAttemptRepository extends JpaRepository<QuizAttempt, Integer> {
 
-    // (Bạn có thể có các phương thức khác ở đây...)
-
-    // === PHƯƠNG THỨC BỊ LỖI LÀ ĐÂY ===
     /**
-     * Sửa lại truy vấn này.
-     * BỎ: JOIN FETCH q.lesson l
-     * BỎ: JOIN FETCH l.course c
-     * THAY BẰNG: JOIN FETCH q.course c (Vì Quiz đã liên kết trực tiếp với Course)
+     * Tìm tất cả các lần làm bài của một user cho một quiz cụ thể
+     * Sắp xếp theo thời gian bắt đầu, mới nhất lên trước.
      */
+    List<QuizAttempt> findByUserIdAndQuizIdOrderByStartTimeDesc(Integer userId, Integer quizId);
+
     @Query("SELECT qa FROM QuizAttempt qa " +
-            "JOIN FETCH qa.quiz q " +
-            "JOIN FETCH q.course c " + // <-- SỬA LẠI THÀNH DÒNG NÀY
-            "WHERE qa.id = :attemptId AND qa.user.id = :userId")
-    Optional<QuizAttempt> findByIdAndUserIdWithDetails(@Param("attemptId") Integer attemptId, @Param("userId") Integer userId);
+            "JOIN FETCH qa.user " +
+            "JOIN FETCH qa.quiz " +
+            "WHERE qa.id = :attemptId AND qa.status = 'completed'")
+    Optional<QuizAttempt> findCompletedAttemptById(@Param("attemptId") Integer attemptId);
 
 
-    // (Bạn cũng cần sửa các phương thức khác nếu chúng dùng 'q.lesson')
 }

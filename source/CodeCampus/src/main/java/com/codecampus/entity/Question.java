@@ -32,7 +32,7 @@ public class Question {
     @ManyToMany(mappedBy = "questions", fetch = FetchType.LAZY)
     private List<Quiz> quizzes;
 
-    // (Bạn cũng cần thêm liên kết đến AnswerOptions)
-    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OrderBy("orderNumber ASC")
     private List<AnswerOption> answerOptions;
 }

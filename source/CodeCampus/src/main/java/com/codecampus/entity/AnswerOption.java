@@ -2,28 +2,28 @@ package com.codecampus.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @Table(name = "answer_options")
-@Getter @Setter @NoArgsConstructor
+@Getter
+@Setter
 public class AnswerOption {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "question_id")
     private Question question;
 
-    @Column(name = "content", columnDefinition = "NVARCHAR(MAX)")
+    @Column(columnDefinition = "NVARCHAR(MAX)", nullable = false)
     private String content;
 
     @Column(name = "is_correct")
-    private boolean isCorrect;
+    private boolean isCorrect = false;
 
     @Column(name = "order_number")
-    private Integer orderNumber;
+    private int orderNumber = 0;
 }

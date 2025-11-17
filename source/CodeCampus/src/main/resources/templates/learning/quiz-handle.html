@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}" th:if="${_csrf}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" th:if="${_csrf}"/>
+
+    <title>Đang làm Quiz: <span th:text="${attempt.quiz.name}"></span></title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="//unpkg.com/alpinejs" defer></script>
+
+    <style>
+        [x-cloak] { display: none; }
+
+        /* * Lớp 'answered' này sẽ được Alpine.js
+         * tự động thêm/xóa để làm nổi bật câu đã trả lời.
+        */
+        .question-palette-btn.answered {
+            background-color: #3B82F6; /* blue-600 */
+            color: white;
+            font-weight: 600;
+        }
+
+        /* * Làm cho radio button đã chọn
+         * có viền màu xanh rõ rệt hơn.
+        */
+        .quiz-option:has(input[type="radio"]:checked) {
+            border-color: #3B82F6; /* blue-600 */
+            box-shadow: 0 0 0 2px #BFDBFE; /* ring-2 ring-blue-200 */
+            background-color: #EFF6FF; /* bg-blue-50 */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex flex-col md:flex-row h-screen text-gray-800">
+
+<div class="w-full h-full flex flex-col md:flex-row"
+     x-data="quizApp()"
+     th:attr="data-attempt-id=${attempt.id},
+              data-start-time=${attempt.startTime},
+              data-duration-minutes=${attempt.quiz.durationMinutes},
+              data-questions=${questionsJson},
+              data-saved-answers=${savedAnswersJson}"
+     x-init="init()">
+
+    <main class="flex-1 h-3/5 md:h-full overflow-y-auto bg-gray-50">
+        <div class="max-w-3xl mx-auto p-6 md:p-12">
+
+            <div class="flex justify-between items-center mb-6">
+                <span class="text-xl md:text-2xl font-bold text-gray-900"
+                      x-text="`Câu ${currentQuestionIndex + 1} / ${questions.length}`">
+                </span>
+                <button @click="getAiHint()"
+                        class="flex items-center px-4 py-2 text-sm font-semibold text-amber-800 bg-amber-100 rounded-lg hover:bg-amber-200 transition-colors shadow-sm"
+                        :disabled="isHintLoading">
+                    <span class="material-icons text-sm mr-1" x-show="!isHintLoading">lightbulb</span>
+                    <span class="material-icons text-sm mr-1 animate-spin" x-show="isHintLoading">refresh</span>
+                    <span x-text="isHintLoading ? 'Đang tải...' : 'Gợi ý (AI)'"></span>
+                </button>
+            </div>
+
+            <div class="p-6 md:p-8 bg-white rounded-lg shadow-sm border border-gray-200">
+                <div class="prose max-w-none text-lg text-gray-800"
+                     x-html="currentQuestion.content">
+                </div>
+            </div>
+
+            <div class="mt-8 space-y-4">
+                <template x-for="option in currentQuestion.answerOptions" :key="option.id">
+                    <label class="quiz-option flex items-start p-5 bg-white border border-gray-200 rounded-lg shadow-sm cursor-pointer transition-all duration-200 hover:shadow-md hover:border-blue-500">
+                        <input type="radio"
+                               :name="`q_${currentQuestion.id}`"
+                               :value="option.id"
+                               @change="saveAnswer(currentQuestion.id, option.id)"
+                               x-model.number="selectedAnswers[currentQuestion.id]"
+                               class="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 mt-1 flex-shrink-0">
+
+                        <div class="ml-4 text-gray-700" x-html="option.content"></div>
+                    </label>
+                </template>
+            </div>
+
+            <div class="flex justify-between mt-12 pt-6 border-t border-gray-200">
+                <button @click="prevQuestion()" :disabled="currentQuestionIndex === 0"
+                        class="inline-flex items-center px-5 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-100 disabled:opacity-50 transition-colors">
+                    <span class="material-icons mr-2">chevron_left</span>
+                    Câu trước
+                </button>
+                <button @click="nextQuestion()" :disabled="currentQuestionIndex === questions.length - 1"
+                        class="inline-flex items-center px-5 py-2 rounded-lg text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 transition-colors">
+                    Câu sau
+                    <span class="material-icons ml-2">chevron_right</span>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <aside class="w-full md:w-80 h-2/5 md:h-full bg-white border-l border-gray-200 flex flex-col shadow-lg">
+
+        <div class="p-6 space-y-6 border-b border-gray-200">
+            <div class="text-center">
+                <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">Thời gian còn lại</h3>
+                <div class="text-4xl font-bold text-red-600 p-2"
+                     x-text="timerDisplay">
+                    00:00
+                </div>
+            </div>
+
+            <div>
+                <button @click="submitQuiz()"
+                        :disabled="isSubmitting"
+                        class="w-full py-3 bg-green-600 text-white font-bold rounded-lg shadow-md hover:bg-green-700 disabled:opacity-50 flex items-center justify-center transition-all">
+                    <span class="material-icons mr-2" x-show="!isSubmitting">check_circle</span>
+                    <span class="material-icons mr-2 animate-spin" x-show="isSubmitting">refresh</span>
+                    <span x-text="isSubmitting ? 'Đang nộp bài...' : 'Nộp bài'"></span>
+                </button>
+            </div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-6">
+            <h4 class="font-semibold mb-4 text-gray-700">Danh sách câu hỏi</h4>
+            <div class="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-5 gap-2">
+
+                <template x-for="(question, index) in questions" :key="question.id">
+                    <button @click="goToQuestion(index)"
+                            class="question-palette-btn w-10 h-10 flex items-center justify-center border rounded-lg transition-all duration-150"
+                            :class="{
+                                'answered': selectedAnswers[question.id] !== undefined,
+                                'ring-2 ring-blue-500 ring-offset-1': currentQuestionIndex === index,
+                                'bg-white hover:bg-gray-100 border-gray-300': selectedAnswers[question.id] === undefined
+                            }"
+                            x-text="index + 1">
+                    </button>
+                </template>
+            </div>
+        </div>
+    </aside>
+
+    <div x-show="showHintModal" x-cloak
+         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <h3 class="text-lg font-semibold flex items-center">
+                <span class="material-icons text-yellow-500 mr-2">lightbulb</span>
+                Gợi ý từ AI
+            </h3>
+            <p class="mt-4 text-gray-700" x-text="hintContent"></p>
+            <button @click="showHintModal = false" class="mt-6 w-full bg-blue-600 text-white py-2 rounded-lg">
+                Đã hiểu
+            </button>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+
+    // Lấy CSRF token
+    const csrfHeaderName = document.querySelector('meta[name="_csrf_header"]')?.content;
+    const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
+    const httpHeaders = {
+        'Content-Type': 'application/json'
+    };
+    if (csrfHeaderName && csrfToken) {
+        httpHeaders[csrfHeaderName] = csrfToken;
+    }
+
+    function quizApp() {
+        return {
+            // === 1. Dữ liệu (Lấy từ Thymeleaf) ===
+            attemptId: 0,
+            questions: [],
+            savedAnswers: {},
+            startTime: null,
+            durationMinutes: 0,
+
+            // === 2. Trạng thái (State) ===
+            currentQuestionIndex: 0,
+            selectedAnswers: {},
+            timerDisplay: '00:00',
+            timerInterval: null,
+            isSubmitting: false,
+            isHintLoading: false,
+            showHintModal: false,
+            hintContent: '',
+
+            // === 3. Dữ liệu Tính toán (Computed) ===
+            get currentQuestion() {
+                if (!this.questions || this.questions.length === 0) {
+                    return { id: 0, content: 'Đang tải câu hỏi...', answerOptions: [] };
+                }
+                return this.questions[this.currentQuestionIndex];
+            },
+
+            // === 4. Hàm Khởi tạo ===
+            init() {
+                const el = this.$el;
+                this.attemptId = parseInt(el.dataset.attemptId);
+                this.questions = JSON.parse(el.dataset.questions);
+                this.savedAnswers = JSON.parse(el.dataset.savedAnswers);
+                this.selectedAnswers = { ...this.savedAnswers };
+                this.startTime = new Date(el.dataset.startTime);
+                this.durationMinutes = parseInt(el.dataset.durationMinutes);
+
+                this.startTimer();
+            },
+
+            // === 5. Phương thức (Methods) ===
+
+            // --- Điều hướng ---
+            nextQuestion() {
+                if (this.currentQuestionIndex < this.questions.length - 1) {
+                    this.currentQuestionIndex++;
+                }
+            },
+            prevQuestion() {
+                if (this.currentQuestionIndex > 0) {
+                    this.currentQuestionIndex--;
+                }
+            },
+            goToQuestion(index) {
+                this.currentQuestionIndex = index;
+            },
+
+            // --- Timer ---
+            startTimer() {
+                const endTime = this.startTime.getTime() + this.durationMinutes * 60 * 1000;
+
+                this.timerInterval = setInterval(() => {
+                    const now = new Date().getTime();
+                    const distance = endTime - now;
+
+                    if (distance < 0) {
+                        clearInterval(this.timerInterval);
+                        this.timerDisplay = "Hết giờ";
+                        this.submitQuiz(true); // Tự động nộp bài
+                    } else {
+                        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                        this.timerDisplay =
+                            String(minutes).padStart(2, '0') + ":" + String(seconds).padStart(2, '0');
+                    }
+                }, 1000);
+            },
+
+            // --- AJAX: Lưu câu trả lời ---
+            async saveAnswer(questionId, answerId) {
+                // Cập nhật model (Alpine)
+                this.selectedAnswers[questionId] = answerId;
+
+                try {
+                    await fetch('/learning/attempt/api/save-answer', {
+                        method: 'POST',
+                        headers: httpHeaders,
+                        body: JSON.stringify({
+                            attemptId: this.attemptId,
+                            questionId: questionId,
+                            answerId: answerId
+                        })
+                    });
+                } catch (e) {
+                    console.error("Lỗi lưu câu trả lời:", e);
+                }
+            },
+
+            // --- AJAX: Lấy Gợi ý AI ---
+            async getAiHint() {
+                this.isHintLoading = true;
+                this.hintContent = 'Đang liên hệ với AI...';
+                this.showHintModal = true;
+
+                try {
+                    const response = await fetch(`/learning/attempt/api/hint/${this.attemptId}/${this.currentQuestion.id}`);
+                    const data = await response.json();
+                    this.hintContent = data.hint;
+                } catch (e) {
+                    console.error("Lỗi lấy gợi ý:", e);
+                    this.hintContent = 'Không thể lấy gợi ý. Vui lòng thử lại.';
+                } finally {
+                    this.isHintLoading = false;
+                }
+            },
+
+            // --- AJAX: Nộp bài ---
+            async submitQuiz(isAutoSubmit = false) {
+                if (!isAutoSubmit) {
+                    if (!confirm('Bạn có chắc chắn muốn nộp bài không?')) {
+                        return;
+                    }
+                }
+
+                this.isSubmitting = true;
+                clearInterval(this.timerInterval); // Dừng đồng hồ
+
+                try {
+                    const response = await fetch('/learning/attempt/api/submit', {
+                        method: 'POST',
+                        headers: httpHeaders,
+                        body: JSON.stringify({ attemptId: this.attemptId })
+                    });
+                    const data = await response.json();
+
+                    // Chuyển hướng đến trang Review (MH-18)
+                    window.location.href = data.reviewUrl;
+
+                } catch (e) {
+                    console.error("Lỗi nộp bài:", e);
+                    alert('Lỗi nộp bài. Vui lòng tải lại trang.');
+                    this.isSubmitting = false;
+                }
+            }
+        }
+    }
+</script>
+
+</body>
+</html>
