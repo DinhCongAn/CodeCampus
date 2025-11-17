@@ -447,3 +447,8 @@ GO
 ALTER TABLE lessons
 ADD CONSTRAINT fk_lessons_lab FOREIGN KEY (lab_id) REFERENCES labs(id);
 GO
+
+ALTER TABLE notes
+ALTER COLUMN note NVARCHAR(MAX);
+
+ALTER DATABASE codecampus_db COLLATE SQL_Latin1_General_CP1_CI_AS;
