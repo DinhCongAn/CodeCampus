@@ -42,4 +42,12 @@ public class LessonService {
         return lessonRepository.findFirstByCourseIdOrderByOrderNumberAsc(courseId)
                 .orElseThrow(() -> new RuntimeException("Khóa học này chưa có bài học."));
     }
+    /**
+     * IMPLEMENTATION: Tìm Lesson bằng Lab ID.
+     */
+    @Transactional(readOnly = true)
+    public Lesson findLessonByLabId(Integer labId) {
+        return lessonRepository.findByLabId(labId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bài học nào chứa Lab ID: " + labId));
+    }
 }

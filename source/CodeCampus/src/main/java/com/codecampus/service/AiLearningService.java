@@ -228,79 +228,46 @@ public class AiLearningService { // <-- Đổi tên thành AiLearningService
     // === THÊM PHƯƠNG THỨC MỚI CHO MH-18 ===
 
     /**
-     * MỚI (MH-18): Giải thích lỗi sai
+     * SỬA LẠI (MH-18): Gộp 2 hàm AI thành 1 hàm duy nhất
      */
-    public String getMistakeExplanation(Integer attemptId, Integer questionId, Integer userId) {
-        logger.info("AiLearningService: Lấy gợi ý cho questionId: {}", questionId);
-        logger.info("AiLearningService: Giải thích lỗi sai cho attempt {} / question {} / user {}", attemptId, questionId, userId);
+    public String getFullQuizAnalysis(Integer attemptId, Integer userId) {
+        logger.info("AiLearningService: Bắt đầu phân tích TOÀN BỘ cho attemptId: {} / user {}", attemptId, userId);
 
-        // === SỬA Ở ĐÂY ===
-        // Truyền userId thật sự vào
+        // 1. Lấy dữ liệu review
         QuizReviewDto review = quizAttemptService.getQuizReview(attemptId, userId);
 
-        QuestionReviewDto q = review.getQuestions().stream()
-                .filter(qr -> qr.getQuestionId().equals(questionId))
-                .findFirst().orElse(null);
-
-        if (q == null) {
-            return "Lỗi: Không tìm thấy dữ liệu câu hỏi để review.";
-        }
-        if (q.isCorrect()) {
-            return "Câu này đã trả lời đúng.";
-        }
-
-        String prompt = String.format(
-                "Bạn là một gia sư AI. Một học viên đã trả lời SAI một câu hỏi.\n" +
-                        "Nhiệm vụ của bạn là giải thích một cách sư phạm, ngắn gọn, tập trung vào LÝ DO tại sao đáp án của họ sai.\n" +
-                        "KHÔNG sử dụng markdown.\n\n" +
-                        "--- CÂU HỎI ---\n%s\n\n" +
-                        "--- ĐÁP ÁN ĐÚNG ---\n%s\n\n" +
-                        "--- HỌC VIÊN ĐÃ CHỌN (SAI) ---\n%s\n\n" +
-                        "Giải thích tại sao lựa chọn của học viên lại sai và tại sao đáp án đúng là chính xác:",
-                stripHtml(q.getContent()),
-                stripHtml(q.getCorrectAnswerContent()),
-                stripHtml(q.getUserAnswerContent())
-        );
-
-        return callGeminiApi(prompt, "getMistakeExplanation");
-    }
-
-    /**
-     * SỬA LẠI (MH-18): Phân tích hiệu suất
-     * Bổ sung (Integer userId)
-     */
-    public String getPerformanceAnalysis(Integer attemptId, Integer userId) {
-        logger.info("AiLearningService: Phân tích hiệu suất cho attemptId: {}", attemptId);
-
-        // === SỬA Ở ĐÂY ===
-        // Truyền userId thật sự vào
-        QuizReviewDto review = quizAttemptService.getQuizReview(attemptId, userId);
-
-        List<String> incorrectQuestions = review.getQuestions().stream()
+        // 2. Lọc ra các câu sai
+        List<QuestionReviewDto> incorrectQuestions = review.getQuestions().stream()
                 .filter(q -> !q.isCorrect())
-                .map(q -> stripHtml(q.getContent()))
                 .toList();
 
         if (incorrectQuestions.isEmpty()) {
             return "Tuyệt vời! Bạn đã trả lời đúng tất cả các câu hỏi. Hãy tiếp tục phát huy!";
         }
 
-        String prompt = String.format(
-                "Một học viên vừa làm bài quiz và sai %d/%d câu.\n" +
-                        "Đây là danh sách nội dung các câu hỏi họ đã làm sai:\n" +
-                        "--- DANH SÁCH CÂU SAI ---\n" +
-                        "%s\n" +
-                        "--- KẾT THÚC DANH SÁCH ---\n\n" +
-                        "Nhiệm vụ của bạn: " +
-                        "1. Phân tích các câu hỏi này và tìm ra 1-2 chủ đề (mẫu lỗi sai) chung nhất.\n" +
-                        "2. Đưa ra nhận xét tổng quan và lời khuyên (dưới 100 từ) về các chủ đề cần ôn tập.\n" +
-                        "Trả lời bằng Tiếng Việt.",
-                incorrectQuestions.size(),
-                review.getTotalQuestions(),
-                String.join("\n- ", incorrectQuestions)
-        );
+        // 3. Xây dựng Prompt (Câu lệnh) mới
+        StringBuilder promptBuilder = new StringBuilder();
+        promptBuilder.append("Bạn là một gia sư AI. Một học viên vừa làm bài quiz và sai ")
+                .append(incorrectQuestions.size()).append("/")
+                .append(review.getTotalQuestions()).append(" câu.\n\n");
 
-        return callGeminiApi(prompt, "getPerformanceAnalysis");
+        promptBuilder.append("--- CHI TIẾT CÁC CÂU SAI ---\n");
+
+        // Thêm chi tiết từng câu sai vào prompt
+        for (int i = 0; i < incorrectQuestions.size(); i++) {
+            QuestionReviewDto q = incorrectQuestions.get(i);
+            promptBuilder.append("\n[Câu sai " + (i+1) + "]\n");
+            promptBuilder.append("Câu hỏi: ").append(stripHtml(q.getContent())).append("\n");
+            promptBuilder.append("Họ chọn (SAI): ").append(stripHtml(q.getUserAnswerContent())).append("\n");
+            promptBuilder.append("Đáp án đúng là: ").append(stripHtml(q.getCorrectAnswerContent())).append("\n");
+        }
+
+        promptBuilder.append("\n--- HẾT CHI TIẾT ---\n\n");
+        promptBuilder.append("Nhiệm vụ của bạn (Trả lời bằng Tiếng Việt, dùng Markdown):\n");
+        promptBuilder.append("1. **Nhận xét tổng quan:** Dựa vào các câu sai, tìm ra 1-2 chủ đề chung mà học viên bị yếu và đưa ra lời khuyên (dưới 100 từ).\n");
+        promptBuilder.append("2. **Giải thích chi tiết:** Đi qua TỪNG CÂU SAI (ở trên) và giải thích ngắn gọn tại sao đáp án của học viên sai và tại sao đáp án đúng lại chính xác.\n");
+
+        return callGeminiApi(promptBuilder.toString(), "getFullQuizAnalysis");
     }
     // --- CÁC TÍNH NĂNG CÓ SẴN CỦA BẠN (CHO QUIZ VÀ LAB) ---
     // (Giữ nguyên các phương thức này cho MH-17 và MH-19)

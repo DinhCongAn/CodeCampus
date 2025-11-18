@@ -440,6 +440,17 @@ CREATE TABLE lab_attempts (
 );
 GO
 
+CREATE TABLE lab_ai_interactions (
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    attempt_id INT NOT NULL,
+    user_prompt NVARCHAR(MAX),
+    ai_response NVARCHAR(MAX),
+    timestamp DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (attempt_id) REFERENCES lab_attempts(id) ON DELETE CASCADE
+);
+GO
+
+
 -- Sửa bảng 'lessons'
 ALTER TABLE lessons
 ADD lab_id INT NULL;

@@ -19,4 +19,5 @@ public interface LessonRepository extends JpaRepository<Lesson, Long> {
      * Tìm bài học ĐẦU TIÊN (có orderNumber nhỏ nhất) của một khóa học.
      */
     Optional<Lesson> findFirstByCourseIdOrderByOrderNumberAsc(Integer courseId);
+    Optional<Lesson> findByLabId(Integer labId);
 }

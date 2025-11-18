@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}" th:if="${_csrf}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" th:if="${_csrf}"/>
+
+    <title>Lab: <span th:text="${lab.name}"></span></title>
+
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <link rel="stylesheet" data-name="vs/editor/editor.main"
+          href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.0/min/vs/editor/editor.main.min.css">
+
+    <style>
+        .full-height-layout {
+            height: calc(100vh - 64px);
+        }
+        #editor {
+            width: 100%;
+            height: 100%;
+        }
+        .chat-history {
+            height: calc(100% - 100px);
+            overflow-y: auto;
+        }
+        .ai-bubble { background-color: #f3f4f6; padding: 8px 12px; border-radius: 8px; margin-bottom: 8px; max-width: 90%; align-self: flex-start; }
+        .user-bubble { background-color: #dbeafe; padding: 8px 12px; border-radius: 8px; margin-bottom: 8px; max-width: 90%; align-self: flex-end; }
+
+        /* CSS cho nội dung hướng dẫn (nếu dùng prose) */
+        .lab-instructions h2 { font-size: 1.25rem; font-weight: 600; margin-top: 1rem; }
+        .lab-instructions p { margin-top: 0.5rem; }
+        .lab-instructions pre { background-color: #2d2d2d; color: #f1f1f1; padding: 1rem; border-radius: 8px; margin-top: 1rem; overflow-x: auto; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans flex flex-col min-h-screen">
+
+<div th:replace="~{fragments/header :: header}"></div>
+
+<div class="flex flex-1 pt-16"> <aside class="w-80 bg-white shadow-lg flex flex-col overflow-y-auto">
+    <div class="p-4 border-b sticky top-0 bg-white z-10">
+        <h2 class="text-xl font-bold text-gray-800 truncate" th:text="${course.name}"></h2>
+        <a th:href="@{/my-courses}" class="text-sm text-blue-600 hover:underline flex items-center mt-1">
+            <span class="material-icons text-sm mr-1">arrow_back_ios</span>
+            Về Khóa học của tôi
+        </a>
+    </div>
+
+    <nav class="flex-1">
+        <ul class="space-y-1 p-2">
+            <li th:each="lesson : ${allLessons}">
+                <a th:href="@{/learning/{courseId}/{lessonId}(courseId=${course.id}, lessonId=${lesson.id})}"
+                   class="flex items-center p-3 rounded-lg transition-colors"
+                   th:classappend="${lesson.id == currentLesson.id} ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-100'">
+
+                        <span class="material-icons mr-3 text-lg"
+                              th:switch="${lesson.lessonType?.name}">
+                            <span th:case="'Video'">play_circle_outline</span>
+                            <span th:case="'Quiz'">quiz</span>
+                            <span th:case="'Lab'">science</span> <span th:case="*">article</span>
+                        </span>
+                    <span class="flex-1" th:text="${lesson.name}"></span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</aside>
+
+    <main class="flex-1 bg-gray-50 flex full-height-layout">
+
+        <div class="w-1/3 p-4 overflow-y-auto bg-white shadow-md">
+            <h1 class="text-2xl font-bold" th:text="${lab.name}">Tên bài Lab</h1>
+            <div class="prose max-w-none mt-4 lab-instructions" th:utext="${lab.description}">
+            </div>
+
+            <div id="gradingResult" th:class="${attempt.aiGrade != null ? 'mt-8 p-4 border rounded-lg' : 'hidden mt-8 p-4 border rounded-lg'}"
+                 th:classappend="${attempt.aiGrade >= 70 ? 'bg-green-50 border-green-300' : 'bg-red-50 border-red-300'}">
+                <h3 class="text-xl font-bold mb-4">Kết quả Chấm (AI)</h3>
+                <div id="gradeDisplay" class="my-4">
+                    <span id="aiScore" class="text-4xl font-bold"
+                          th:classappend="${attempt.aiGrade >= 70 ? 'text-green-600' : 'text-red-500'}"
+                          th:text="${attempt.aiGrade != null ? #numbers.formatDecimal(attempt.aiGrade, 1, 0) + ' / 100' : 'N/A'}"></span>
+                </div>
+                <div id="feedbackDisplay">
+                    <h4 class="font-semibold">Nhận xét từ AI:</h4>
+                    <p id="aiFeedback" class="text-gray-700" th:text="${attempt.aiFeedback}"></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="w-1/3 p-4 flex flex-col">
+            <input type="hidden" id="attemptId" th:value="${attempt.id}" />
+
+            <div id="editor" class="editor-container border rounded-lg shadow-lg flex-1">
+            </div>
+
+            <button id="submitLabBtn"
+                    class="w-full mt-4 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg text-lg transition">
+                Nộp bài (Chấm điểm AI)
+            </button>
+        </div>
+
+        <div class="w-1/3 p-4 border-l bg-white flex flex-col">
+            <h4 class="text-xl font-semibold mb-2">AI Hỗ trợ</h4>
+            <div id="chatHistory" class="chat-history border rounded-lg p-2 flex-1 flex flex-col justify-end">
+                <div class="ai-bubble">Chào bạn! Bạn cần tôi giúp gì ở bài lab này?</div>
+            </div>
+            <div class="mt-2 flex gap-2">
+                <input type="text" id="chatInput" placeholder="Hỏi AI..."
+                       class="flex-1 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button id="chatSendBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 rounded-lg transition">
+                    <span class="material-icons">send</span>
+                </button>
+            </div>
+        </div>
+    </main>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.0/min/vs/loader.min.js"></script>
+<script>
+    let editor;
+    const labType = /*[[${lab.labType}]]*/ 'javascript'; // Lấy ngôn ngữ từ DB
+    const initialCode = /*[[${initialCode}]]*/ '// Bắt đầu code của bạn ở đây';
+
+    require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.0/min/vs' }});
+    require(['vs/editor/editor.main'], function() {
+        editor = monaco.editor.create(document.getElementById('editor'), {
+            value: initialCode,
+            language: labType, // Sử dụng ngôn ngữ từ DB
+            theme: 'vs-dark'
+        });
+
+        // Fix layout bug
+        window.addEventListener('resize', () => editor.layout());
+    });
+
+    // JavaScript AJAX (Logic xử lý Lab)
+    document.addEventListener('DOMContentLoaded', function() {
+        // Lấy CSRF tokens
+        const csrfHeaderName = document.querySelector('meta[name="_csrf_header"]')?.content;
+        const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
+        const httpHeaders = {
+            'Content-Type': 'application/x-www-form-urlencoded' // Dùng cho URLSearchParams
+        };
+        if (csrfHeaderName && csrfToken) {
+            httpHeaders[csrfHeaderName] = csrfToken;
+        }
+
+
+        const attemptId = document.getElementById('attemptId').value;
+        const chatSendBtn = document.getElementById('chatSendBtn');
+        const chatInput = document.getElementById('chatInput');
+        const chatHistory = document.getElementById('chatHistory');
+        const submitBtn = document.getElementById('submitLabBtn');
+        const gradingResult = document.getElementById('gradingResult');
+        const aiScore = document.getElementById('aiScore');
+        const aiFeedback = document.getElementById('aiFeedback');
+
+        // Đảm bảo kết quả cũ được hiển thị nếu đã chấm xong
+        if(gradingResult.classList.contains('bg-green-50') || gradingResult.classList.contains('bg-red-50')) {
+            gradingResult.classList.remove('hidden');
+        }
+
+
+        // ===== 1. LOGIC CHAT AI (AJAX) =====
+        chatSendBtn.addEventListener('click', handleChat);
+        chatInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                handleChat();
+            }
+        });
+
+        function handleChat() {
+            const prompt = chatInput.value;
+            if (!prompt) return;
+
+            addBubble(prompt, 'user-bubble');
+            chatInput.value = "";
+            chatSendBtn.disabled = true;
+
+            const formData = new URLSearchParams();
+            formData.append('attemptId', attemptId);
+            formData.append('prompt', prompt);
+
+            // Fetch API
+            fetch('/api/lab/chat', { method: 'POST', headers: httpHeaders, body: formData })
+                .then(res => res.json())
+                .then(data => {
+                    if(data.response) {
+                        addBubble(data.response, 'ai-bubble');
+                    } else {
+                        addBubble('Lỗi: ' + (data.error || 'Không nhận được phản hồi'), 'ai-bubble');
+                    }
+                    chatSendBtn.disabled = false;
+                })
+                .catch(err => {
+                    addBubble('Lỗi kết nối AI.', 'ai-bubble');
+                    chatSendBtn.disabled = false;
+                });
+        }
+
+        function addBubble(text, cssClass) {
+            const bubble = document.createElement('div');
+            bubble.className = `p-2 rounded-lg mb-2 ${cssClass}`;
+            bubble.innerText = text;
+            chatHistory.appendChild(bubble);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        // ===== 2. LOGIC NỘP BÀI (SUBMIT LAB) =====
+        submitBtn.addEventListener('click', function() {
+            if (!confirm('Bạn có chắc muốn nộp bài? AI sẽ chấm điểm ngay.')) return;
+
+            const code = editor.getValue();
+            submitBtn.disabled = true;
+            submitBtn.innerText = "AI đang chấm bài (Vui lòng chờ...)";
+            gradingResult.classList.add('hidden');
+
+            const formData = new URLSearchParams();
+            formData.append('attemptId', attemptId);
+            formData.append('code', code);
+
+            fetch('/api/lab/submit', { method: 'POST', headers: httpHeaders, body: formData })
+                .then(res => res.json())
+                .then(data => {
+                    if(data.status === 'grading') {
+                        pollForResults(attemptId);
+                    } else {
+                        alert("Lỗi nộp bài: " + (data.error || "Không rõ"));
+                        submitBtn.disabled = false;
+                        submitBtn.innerText = "Nộp bài (Chấm điểm AI)";
+                    }
+                })
+                .catch(err => {
+                    alert("Lỗi kết nối mạng khi nộp bài.");
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = "Nộp bài (Chấm điểm AI)";
+                });
+        });
+
+        // ===== 3. LOGIC POLLING (KIỂM TRA KẾT QUẢ) =====
+        function pollForResults(attemptId) {
+            const interval = setInterval(() => {
+                fetch(`/api/lab/status/${attemptId}`)
+                    .then(res => res.json())
+                    .then(data => {
+
+                        // Case 1: ĐÃ CHẤM XONG
+                        if (data.status === 'graded') {
+                            clearInterval(interval);
+                            submitBtn.disabled = false;
+                            submitBtn.innerText = "Nộp bài (Chấm lại)";
+
+                            const score = data.score || 0;
+                            const isPassing = score >= 70; // Giả định điểm đạt là 70
+
+                            aiScore.innerText = score + " / 100";
+                            aiScore.className = `text-4xl font-bold ${isPassing ? 'text-green-600' : 'text-red-500'}`;
+                            aiFeedback.innerText = data.feedback || "Hoàn thành.";
+
+                            gradingResult.classList.remove('bg-red-50', 'bg-green-50');
+                            gradingResult.classList.add(isPassing ? 'bg-green-50' : 'bg-red-50', isPassing ? 'border-green-300' : 'border-red-300');
+                            gradingResult.classList.remove('hidden');
+
+                            // Case 2: VẪN ĐANG CHẤM
+                        } else if (data.status === 'grading') {
+                            // Giữ nút vô hiệu hóa
+                        } else if (data.status === 'grading_failed') {
+                            // Case 3: CHẤM BỊ LỖI
+                            clearInterval(interval);
+                            submitBtn.disabled = false;
+                            submitBtn.innerText = "Nộp bài (Thử lại)";
+
+                            aiScore.innerText = "Lỗi";
+                            aiScore.className = 'text-4xl font-bold text-red-500';
+                            aiFeedback.innerText = data.feedback || "Hệ thống chấm gặp lỗi.";
+                            gradingResult.classList.add('bg-red-50', 'border-red-300');
+                            gradingResult.classList.remove('hidden');
+                        }
+                    })
+                    .catch(err => {
+                        clearInterval(interval);
+                        submitBtn.disabled = false;
+                        submitBtn.innerText = "Nộp bài (Lỗi mạng)";
+                    });
+            }, 5000); // Kiểm tra mỗi 5 giây
+        }
+    });
+</script>
+</body>
+</html>

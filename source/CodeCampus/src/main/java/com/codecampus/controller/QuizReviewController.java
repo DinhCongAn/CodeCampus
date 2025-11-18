@@ -45,33 +45,14 @@ public class QuizReviewController {
 
     // --- API CHO TÍCH HỢP AI ---
 
-    /**
-     * API (MH-18): AI Phân tích hiệu suất (SỬA LẠI)
-     */
     @GetMapping("/api/analysis/{attemptId}")
     @ResponseBody
     public ResponseEntity<Map<String, String>> getAnalysis(@PathVariable Integer attemptId, Principal principal) {
-        // === SỬA Ở ĐÂY ===
-        // Lấy user và truyền userId vào service
         User currentUser = userService.findUserByEmail(principal.getName());
-        String analysis = aiService.getPerformanceAnalysis(attemptId, currentUser.getId());
+
+        // === SỬA Ở ĐÂY ===
+        // Gọi hàm mới 'getFullQuizAnalysis'
+        String analysis = aiService.getFullQuizAnalysis(attemptId, currentUser.getId());
 
         return ResponseEntity.ok(Map.of("analysis", analysis));
-    }
-
-    /**
-     * API (MH-18): AI Giải thích lỗi sai (SỬA LẠI)
-     */
-    @GetMapping("/api/explain-mistake/{attemptId}/{questionId}")
-    @ResponseBody
-    public ResponseEntity<Map<String, String>> getExplanation(@PathVariable Integer attemptId,
-                                                              @PathVariable Integer questionId,
-                                                              Principal principal) {
-        // === SỬA Ở ĐÂY ===
-        // Lấy user và truyền userId vào service
-        User currentUser = userService.findUserByEmail(principal.getName());
-        String explanation = aiService.getMistakeExplanation(attemptId, questionId, currentUser.getId());
-
-        return ResponseEntity.ok(Map.of("explanation", explanation));
-    }
-}
+    }}
