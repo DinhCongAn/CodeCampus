@@ -3,21 +3,23 @@ package com.codecampus.controller;
 import com.codecampus.entity.*;
 import com.codecampus.service.LabService;
 import com.codecampus.service.LessonService;
-import com.codecampus.service.MyCourseService; // Dùng MyCourseService để check access
+import com.codecampus.service.MyCourseService;
 import com.codecampus.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Optional;
 
 @Controller
+@RequestMapping("/learning")
 public class LabController {
 
     @Autowired private LabService labService;
@@ -41,9 +43,10 @@ public class LabController {
     /**
      * Hiển thị màn hình Lab (Màn hình 19)
      */
-    @GetMapping("/learning/lab/{labId}")
+    @GetMapping("/lab/{labId}")
     public String showLabPage(@PathVariable Integer labId,
                               @RequestParam(required = false) Integer lessonId,
+                              @RequestParam(required = false, defaultValue = "false") boolean newAttempt,
                               Model model,
                               Principal principal,
                               RedirectAttributes redirectAttributes) {
@@ -54,33 +57,56 @@ public class LabController {
         }
 
         try {
-            // 1. Bắt đầu hoặc lấy lượt Lab (Attempt)
-            LabAttempt attempt = labService.startOrGetLabAttempt(labId, user);
+            LabAttempt attempt;
 
-            // 2. Lấy thông tin Lab
+            if (newAttempt) {
+                // CASE A: Yêu cầu tạo lượt làm mới hoàn toàn
+                attempt = labService.createNewLabAttempt(labId, user);
+
+                // Redirect để xóa tham số newAttempt=true khỏi URL (URL Clean up)
+                String redirectUrl = "/learning/lab/" + labId;
+                if (lessonId != null) {
+                    redirectUrl += "?lessonId=" + lessonId;
+                }
+                return "redirect:" + redirectUrl;
+
+            } else {
+                // CASE B: Mặc định, tải lượt làm mới nhất hoặc tạo lượt đầu tiên
+                Optional<LabAttempt> latestAttemptOpt = labService.getLatestLabAttempt(labId, user.getId());
+
+                if (latestAttemptOpt.isPresent()) {
+                    attempt = latestAttemptOpt.get(); // Lấy lượt mới nhất (dù đã chấm xong hay chưa)
+                } else {
+                    // Nếu chưa làm lần nào, tạo lượt đầu tiên
+                    attempt = labService.createNewLabAttempt(labId, user);
+                }
+            }
+
+            // 1. Lấy thông tin Lab và Course
             Lab lab = attempt.getLab();
-            // Lấy Lesson và Course (Giả định LessonService có hàm tìm Lesson theo LabId)
-            Lesson currentLesson = lessonService.findLessonByLabId(labId);
+            Lesson currentLesson = lessonService.findLessonByLabId(labId); // Cần LessonService có hàm này
             Course course = currentLesson.getCourse();
 
-            // 3. (Kiểm tra bảo mật: User đã mua khóa học chưa)
+            // 2. (Kiểm tra bảo mật: User đã mua khóa học chưa)
             boolean hasAccess = myCourseService.isUserEnrolled(user.getId(), course.getId());
             if (!hasAccess) {
                 redirectAttributes.addFlashAttribute("errorMessage", "Bạn không có quyền truy cập khóa học này.");
                 return "redirect:/my-courses";
             }
 
-            // 4. Lấy các bài học cho sidebar
+            // 3. Lấy các bài học cho sidebar
             List<Lesson> allLessons = lessonService.getLessonsByCourseId(course.getId());
 
-            // 5. Đẩy tất cả dữ liệu ra Model
+            // 4. Đẩy tất cả dữ liệu ra Model
             model.addAttribute("attempt", attempt);
             model.addAttribute("lab", lab);
             model.addAttribute("course", course);
             model.addAttribute("allLessons", allLessons);
             model.addAttribute("currentLesson", currentLesson);
-            // Mã Monaco Editor sẽ dùng attempt.submittedContent để load
+
+            // Cung cấp code hiện tại của lượt làm bài này cho Monaco Editor
             model.addAttribute("initialCode", attempt.getSubmittedContent() != null ? attempt.getSubmittedContent() : "");
+            model.addAttribute("lessonId", lessonId); // Đẩy lessonId lại ra view
 
             return "learning/lab-view";
 

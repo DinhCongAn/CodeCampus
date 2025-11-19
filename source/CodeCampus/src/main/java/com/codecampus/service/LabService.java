@@ -181,4 +181,38 @@ public class LabService {
         return labAttemptRepository.findByIdAndUserId(attemptId, userId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hoặc không có quyền truy cập lượt làm bài này."));
     }
+    // =========================================================
+    // === PHẦN SỬA ĐỔI LOGIC TẢI VÀ TẠO ATTEMPT BÀI LAB ===
+    // =========================================================
+
+    /**
+     * 1. Lấy lượt làm Lab mới nhất của User (Dùng cho việc tải trang)
+     * Yêu cầu LessonRepository có: findFirstByLabIdAndUserIdOrderByStartedAtDesc
+     */
+    @Transactional(readOnly = true)
+    public Optional<LabAttempt> getLatestLabAttempt(Integer labId, Integer userId) {
+        // Hàm này sẽ tìm lượt làm gần nhất, bất kể status là 'graded', 'grading', hay 'in_progress'
+        return labAttemptRepository.findFirstByLabIdAndUserIdOrderByStartedAtDesc(labId, userId);
+    }
+
+    /**
+     * 2. Tạo một lượt làm Lab MỚI hoàn toàn (Dùng cho nút "Làm Lại")
+     */
+    @Transactional
+    public LabAttempt createNewLabAttempt(Integer labId, User user) {
+        Lab lab = labRepository.findById(labId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy Lab"));
+
+        LabAttempt newAttempt = new LabAttempt();
+        newAttempt.setUser(user);
+        newAttempt.setLab(lab);
+        newAttempt.setStatus("in_progress"); // Trạng thái ban đầu
+        newAttempt.setStartedAt(LocalDateTime.now());
+        // RẤT QUAN TRỌNG: Đảm bảo code ban đầu là NULL hoặc chuỗi rỗng
+        newAttempt.setSubmittedContent(null);
+        newAttempt.setAiGrade(null);
+        newAttempt.setAiFeedback(null);
+
+        return labAttemptRepository.save(newAttempt);
+    }
 }

@@ -14,4 +14,5 @@ public interface LabAttemptRepository extends JpaRepository<LabAttempt, Integer>
      * Tìm một lượt làm bài bằng ID VÀ chủ sở hữu (userId)
      */
     Optional<LabAttempt> findByIdAndUserId(Integer attemptId, Integer userId);
+    Optional<LabAttempt> findFirstByLabIdAndUserIdOrderByStartedAtDesc(Integer labId, Integer userId);
 }

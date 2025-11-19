@@ -1,0 +1,29 @@
+<aside th:fragment="quiz-sidebar" class="w-80 bg-white shadow-lg flex flex-col overflow-y-auto flex-shrink-0 pt-16 h-screen sticky top-0">
+    <div class="p-4 border-b">
+        <h2 class="text-xl font-bold text-gray-800 truncate" th:text="${course.name}">Tên Khóa học</h2>
+        <a th:href="@{/my-courses}" class="text-sm text-blue-600 hover:underline flex items-center mt-1">
+            <span class="material-icons text-sm mr-1">arrow_back_ios</span>
+            Về Khóa học của tôi
+        </a>
+    </div>
+
+    <nav class="flex-1">
+        <ul class="space-y-1 p-2">
+            <li th:each="lesson : ${allLessons}">
+                <a th:href="@{/learning/{courseId}/{lessonId}(courseId=${course.id}, lessonId=${lesson.id})}"
+                   class="flex items-center p-3 rounded-lg transition-colors"
+                   th:classappend="${lesson.id == currentLesson.id} ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-100'">
+
+                    <span class="material-icons mr-3 text-lg"
+                          th:switch="${lesson.lessonType?.name}">
+                        <span th:case="'Video'">play_circle_outline</span>
+                        <span th:case="'Quiz'">quiz</span>
+                        <span th:case="'Lab'">science</span>
+                        <span th:case="*">article</span>
+                    </span>
+                    <span class="flex-1" th:text="${lesson.name}"></span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</aside>
