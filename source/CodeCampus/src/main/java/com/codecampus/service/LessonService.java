@@ -50,4 +50,16 @@ public class LessonService {
         return lessonRepository.findByLabId(labId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bài học nào chứa Lab ID: " + labId));
     }
+
+    // ===== BỔ SUNG PHƯƠNG THỨC TÌM QUIZ TẠI ĐÂY =====
+    /**
+     * IMPLEMENTATION: Tìm Lesson bằng Quiz ID.
+     * Dùng để xác định bài học (Lesson) cha của một bài Quiz cụ thể.
+     */
+    @Transactional(readOnly = true)
+    public Lesson findLessonByQuizId(Integer quizId) {
+        // Giả định bên Repository trả về Optional<Lesson> tương tự như findByLabId
+        return lessonRepository.findByQuizId(quizId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bài học nào chứa Quiz ID: " + quizId));
+    }
 }

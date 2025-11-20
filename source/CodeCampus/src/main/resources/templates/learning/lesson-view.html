@@ -26,6 +26,8 @@
     </style>
     <script src="//unpkg.com/alpinejs" defer></script>
 </head>
+<div th:replace="~{fragments/header :: header}"></div>
+
 <body class="bg-gray-100 font-sans">
 
 <div class="flex h-screen">
@@ -425,6 +427,7 @@
         return str.replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
 </script>
+<div th:replace="~{fragments/footer :: footer}"></div>
 
 </body>
 </html>

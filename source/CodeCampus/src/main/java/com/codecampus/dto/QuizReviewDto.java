@@ -17,4 +17,7 @@ public class QuizReviewDto {
     private List<QuestionReviewDto> questions; // Danh sách các câu hỏi để review
 
     // (Constructor, Getter, Setter)
+
+    private Integer quizId;
+    private Integer lessonId;
 }

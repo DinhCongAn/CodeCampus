@@ -178,6 +178,9 @@ public class QuizAttemptService {
         reviewDto.setResult(attempt.getResult());
         reviewDto.setTotalQuestions(questionsInQuiz.size());
 
+        reviewDto.setQuizId(quiz.getId());
+        reviewDto.setLessonId(quiz.getId());
+
         int correctCount = 0;
         List<QuestionReviewDto> questionReviewDtos = new ArrayList<>();
 

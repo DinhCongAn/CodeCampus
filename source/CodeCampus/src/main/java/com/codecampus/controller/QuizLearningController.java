@@ -1,8 +1,6 @@
 package com.codecampus.controller;
 
-import com.codecampus.entity.Quiz;
-import com.codecampus.entity.QuizAttempt;
-import com.codecampus.entity.User;
+import com.codecampus.entity.*;
 import com.codecampus.service.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,58 +23,118 @@ public class QuizLearningController {
     private final MyCourseService myCourseService;
     private final UserService userService;
     private final AiLearningService aiLearningService;
+    private final LessonService lessonService;
 
     @Autowired
     public QuizLearningController(QuizService quizService,
                                   QuizAttemptService quizAttemptService,
                                   MyCourseService myCourseService,
                                   UserService userService,
+                                  LessonService lessonService,
                                   AiLearningService aiLearningService) {
         this.quizService = quizService;
         this.quizAttemptService = quizAttemptService;
         this.myCourseService = myCourseService;
         this.userService = userService;
         this.aiLearningService = aiLearningService;
+        this.lessonService = lessonService;
     }
 
+
     /**
-     * Xử lý MH-16: Hiển thị trang giới thiệu/chờ của Quiz.
+     * MH-16: Hiển thị trang giới thiệu/chờ của Quiz.
+     * Cập nhật: Đẩy đủ dữ liệu Course/Lesson để hiển thị Sidebar.
+     */
+    /**
+     * Màn hình 16: Quiz Intro
+     * Logic: Lấy dữ liệu Quiz + Lấy dữ liệu điều hướng (Sidebar, Prev/Next) giống LessonView
      */
     @GetMapping("/{quizId}")
     public String getQuizIntroPage(@PathVariable("quizId") Integer quizId,
-                                   @RequestParam(required = false) Long lessonId, // Lấy lessonId từ URL
+                                   @RequestParam(required = false) Integer lessonId, // Nhận lessonId từ redirect (optional)
                                    Model model,
                                    Principal principal,
                                    RedirectAttributes redirectAttributes) {
 
+        // 1. Kiểm tra đăng nhập
         if (principal == null) return "redirect:/login";
         User currentUser = userService.findUserByEmail(principal.getName());
-        Quiz quiz = quizService.findQuizById(quizId);
+        if (currentUser == null) return "redirect:/login?error=user_not_found";
 
-        // Kiểm tra bảo mật: User đã đăng ký khóa học này chưa?
-        Integer courseId = quiz.getCourse().getId();
-        if (!myCourseService.isUserEnrolled(currentUser.getId(), courseId)) {
-            redirectAttributes.addFlashAttribute("error", "Bạn không có quyền truy cập bài quiz này.");
+        try {
+            // 2. Xác định Lesson hiện tại dựa trên QuizId
+            // (Logic: Quiz nằm trong 1 Lesson. Ta cần Lesson để biết Course và vị trí Sidebar)
+            Lesson currentLesson = lessonService.findLessonByQuizId(quizId);
+
+            // Fallback: Nếu không tìm thấy qua QuizId nhưng có lessonId trên URL
+            if (currentLesson == null && lessonId != null) {
+                currentLesson = lessonService.getLessonById(lessonId);
+            }
+
+            if (currentLesson == null) {
+                redirectAttributes.addFlashAttribute("error", "Không tìm thấy bài học tương ứng.");
+                return "redirect:/my-courses";
+            }
+
+            // 3. Lấy Course và kiểm tra quyền truy cập
+            Course course = currentLesson.getCourse();
+            if (!myCourseService.isUserEnrolled(currentUser.getId(), course.getId())) {
+                redirectAttributes.addFlashAttribute("error", "Bạn không có quyền truy cập khóa học này.");
+                return "redirect:/my-courses";
+            }
+
+            // 4. Lấy danh sách bài học để vẽ Sidebar & Tính toán Prev/Next
+            // (Phần này copy logic từ getLessonView của bạn để đảm bảo đồng bộ)
+            List<Lesson> allLessons = lessonService.getLessonsByCourseId(course.getId());
+
+            Lesson prevLesson = null;
+            Lesson nextLesson = null;
+            int currentIndex = -1;
+            Long currentLessonId = currentLesson.getId(); // Giả sử ID là Long, nếu Integer thì đổi type
+
+            for (int i = 0; i < allLessons.size(); i++) {
+                if (allLessons.get(i).getId().equals(currentLessonId)) {
+                    currentIndex = i;
+                    break;
+                }
+            }
+
+            if (currentIndex > 0) {
+                prevLesson = allLessons.get(currentIndex - 1);
+            }
+            if (currentIndex != -1 && currentIndex < allLessons.size() - 1) {
+                nextLesson = allLessons.get(currentIndex + 1);
+            }
+
+            // 5. Lấy dữ liệu riêng của màn hình Quiz (Lịch sử làm bài, Info Quiz)
+            // Lưu ý: currentLesson.getQuiz() có thể null nếu fetch lười (Lazy), nên gọi service cho chắc
+            Quiz quiz = (currentLesson.getQuiz() != null) ? currentLesson.getQuiz() : quizService.findQuizById(quizId);
+
+            List<QuizAttempt> pastAttempts = quizAttemptService.findAttemptsByUserAndQuiz(currentUser.getId(), quizId);
+
+            // 6. Đẩy dữ liệu ra View (Model Attributes)
+
+            // --- Nhóm dữ liệu chung (Layout/Sidebar/Nav) ---
+            model.addAttribute("currentLesson", currentLesson);
+            model.addAttribute("course", course);
+            model.addAttribute("allLessons", allLessons);
+            model.addAttribute("prevLesson", prevLesson);
+            model.addAttribute("nextLesson", nextLesson);
+            model.addAttribute("currentUserId", currentUser.getId());
+
+            // --- Nhóm dữ liệu riêng (Quiz Content) ---
+            model.addAttribute("quiz", quiz);
+            model.addAttribute("pastAttempts", pastAttempts);
+
+            return "learning/quiz-intro"; // Trả về màn hình 16 đã thiết kế lại
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("error", "Lỗi hệ thống: " + e.getMessage());
             return "redirect:/my-courses";
         }
-
-        // 1. Lấy lịch sử làm bài (Chức năng DB)
-        List<QuizAttempt> pastAttempts = quizAttemptService.findAttemptsByUserAndQuiz(
-                currentUser.getId(),
-                quizId
-        );
-
-        // 2. Lấy gợi ý AI (Tích hợp AI)
-//        String aiPrepTips = aiLearningService.getQuizPreparationTips(quizId);
-
-        // 3. Gửi dữ liệu ra View
-        model.addAttribute("quiz", quiz);
-        model.addAttribute("pastAttempts", pastAttempts);
-//        model.addAttribute("aiPrepTips", aiPrepTips); // Gửi gợi ý của AI
-        model.addAttribute("lessonId", lessonId); // Để cho nút "Quay lại"
-
-        return "learning/quiz-intro"; // Template mới cho MH-16
     }
+
 
     /**
      * Xử lý khi người dùng nhấn "Bắt đầu làm bài"
