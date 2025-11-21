@@ -93,6 +93,8 @@ public class LearningController {
         }
 
         Lesson currentLesson = lessonService.getLessonById(lessonId);
+        //Cập nhật tiến độ
+        myCourseService.updateProgress(currentUser.getId(), courseId, Math.toIntExact(currentLesson.getId()));
 
         if (currentLesson.getLab() != null) {
             return "redirect:/learning/lab/" + currentLesson.getLab().getId() + "?lessonId=" + lessonId;
@@ -102,8 +104,7 @@ public class LearningController {
             return "redirect:/learning/quiz/" + currentLesson.getQuiz().getId() + "?lessonId=" + lessonId;
         }
 
-        // (Cập nhật tiến độ - Tạm comment lại nếu MyCourseService chưa sẵn sàng)
-        // myCourseService.updateProgress(currentUser.getId(), courseId, currentLesson.getId());
+
 
         Course course = courseService.findCourseById(courseId);
         List<Lesson> allLessons = lessonService.getLessonsByCourseId(courseId);

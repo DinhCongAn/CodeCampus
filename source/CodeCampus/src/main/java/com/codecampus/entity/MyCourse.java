@@ -3,7 +3,6 @@ package com.codecampus.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -13,7 +12,7 @@ import java.time.LocalDateTime;
 public class MyCourse {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id; // Trong DB là INT, nên dùng Integer
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
@@ -23,12 +22,21 @@ public class MyCourse {
     @JoinColumn(name = "course_id")
     private Course course;
 
+    // SỬA 1: Đổi BigDecimal -> Double
+    // Lý do: Để khớp với tính toán trong Service và tránh lỗi "incompatible types"
     @Column(name = "progress_percent")
-    private BigDecimal progressPercent;
+    private Double progressPercent;
 
-    @Column(name = "last_lesson_id")
-    private Long lastLessonId;
+    // SỬA 2: Đổi Long lastLessonId -> Lesson lastLesson
+    // Lý do: Để Controller có thể gọi myCourse.getLastLesson().getId()
+    // Hibernate sẽ tự động ánh xạ cột "last_lesson_id" vào object này.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "last_lesson_id")
+    private Lesson lastLesson;
 
     @Column(name = "last_accessed")
     private LocalDateTime lastAccessed;
+
+    @Column(name = "status")
+    private String status; // Thêm cột status ('in_progress', 'completed') cho đầy đủ
 }

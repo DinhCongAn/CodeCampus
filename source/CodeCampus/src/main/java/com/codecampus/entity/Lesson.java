@@ -52,4 +52,9 @@ public class Lesson {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lesson_type_id")
     private LessonType lessonType;
+
+    // --- BỔ SUNG FIELD NÀY ĐỂ SỬA LỖI ---
+    @Column(name = "status")
+    private String status;
+    // ------------------------------------
 }

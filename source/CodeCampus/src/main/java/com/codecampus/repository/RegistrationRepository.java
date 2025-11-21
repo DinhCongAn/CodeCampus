@@ -63,5 +63,17 @@ public interface RegistrationRepository extends JpaRepository<Registration, Inte
             Integer userId, Integer courseId, Integer pricePackageId, String status
     );
 
-    Optional<Registration> findByUserIdAndCourseId(Integer userId, Integer courseId);
+    // --- QUAN TRỌNG ĐỂ CHECK QUYỀN ---
+    // Tìm xem user đã mua khóa học này chưa
+    Registration findByUserIdAndCourseId(Integer userId, Integer courseId);
+
+    // Các hàm search cũ phục vụ cho trang My Courses (đã có trong logic cũ của bạn)
+    // Ví dụ logic search:
+    @Query("SELECT r FROM Registration r WHERE r.user.id = :userId " +
+            "AND (:keyword IS NULL OR r.course.name LIKE %:keyword%) " +
+            "AND (:categoryId IS NULL OR r.course.category.id = :categoryId)")
+    List<Registration> findByUserIdAndFilters(@Param("userId") Integer userId,
+                                              @Param("keyword") String keyword,
+                                              @Param("categoryId") Integer categoryId);
+
 }
