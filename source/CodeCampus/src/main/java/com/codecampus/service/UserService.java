@@ -181,13 +181,14 @@ public class UserService {
     }
     // --- PHƯƠNG THỨC MỚI CHO GOOGLE LOGIN ---
     @Transactional
-    public User processOAuthPostLogin(String email, String fullName) {
+    public User processOAuthPostLogin(String email, String fullName, String avatarUrl) {
         Optional<User> userOpt = userRepository.findByEmail(email);
 
         if (userOpt.isPresent()) {
             // 1. User đã tồn tại: Cập nhật thông tin và trả về
             User existingUser = userOpt.get();
             existingUser.setFullName(fullName);
+            existingUser.setAvatarUrl(avatarUrl);
             // Bạn có thể thêm cột avatar và cập nhật ở đây
             return userRepository.save(existingUser);
         } else {
@@ -195,6 +196,7 @@ public class UserService {
             User newUser = new User();
             newUser.setEmail(email);
             newUser.setFullName(fullName);
+            newUser.setAvatarUrl(avatarUrl);
             // Trạng thái 'active' ngay vì Google đã xác thực
             newUser.setStatus("active");
             // Tạo mật khẩu ngẫu nhiên (vì cột password_hash là NOT NULL)
