@@ -463,3 +463,23 @@ ALTER TABLE notes
 ALTER COLUMN note NVARCHAR(MAX);
 
 ALTER DATABASE codecampus_db COLLATE SQL_Latin1_General_CP1_CI_AS;
+
+--bo sung bang luu tien do hoc tap--
+USE codecampus_db;
+GO
+
+-- Bảng này lưu chi tiết: User A đã học xong Bài B chưa
+CREATE TABLE user_lesson_progress (
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    user_id INT NOT NULL,
+    lesson_id INT NOT NULL,
+    course_id INT NOT NULL,
+    is_completed BIT DEFAULT 0,
+    completed_at DATETIME DEFAULT GETDATE(),
+    last_accessed DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (lesson_id) REFERENCES lessons(id),
+    FOREIGN KEY (course_id) REFERENCES courses(id),
+    CONSTRAINT uq_user_lesson UNIQUE (user_id, lesson_id) -- Quan trọng: 1 user chỉ có 1 record cho 1 bài
+);
+GO
