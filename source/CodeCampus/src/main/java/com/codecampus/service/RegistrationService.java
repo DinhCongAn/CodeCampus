@@ -1,4 +1,3 @@
-// src/main/java/com/codecampus/service/RegistrationService.java
 package com.codecampus.service;
 
 import com.codecampus.dto.RegistrationRequest;
@@ -7,6 +6,13 @@ import com.codecampus.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+// Import PayOS
+import vn.payos.PayOS;
+import vn.payos.model.v2.paymentRequests.CreatePaymentLinkRequest;
+import vn.payos.model.v2.paymentRequests.CreatePaymentLinkResponse;
+import vn.payos.model.v2.paymentRequests.PaymentLinkItem;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,146 +27,192 @@ public class RegistrationService {
     @Autowired private RegistrationRepository registrationRepository;
     @Autowired private EmailService emailService;
 
+    // Inject PayOS Bean
+    @Autowired private PayOS payOS;
+
     /**
-     * (MỚI) HÀM GỘP 2 CHỨC NĂNG: LƯU DB + GỬI MAIL
-     * Được gọi khi người dùng bấm "Tôi đã chuyển khoản"
+     * BƯỚC 1: TẠO ĐƠN HÀNG (PENDING) & LẤY LINK THANH TOÁN
+     * - Hàm này KHÔNG kích hoạt khóa học.
+     * - Chỉ lưu trạng thái PENDING.
+     * - Trả về link để Controller redirect user sang PayOS.
      */
     @Transactional
-    public Registration createPendingRegistrationAndSendEmail(RegistrationRequest request, String loggedInUsername) {
+    public String registerAndGetPaymentUrl(RegistrationRequest request, String loggedInUsername, String returnUrl, String cancelUrl) throws Exception {
 
+        // 1. Kiểm tra User
         User user = userRepository.findByEmail(loggedInUsername)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy User: " + loggedInUsername));
 
-        // ===== BỔ SUNG: KIỂM TRA TRÙNG LẶP =====
-        boolean alreadyPending = registrationRepository.existsByUserIdAndCourseIdAndPricePackageIdAndStatus(
-                user.getId(),
-                request.getCourseId(),
-                request.getPackageId(),
-                "PENDING"
-        );
-
-        if (alreadyPending) {
-            // TRƯỜNG HỢP 1: ĐÃ TỒN TẠI ĐƠN HÀNG PENDING CHO GÓI NÀY
-            // Văng lỗi để Controller bắt và thông báo
-            throw new RuntimeException("Bạn đã có đơn chờ duyệt cho gói này. Vui lòng kiểm tra 'Khóa học của tôi'.");
+        // 2. Kiểm tra mua trùng (Chỉ chặn nếu đã COMPLETED)
+        boolean alreadyBought = registrationRepository.existsByUserIdAndCourseIdAndStatus(
+                user.getId(), request.getCourseId(), "COMPLETED");
+        if (alreadyBought) {
+            throw new RuntimeException("Bạn đã sở hữu khóa học này rồi.");
         }
-        // ======================================
 
-        // TRƯỜNG HỢP 2: CHƯA TỒN TẠI (Tạo đơn mới)
-
-        // SỬA LỖI: Bỏ .longValue() vì Course ID là Integer (theo DBScript)
+        // 3. Lấy thông tin Course & Package
         Course course = courseRepository.findById(request.getCourseId().longValue())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy Khóa học"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học"));
 
         PricePackage pricePackage = pricePackageRepository.findById(request.getPackageId())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy Gói giá"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy gói giá"));
 
-        BigDecimal totalCost = pricePackage.getSalePrice() != null
-                ? pricePackage.getSalePrice()
-                : pricePackage.getListPrice();
+        BigDecimal priceBigDec = pricePackage.getSalePrice() != null ? pricePackage.getSalePrice() : pricePackage.getListPrice();
+        long finalPrice = priceBigDec.longValue();
 
-        // 2. Tạo đối tượng Registration MỚI
+        // 4. Tạo OrderCode (Dùng timestamp để đảm bảo duy nhất)
+        long orderCodeLong = System.currentTimeMillis();
+        String orderCodeString = String.valueOf(orderCodeLong);
+
+        // 5. LƯU DATABASE: BẮT BUỘC LÀ "PENDING"
         Registration newReg = new Registration();
         newReg.setUser(user);
         newReg.setCourse(course);
         newReg.setPricePackage(pricePackage);
-        newReg.setTotalCost(totalCost);
+        newReg.setTotalCost(priceBigDec);
         newReg.setRegistrationTime(LocalDateTime.now());
-        newReg.setStatus("COMPLETED");
-        newReg.setOrderCode("CC-" + System.currentTimeMillis());
+        newReg.setStatus("PENDING"); // <--- CHỜ THANH TOÁN
+        newReg.setOrderCode(orderCodeString);
         newReg.setUpdatedAt(LocalDateTime.now());
 
-        // 3. Lưu vào DB
         registrationRepository.save(newReg);
 
-        // 4. GỬI MAIL "CHỜ DUYỆT"
-        emailService.sendRegistrationPendingEmail(newReg);
-        System.out.println("Gửi mail chờ duyệt thành công");
-        return newReg;
+        // 6. GỌI PAYOS TẠO LINK
+
+        // [SỬA LỖI] Tạo mô tả ngắn gọn (Tối đa 25 ký tự)
+        // "DH " (3 ký tự) + orderCode (13 ký tự) = 16 ký tự -> OK
+        String description = "DH " + orderCodeLong;
+        // Đề phòng trường hợp đặc biệt, cắt chuỗi cho chắc chắn
+        if (description.length() > 25) {
+            description = description.substring(0, 25);
+        }
+
+        PaymentLinkItem item = PaymentLinkItem.builder()
+                .name(course.getName()) // Đảm bảo getter này đúng với Entity của bạn
+                .price(finalPrice)
+                .quantity(1)
+                .build();
+
+        CreatePaymentLinkRequest payOSRequest = CreatePaymentLinkRequest.builder()
+                .orderCode(orderCodeLong)
+                .amount(finalPrice)
+                .description(description) // <--- Đã dùng biến description ngắn gọn
+                .returnUrl(returnUrl)
+                .cancelUrl(cancelUrl)
+                .item(item)
+                .build();
+
+        CreatePaymentLinkResponse payOSResponse = payOS.paymentRequests().create(payOSRequest);
+
+        return payOSResponse.getCheckoutUrl();
     }
 
-    // 3. Khi Admin bấm "Xác nhận"
+    /**
+     * BƯỚC 2: TỰ ĐỘNG KÍCH HOẠT (WEBHOOK)
+     * - Đây là nơi DUY NHẤT trong hệ thống được phép chuyển trạng thái thành COMPLETED.
+     * - Hàm này được gọi tự động bởi PaymentController khi PayOS báo tiền đã về.
+     */
     @Transactional
-    public void confirmPayment(Integer registrationId) {
-        Registration reg = registrationRepository.findById(registrationId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+    public void activateRegistration(long orderCode) {
+        String orderCodeStr = String.valueOf(orderCode);
 
+        // Tìm đơn hàng
+        Registration reg = registrationRepository.findByOrderCode(orderCodeStr)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng mã: " + orderCode));
+
+        // Kiểm tra an toàn: Chỉ xử lý nếu đang PENDING
         if ("PENDING".equals(reg.getStatus())) {
-            reg.setStatus("COMPLETED");
+            // 1. Update trạng thái
+            reg.setStatus("COMPLETED"); // <--- KÍCH HOẠT THÀNH CÔNG
             reg.setUpdatedAt(LocalDateTime.now());
 
+            // 2. Tính hạn dùng
             LocalDateTime now = LocalDateTime.now();
             int duration = reg.getPricePackage().getDurationMonths();
             reg.setValidFrom(now);
             reg.setValidTo(now.plusMonths(duration));
+
             registrationRepository.save(reg);
 
+            // 3. Active User (nếu cần)
             User user = reg.getUser();
             if ("PENDING".equals(user.getStatus())) {
                 user.setStatus("ACTIVE");
                 userRepository.save(user);
             }
 
-            emailService.sendPaymentSuccessEmail(reg); // Gửi mail "thành công"
+            // 4. Gửi mail
+            emailService.sendPaymentSuccessEmail(reg);
+
+            System.out.println(">>> AUTO-ACTIVATED Order: " + orderCode);
+        } else {
+            System.out.println(">>> Order " + orderCode + " ignored (Status: " + reg.getStatus() + ")");
         }
     }
-    // BỔ SUNG TÍNH NĂNG HỦY (CANCEL)
-    // ==========================================================
+
+    // =================================================================
+    // CÁC HÀM HỖ TRỢ (READ-ONLY HOẶC HỦY)
+    // =================================================================
+
+    /**
+     * Hủy đơn hàng (User đổi ý hoặc tạo nhầm)
+     * Chỉ cho phép hủy khi đang PENDING.
+     */
     @Transactional
     public void cancelRegistration(Integer registrationId, Integer currentUserId) {
         Registration reg = registrationRepository.findById(registrationId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng."));
 
-        // Kiểm tra bảo mật: User này có đúng là chủ của đơn hàng không?
         if (!reg.getUser().getId().equals(currentUserId)) {
-            throw new RuntimeException("Bạn không có quyền hủy đơn hàng này.");
+            throw new RuntimeException("Bạn không chính chủ.");
         }
 
-        // Chỉ cho phép hủy đơn PENDING
-        if (!"PENDING".equals(reg.getStatus())) {
-            throw new RuntimeException("Không thể hủy đơn hàng đã được xử lý.");
+        if ("COMPLETED".equals(reg.getStatus())) {
+            throw new RuntimeException("Không thể hủy đơn hàng đã thanh toán thành công.");
         }
 
-        // Xóa đơn hàng (Logic đơn giản nhất)
-        // (Nếu muốn lưu vết, bạn có thể đổi status thành "CANCELLED")
         registrationRepository.delete(reg);
     }
 
-    /**
-     * 4. Lấy danh sách cho trang "Khóa học của tôi"
-     * (Đây là hàm bạn yêu cầu)
-     */
     @Transactional(readOnly = true)
     public List<Registration> getCoursesByUserId(Integer userId, String keyword, Integer categoryId) {
-        // Gọi hàm @Query đã được cập nhật
         return registrationRepository.findByUserIdWithDetails(userId, keyword, categoryId);
     }
-    // =============================
 
-    /**
-     * 5. Lấy đơn hàng (cho trang chờ /pending-approval)
-     */
     @Transactional(readOnly = true)
     public Registration getRegistrationByOrderCode(String orderCode) {
-        // Gọi hàm JOIN FETCH trong Repository
         return registrationRepository.findByOrderCode(orderCode)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
     }
 
     @Transactional(readOnly = true)
     public boolean hasUserRegistered(Integer userId, Integer courseId) {
-        // Gọi phương thức Repository mới, chỉ kiểm tra "COMPLETED"
         return registrationRepository.existsByUserIdAndCourseIdAndStatus(userId, courseId, "COMPLETED");
     }
 
     /**
-     * 7. Lấy đơn hàng (cho Admin sau này)
+     * [MỚI] Xóa đơn hàng PENDING khi người dùng hủy thanh toán
+     * Hàm này kiểm tra kỹ lưỡng để đảm bảo an toàn.
      */
-    @Transactional(readOnly = true)
-    public List<Registration> getPendingRegistrations() {
-        return registrationRepository.findByStatus("PENDING");
+    @Transactional
+    public void deletePendingOrder(String orderCode, Integer currentUserId) {
+        // 1. Tìm đơn hàng
+        Optional<Registration> optionalReg = registrationRepository.findByOrderCode(orderCode);
+
+        if (optionalReg.isPresent()) {
+            Registration reg = optionalReg.get();
+
+            // 2. Bảo mật: Kiểm tra xem đơn này có đúng là của User đang đăng nhập không?
+            if (!reg.getUser().getId().equals(currentUserId)) {
+                // Nếu không phải chính chủ -> Không làm gì cả (hoặc log cảnh báo)
+                return;
+            }
+
+            // 3. Chỉ xóa nếu trạng thái là PENDING
+            if ("PENDING".equals(reg.getStatus())) {
+                registrationRepository.delete(reg);
+                System.out.println("Đã xóa đơn hàng hủy: " + orderCode);
+            }
+        }
     }
-
-
-
 }

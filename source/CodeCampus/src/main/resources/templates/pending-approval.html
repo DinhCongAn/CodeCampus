@@ -1,128 +1,84 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security6">
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Xác nhận thanh toán</title>
+    <title>Xác nhận thanh toán | CodeCampus</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body class="bg-gray-100 font-sans">
 
 <!-- Header -->
 <div th:replace="~{fragments/header :: header}"></div>
 
-<!-- Container chính -->
-<div class="container mx-auto max-w-4xl p-6 my-12">
-    <div class="bg-white rounded-2xl shadow-2xl overflow-hidden">
+<main class="py-12">
+    <div class="max-w-3xl mx-auto">
 
-        <h2 class="text-3xl font-bold text-center py-8 bg-gradient-to-r from-blue-600 to-teal-500 text-white">
-            Thanh toán qua QR
-        </h2>
-
-        <!-- Lỗi (nếu có) -->
-        <div th:if="${errorMessage != null AND !errorMessage.isEmpty()}"
-             class="mx-6 mb-6 bg-red-100 border border-red-400 text-red-700 px-6 py-4 rounded-xl text-center font-medium">
-            <span th:text="${errorMessage}"></span>
-        </div>
-
-        <!-- 2 CỘT: QR + THÔNG TIN -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 px-6 pb-8">
-
-            <!-- CỘT 1: MÃ QR (giữa, nhỏ hơn một tí như bạn yêu cầu) -->
-            <div class="flex flex-col justify-center items-center">
-                <p class="text-lg font-semibold text-gray-700 mb-4">Quét mã QR để thanh toán</p>
-                <div class="bg-gray-50 p-6 rounded-2xl shadow-inner border border-gray-200">
-                    <img
-                            th:src="@{/images/z7214323315417_9370b79bf4314bfcc8e113d5e4dfb0f7.jpg}"
-                            alt="Quét mã QR - ĐINH CÔNG AN"
-                            class="w-full max-w-[260px] sm:max-w-[300px] lg:max-w-[340px] h-auto mx-auto"
-                            style="image-rendering: crisp-edges;">
-                </div>
-                <p class="text-sm text-gray-500 mt-3">Hỗ trợ: MB Bank, VietQR, Napas 247</p>
+        <!-- Checkout Card -->
+        <div class="bg-white shadow-lg rounded-xl overflow-hidden">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-center py-6">
+                <h2 class="text-2xl font-semibold flex items-center justify-center gap-2"><i class="fas fa-shopping-cart"></i> Xác nhận đơn hàng</h2>
+                <p class="mt-1 text-sm opacity-80">Vui lòng kiểm tra thông tin trước khi thanh toán</p>
             </div>
 
-            <!-- CỘT 2: THÔNG TIN THANH TOÁN -->
-            <div class="flex flex-col justify-center space-y-6">
-
-                <div class="bg-gradient-to-br from-blue-50 to-teal-50 p-6 rounded-xl border border-blue-200">
-                    <h3 class="font-bold text-xl text-blue-800 mb-4">Thông tin chuyển khoản</h3>
-                    <div class="space-y-3 text-gray-800">
-                        <p><strong>Ngân hàng:</strong> <span class="font-bold text-blue-700">MBBANK</span></p>
-                        <p><strong>Chủ tài khoản:</strong> <span class="font-bold">DINH CONG AN</span></p>
-                        <p><strong>Số tài khoản:</strong> <span class="font-bold text-lg">0932383167</span></p>
-                    </div>
+            <div class="p-6 space-y-6">
+                <!-- Course Info -->
+                <div class="text-center space-y-2">
+                    <img th:src="${course.thumbnailUrl != null ? course.thumbnailUrl : 'https://via.placeholder.com/600x300'}"
+                         class="w-full h-56 object-cover rounded-lg" alt="Course Thumbnail">
+                    <h3 class="text-xl font-bold text-gray-800" th:text="${course.name}"></h3>
+                    <p class="text-gray-500 text-sm" th:text="${course.description}"></p>
                 </div>
 
-                <div class="bg-gray-50 p-5 rounded-xl border">
-                    <p><strong>Khóa học:</strong> <span th:text="${course.name}" class="font-bold"></span></p>
-                    <p><strong>Số tiền:</strong>
-                        <strong class="text-2xl text-red-600"
-                                th:text="${#numbers.formatDecimal(pricePackage.salePrice != null ? pricePackage.salePrice : pricePackage.listPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}">
-                        </strong>
-                    </p>
+                <hr class="border-gray-200">
+
+                <!-- Package Info -->
+                <div class="flex justify-between text-gray-600">
+                    <span>Gói đăng ký:</span>
+                    <span class="font-semibold" th:text="${pricePackage.name}"></span>
+                </div>
+                <div class="flex justify-between text-gray-600">
+                    <span>Thời hạn:</span>
+                    <span th:text="${pricePackage.durationMonths + ' tháng'}"></span>
+                </div>
+                <div class="flex justify-between text-gray-400 line-through">
+                    <span>Giá gốc:</span>
+                    <span th:text="${#numbers.formatDecimal(pricePackage.listPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
                 </div>
 
-                <!-- Nội dung chuyển khoản -->
-                <div class="bg-yellow-50 border-2 border-yellow-300 rounded-xl p-5">
-                    <p class="font-bold text-red-600 mb-3">Nội dung chuyển khoản (BẮT BUỘC):</p>
-                    <div class="flex items-center bg-white border-2 border-blue-400 rounded-lg px-4 py-3 justify-between shadow">
-                        <span id="transferContent" th:text="${#authentication.name}"
-                              class="font-bold text-blue-700 text-lg truncate max-w-[70%]">
-                        </span>
-                        <button type="button" onclick="copyOrderCode()"
-                                class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2 rounded-lg transition shadow-lg">
-                            Sao chép
-                        </button>
-                    </div>
-                    <p class="text-sm text-red-600 mt-3">
-                        Vui lòng ghi **đúng nội dung này** để hệ thống tự động xác nhận!
-                    </p>
+                <!-- Total Payment -->
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4 flex justify-between items-center">
+                    <span class="font-semibold">Tổng thanh toán:</span>
+                    <span class="text-green-600 font-bold text-lg"
+                          th:text="${#numbers.formatDecimal(pricePackage.salePrice != null ? pricePackage.salePrice : pricePackage.listPrice, 0, 'COMMA', 0, 'POINT') + ' VNĐ'}"></span>
                 </div>
 
-                <!-- Form xác nhận -->
-                <form th:action="@{/registration/confirm-payment}"
-                      th:object="${registrationRequest}" method="POST"
-                      onsubmit="return confirm('Bạn đã chuyển khoản thành công và ghi đúng nội dung chưa?');">
+                <!-- Payment Form -->
+                <form th:action="@{/registration/confirm-payment}" method="post" th:object="${registrationRequest}" class="space-y-4">
                     <input type="hidden" th:field="*{courseId}" />
                     <input type="hidden" th:field="*{packageId}" />
 
-                    <button type="submit"
-                            class="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-4 px-6 rounded-xl text-xl transition shadow-lg">
-                        Xác nhận đã thanh toán
+                    <button type="submit" class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold py-3 rounded-full flex items-center justify-center gap-2 hover:from-purple-700 hover:to-indigo-700 transition-all">
+                        <i class="fas fa-qrcode"></i> Thanh toán qua PayOS
                     </button>
-                </form>
 
-                <a th:href="@{/courses}" class="text-center text-blue-600 hover:underline font-medium">
-                    Hủy và quay về danh sách khóa học
-                </a>
+                    <a th:href="@{/courses/{id}(id=${course.id})}" class="block text-center text-gray-600 hover:text-gray-800 text-sm">
+                        <i class="fas fa-arrow-left mr-1"></i> Quay lại
+                    </a>
+
+                    <p class="text-center text-gray-400 text-xs mt-2">
+                        <i class="fas fa-lock mr-1"></i> Giao dịch được bảo mật và xử lý tự động.<br>
+                        Sau khi thanh toán thành công, hệ thống sẽ tự động chuyển bạn về trang <strong>Khóa học của tôi</strong>.
+                    </p>
+                </form>
             </div>
         </div>
     </div>
-</div>
+</main>
 
 <!-- Footer -->
 <div th:replace="~{fragments/footer :: footer}"></div>
-
-<!-- Script copy -->
-<script>
-    function copyOrderCode() {
-        const textElement = document.getElementById("transferContent");
-        const text = textElement.innerText.trim();
-
-        navigator.clipboard.writeText(text).then(() => {
-            const btn = textElement.nextElementSibling;
-            btn.textContent = "Đã sao chép!";
-            btn.classList.add("bg-green-600");
-            setTimeout(() => {
-                btn.textContent = "Sao chép";
-                btn.classList.remove("bg-green-600");
-            }, 2000);
-            alert("Đã sao chép: " + text);
-        }).catch(() => {
-            alert("Sao chép thất bại! Vui lòng bôi đen và copy thủ công.");
-        });
-    }
-</script>
 
 </body>
 </html>

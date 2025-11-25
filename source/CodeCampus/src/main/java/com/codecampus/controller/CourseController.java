@@ -83,6 +83,9 @@ public class CourseController {
      */
     @GetMapping("/courses/{id}")
     public String showCourseDetails(@PathVariable("id") Integer id,
+                                    // [MỚI] Thêm tham số để bắt tín hiệu từ PayOS trả về
+                                    @RequestParam(value = "payment", required = false) String payment,
+                                    @RequestParam(value = "orderCode", required = false) String orderCode,
                                     Model model,
                                     Authentication authentication) {
         try {
@@ -91,24 +94,35 @@ public class CourseController {
             model.addAttribute("course", course);
             model.addAttribute("lowestPriceOpt", courseService.getLowestPrice(id));
 
-            // ===== BẮT BUỘC BỔ SUNG DÒNG NÀY =====
-            // (Pop-up của bạn cần ${pricePackages})
+            // (Pop-up cần danh sách gói giá)
             List<PricePackage> packages = pricePackageRepository.findByCourseId(id);
             model.addAttribute("pricePackages", packages);
-            // ===================================
 
-            // ===== Logic kiểm tra đăng ký (Đã đúng) =====
+            // ===== Logic kiểm tra đăng ký =====
             User currentUser = getCurrentUser(authentication);
             boolean isRegistered = false;
 
             if (currentUser != null) {
                 model.addAttribute("loggedInUser", currentUser);
-                // Hàm này giờ chỉ kiểm tra "COMPLETED"
                 isRegistered = registrationService.hasUserRegistered(currentUser.getId(), id);
             }
-
             model.addAttribute("isRegistered", isRegistered);
-            // ========================================
+
+            // ===== XỬ LÝ TRẠNG THÁI THANH TOÁN =====
+            if (payment != null && currentUser != null) {
+                if ("cancel".equals(payment)) {
+                    // 1. NẾU HỦY -> GỌI SERVICE XÓA ĐƠN HÀNG NGAY LẬP TỨC
+                    if (orderCode != null) {
+                        registrationService.deletePendingOrder(orderCode, currentUser.getId());
+                    }
+
+                    model.addAttribute("errorMessage", "Rất tiếc! Giao dịch của bạn chưa hoàn tất. Hãy thử lại để đăng ký ngay nhé.");
+                } else if ("success".equals(payment)) {
+                    model.addAttribute("successMessage", "Đăng ký thành công! Bạn có thể vào học ngay.");
+                    model.addAttribute("isRegistered", true);
+                }
+            }
+            // ============================================
 
             return "course-details";
         } catch (RuntimeException e) {

@@ -23,6 +23,10 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+                // 1. [QUAN TRỌNG] Tắt CSRF cho Webhook
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/payment/**")
+                )
                 .authorizeHttpRequests(authz -> authz
                         // Cho phép các trang public
                         .requestMatchers(
@@ -31,7 +35,7 @@ public class SecurityConfig {
                                 "/login/**", // Cho phép CSS/JS trong thư mục /login
                                 "/css/**", "/js/**", "/images/**",
                                 // ===== THAY ĐỔI =====
-                                "/register-process", // Chỉ cần mở cái này
+                                "/register-process","/payment/**", // Chỉ cần mở cái này
                                 "/payment-info"
                         ).permitAll()
                         // Tất cả các request khác phải được xác thực
