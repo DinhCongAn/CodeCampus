@@ -256,17 +256,18 @@ GO
 
 -- 11. Bảng price_packages (Phụ thuộc: courses)
 INSERT INTO price_packages (course_id, name, duration_months, list_price, sale_price, status, sale) VALUES
-(1, N'Gói 6 tháng', 6, 1200000, 600000, N'active', 50),
-(1, N'Gói trọn đời', 99, 3000000, 1500000, N'active', 50),
-(2, N'Gói 6 tháng', 6, 1500000, 750000, N'active', 50),
-(2, N'Gói trọn đời', 99, 3500000, 1750000, N'active', 50),
-(3, N'Gói 12 tháng', 12, 2500000, 1250000, N'active', 50),
-(3, N'Gói trọn đời', 99, 5000000, 2500000, N'active', 50),
-(4, N'Gói trọn đời', 99, 4000000, 2000000, N'active', 50),
-(5, N'Gói trọn đời', 99, 6000000, 3000000, N'active', 50),
-(6, N'Gói 6 tháng', 6, 1000000, 500000, N'active', 50),
-(7, N'Gói trọn đời', 99, 4500000, 2250000, N'active', 50);
+(1, N'Gói 6 tháng', 6, 10000, 5000, N'active', 50),
+(1, N'Gói trọn đời', 99, 10000, 5000, N'active', 50),
+(2, N'Gói 6 tháng', 6, 10000, 5000, N'active', 50),
+(2, N'Gói trọn đời', 99, 10000, 5000, N'active', 50),
+(3, N'Gói 12 tháng', 12, 10000, 5000, N'active', 50),
+(3, N'Gói trọn đời', 99, 10000, 5000, N'active', 50),
+(4, N'Gói trọn đời', 99, 10000, 5000, N'active', 50),
+(5, N'Gói trọn đời', 99, 10000, 5000, N'active', 50),
+(6, N'Gói 6 tháng', 6, 10000, 5000, N'active', 50),
+(7, N'Gói trọn đời', 99, 10000, 5000, N'active', 50);
 GO
+
 
 -- 12. Bảng quizzes (Phụ thuộc: courses, test_types, question_levels)
 INSERT INTO quizzes (course_id, test_type_id, name, exam_level_id, duration_minutes, pass_rate_percentage) VALUES
