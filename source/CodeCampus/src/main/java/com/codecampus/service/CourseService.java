@@ -71,27 +71,61 @@ public class CourseService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học với ID: " + id));
     }
 
-    // Lấy danh sách phân trang
+    // 1. Lấy danh sách (Không ảnh hưởng bởi ID)
     public Page<Course> getCoursesForAdmin(String keyword, Integer categoryId, String status, int page, int size) {
         return courseRepository.findCoursesAdmin(keyword, categoryId, status, PageRequest.of(page, size));
     }
 
-    // Lưu/Cập nhật môn học
+    // 2. Lấy chi tiết
+    // Controller truyền xuống Long, Repo nhận Long -> OK, giữ nguyên
+    public Course getCourseById(Long id) {
+        return courseRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy môn học với ID: " + id));
+    }
+
+    // 3. Lưu môn học (Thêm mới hoặc Edit)
+    // --- ĐÂY LÀ CHỖ ĐÃ SỬA LỖI NULL POINTER ---
     public void saveCourse(Course course) {
+        // Truyền thẳng Integer id vào hàm check, không ép kiểu
+        checkDuplicateName(course.getId(), course.getName());
+
+        // Kiểm tra null an toàn cho ID
         if (course.getId() == null) {
             course.setCreatedAt(LocalDateTime.now());
-            // Mặc định các trường khác nếu null
+            if (course.getIsFeatured() == null) {
+                course.setIsFeatured(false);
+            }
         }
         course.setUpdatedAt(LocalDateTime.now());
+
         courseRepository.save(course);
     }
 
-    // Lấy chi tiết (để Edit)
-    public Course getCourseById(Long id) {
-        return courseRepository.findById(id).orElseThrow(() -> new RuntimeException("Không tìm thấy môn học"));
+    /**
+     * Logic kiểm tra trùng tên (Đã sửa để chấp nhận Integer ID và xử lý NULL)
+     */
+    private void checkDuplicateName(Integer id, String name) {
+        // Tìm xem có thằng nào tên giống vậy không
+        Course existingCourse = courseRepository.findByName(name);
+
+        if (existingCourse != null) {
+            // TRƯỜNG HỢP 1: Thêm mới (id truyền vào là NULL)
+            // Tìm thấy tên trong DB -> CHẮC CHẮN TRÙNG (vì chưa có ID để so sánh)
+            if (id == null) {
+                throw new RuntimeException("Tên môn học '" + name + "' đã tồn tại. Vui lòng chọn tên khác.");
+            }
+
+            // TRƯỜNG HỢP 2: Cập nhật (id có giá trị)
+            // So sánh ID của thằng tìm thấy với ID thằng đang sửa.
+            // QUAN TRỌNG: Dùng .equals() để so sánh đối tượng Integer an toàn.
+            // Tuyệt đối không dùng != hoặc ép kiểu sang long/int ở đây.
+            if (!existingCourse.getId().equals(id)) {
+                throw new RuntimeException("Tên môn học '" + name + "' đã được sử dụng bởi khóa học khác.");
+            }
+        }
     }
 
-    // Xóa (Chuyển sang INACTIVE thay vì xóa thật để giữ lịch sử đơn hàng)
+    // 4. Đổi trạng thái
     public void toggleCourseStatus(Long id) {
         Course course = getCourseById(id);
         if ("ACTIVE".equals(course.getStatus())) {

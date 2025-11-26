@@ -28,7 +28,7 @@ public class AdminOrderController {
             @RequestParam(defaultValue = "") String keyword,
             @RequestParam(required = false) String status,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "7") int size,
             Model model) {
 
         // 1. Gọi Repository để lấy dữ liệu phân trang

@@ -3,6 +3,8 @@ package com.codecampus.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.Formula;
+
 import java.time.LocalDateTime;
 
 @Getter
@@ -38,6 +40,9 @@ public class Course {
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    @Formula("(SELECT count(*) FROM lessons l WHERE l.course_id = id)")
+    private Integer numberOfLessons;
 
     @PrePersist
     protected void onCreate() { createdAt = LocalDateTime.now(); updatedAt = LocalDateTime.now(); }

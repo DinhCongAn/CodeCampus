@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
+    <link rel="stylesheet" th:href="@{/css/admin-style.css}">
     <style>
         :root { --primary: #4361ee; --sidebar-width: 260px; --sidebar-collapsed: 70px; }
         body { font-family: 'Segoe UI', sans-serif; background: #f8fafc; }
@@ -39,7 +39,6 @@
 <div th:replace="~{fragments/sidebar-menu-admin :: sidebar('subjects')}"></div>
 
 <div class="main-content" id="mainContent">
-
     <div class="topbar d-flex align-items-center justify-content-between">
         <div class="d-flex align-items-center">
             <div class="toggle-btn me-4" onclick="toggleSidebar()"><i class="fas fa-bars"></i></div>
@@ -52,7 +51,6 @@
     </div>
 
     <div class="container-fluid py-4">
-
         <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
             <i class="fas fa-check-circle me-2"></i> <span th:text="${successMessage}"></span>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
@@ -68,30 +66,23 @@
                     <div class="col-lg-9">
                         <form th:action="@{/admin/subjects}" method="get" class="row g-2">
                             <div class="col-md-4">
-                                <div class="input-group">
-                                    <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
-                                    <input type="text" name="keyword" class="form-control border-start-0"
-                                           placeholder="Tìm tên môn học..." th:value="${keyword}">
-                                </div>
+                                <input type="text" name="keyword" class="form-control" placeholder="Tìm tên môn học..." th:value="${keyword}">
                             </div>
                             <div class="col-md-3">
                                 <select name="categoryId" class="form-select">
                                     <option value="">-- Danh mục --</option>
-                                    <option th:each="cat : ${categories}"
-                                            th:value="${cat.id}"
-                                            th:text="${cat.name}"
-                                            th:selected="${cat.id == categoryId}"></option>
+                                    <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}" th:selected="${cat.id == categoryId}"></option>
                                 </select>
                             </div>
                             <div class="col-md-3">
                                 <select name="status" class="form-select">
                                     <option value="">-- Trạng thái --</option>
-                                    <option value="ACTIVE" th:selected="${status == 'ACTIVE'}">Đang hoạt động</option>
+                                    <option value="ACTIVE" th:selected="${status == 'ACTIVE'}">Hoạt động</option>
                                     <option value="INACTIVE" th:selected="${status == 'INACTIVE'}">Đã ẩn</option>
                                 </select>
                             </div>
                             <div class="col-md-2 d-flex gap-1">
-                                <button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter"></i></button>
+                                <button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter"></i>Lọc</button>
                                 <a th:href="@{/admin/subjects}" class="btn btn-light border" title="Làm mới"><i class="fas fa-sync"></i></a>
                             </div>
                         </form>
@@ -112,53 +103,43 @@
                     <tr>
                         <th class="ps-4">ID</th>
                         <th style="width: 80px;">Ảnh</th>
-                        <th>Thông tin môn học</th>
-                        <th>Danh mục</th>
-                        <th>Trạng thái</th>
-                        <th>Ngày tạo</th>
+                        <th>Môn học</th>
+                        <th>Bài học</th> <th>Owner</th>   <th>Trạng thái</th>
                         <th class="text-end pe-4">Hành động</th>
                     </tr>
                     </thead>
                     <tbody>
-                    <tr th:if="${coursePage.empty}"><td colspan="7" class="text-center py-5 text-muted">Chưa có dữ liệu môn học.</td></tr>
-
                     <tr th:each="course : ${coursePage.content}">
                         <td class="ps-4 text-muted" th:text="${'#' + course.id}">#1</td>
                         <td>
-                            <img th:src="${course.thumbnailUrl != null && course.thumbnailUrl != '' ? course.thumbnailUrl : 'https://via.placeholder.com/150'}"
+                            <img th:src="${course.thumbnailUrl != null ? course.thumbnailUrl : 'https://via.placeholder.com/150'}"
                                  class="rounded border" width="50" height="40" style="object-fit: cover;">
                         </td>
                         <td>
-                            <strong class="d-block text-dark mb-1" th:text="${course.name}">Java Spring</strong>
-                            <small class="text-muted"
-                                   th:text="${course.description != null && course.description.length() > 60 ? course.description.substring(0,60) + '...' : course.description}">
-                                Mô tả...
-                            </small>
+                            <div class="d-flex align-items-center mb-1">
+                                <strong class="text-dark me-2" th:text="${course.name}">Java Spring</strong>
+                                <span th:if="${course.isFeatured}"
+                                      style="background:#ff6a00;color:#fff;font-size:12px;padding:4px 8px;border-radius:4px;font-weight:700;">⭐ HOT</span>
+                            </div>
+                            <span class="badge bg-light text-dark border" th:text="${course.category != null ? course.category.name : 'N/A'}">IT</span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-secondary-subtle text-secondary" th:text="${course.numberOfLessons != null ? course.numberOfLessons : 0} + ' bài'">10 bài</span>
                         </td>
                         <td>
-                                <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle"
-                                      th:text="${course.category != null ? course.category.name : 'N/A'}">IT</span>
+                            <small class="fw-bold text-primary" th:text="${course.owner != null ? course.owner.fullName : 'Admin'}">LocBT</small>
                         </td>
                         <td>
-                            <span th:if="${course.status == 'ACTIVE'}" class="badge bg-success-subtle text-success"><i class="fas fa-check-circle me-1"></i>Hoạt động</span>
-                            <span th:if="${course.status == 'INACTIVE'}" class="badge bg-secondary-subtle text-secondary"><i class="fas fa-eye-slash me-1"></i>Đã ẩn</span>
+                            <span th:if="${course.status == 'ACTIVE'}" class="badge bg-success-subtle text-success">Active</span>
+                            <span th:if="${course.status == 'INACTIVE'}" class="badge bg-secondary-subtle text-secondary">Inactive</span>
                         </td>
-                        <td th:text="${#temporals.format(course.createdAt, 'dd/MM/yyyy')}">20/11/2025</td>
                         <td class="text-end pe-4">
-                            <button class="btn btn-sm btn-outline-primary me-1"
-                                    th:onclick="'openModalEdit(' + ${course.id} + ')'" title="Chỉnh sửa">
+                            <button class="btn btn-sm btn-outline-primary me-1" th:onclick="'openModalEdit(' + ${course.id} + ')'" title="Sửa">
                                 <i class="fas fa-edit"></i>
                             </button>
-
                             <form th:action="@{/admin/subjects/toggle/{id}(id=${course.id})}" method="post" style="display: inline;">
-                                <button th:if="${course.status == 'ACTIVE'}" type="submit" class="btn btn-sm btn-outline-warning"
-                                        onclick="return confirm('Bạn có chắc chắn muốn ẨN môn học này?')" title="Ẩn môn học">
-                                    <i class="fas fa-eye-slash"></i>
-                                </button>
-                                <button th:if="${course.status != 'ACTIVE'}" type="submit" class="btn btn-sm btn-outline-success"
-                                        title="Hiện môn học">
-                                    <i class="fas fa-eye"></i>
-                                </button>
+                                <button th:if="${course.status == 'ACTIVE'}" type="submit" class="btn btn-sm btn-outline-warning" title="Ẩn" onclick="return confirm('Ẩn môn này?')"><i class="fas fa-eye-slash"></i></button>
+                                <button th:if="${course.status != 'ACTIVE'}" type="submit" class="btn btn-sm btn-outline-success" title="Hiện"><i class="fas fa-eye"></i></button>
                             </form>
                         </td>
                     </tr>
@@ -182,24 +163,28 @@
                     </ul>
                 </nav>
             </div>
+
         </div>
     </div>
 </div>
 
 <div class="modal fade" id="courseModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
-        <form th:action="@{/admin/subjects/save}" method="post" class="modal-content border-0 shadow">
+        <form th:action="@{/admin/subjects/save}" method="post" class="modal-content border-0 shadow" onsubmit="return validateCourseForm()">
             <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="modalTitle"><i class="fas fa-book me-2"></i>Thông tin Môn học</h5>
+                <h5 class="modal-title" id="modalTitle">Thông tin Môn học</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-4">
                 <input type="hidden" id="courseId" name="id">
 
+                <div id="jsErrorAlert" class="alert alert-danger d-none"></div>
+
                 <div class="row g-3">
                     <div class="col-md-8">
                         <label class="form-label small fw-bold text-muted">Tên môn học <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" name="name" id="courseName" required>
+                        <small class="text-muted">Độ dài từ 5 - 100 ký tự</small>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label small fw-bold text-muted">Danh mục <span class="text-danger">*</span></label>
@@ -209,27 +194,42 @@
                         </select>
                     </div>
 
-                    <div class="col-12">
-                        <label class="form-label small fw-bold text-muted">Link Ảnh Thumbnail (URL)</label>
-                        <input type="text" class="form-control" name="thumbnailUrl" id="courseThumbnail" placeholder="https://example.com/image.jpg">
-                    </div>
-
-                    <div class="col-12">
-                        <label class="form-label small fw-bold text-muted">Mô tả chi tiết</label>
-                        <textarea class="form-control" name="description" id="courseDesc" rows="5" placeholder="Nhập nội dung giới thiệu môn học..."></textarea>
-                    </div>
-
                     <div class="col-md-6">
+                        <label class="form-label small fw-bold text-muted">Chủ sở hữu (Owner) <span class="text-danger">*</span></label>
+                        <select class="form-select" name="owner.id" id="courseOwner" required>
+                            <option value="">Chọn giảng viên/admin...</option>
+                            <option th:each="u : ${owners}" th:value="${u.id}" th:text="${u.fullName + ' (' + u.email + ')'}"></option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
                         <label class="form-label small fw-bold text-muted">Trạng thái</label>
                         <select class="form-select" name="status" id="courseStatus">
-                            <option value="ACTIVE">Hoạt động (Hiển thị)</option>
-                            <option value="INACTIVE">Ẩn (Không hiển thị)</option>
+                            <option value="ACTIVE">Hoạt động</option>
+                            <option value="INACTIVE">Ẩn</option>
                         </select>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="courseFeatured" name="isFeatured">
+                            <label class="form-check-label fw-bold text-warning" for="courseFeatured">
+                                <i class="fas fa-star"></i> Nổi bật
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label small fw-bold text-muted">Link Thumbnail (URL) <span class="text-danger">*</span></label>
+                        <input type="url" class="form-control" name="thumbnailUrl" id="courseThumbnail" placeholder="https://example.com/image.jpg" required>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label small fw-bold text-muted">Mô tả chi tiết <span class="text-danger">*</span></label>
+                        <textarea class="form-control" name="description" id="courseDesc" rows="5" required></textarea>
                     </div>
                 </div>
             </div>
             <div class="modal-footer bg-light">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
                 <button type="submit" class="btn btn-primary px-4">Lưu thông tin</button>
             </div>
         </form>
@@ -244,41 +244,91 @@
     }
 
     const courseModal = new bootstrap.Modal(document.getElementById('courseModal'));
+    const errorAlert = document.getElementById('jsErrorAlert');
 
-    // 1. Mở Modal Thêm Mới (Reset trắng form)
+    // --- HÀM VALIDATE JAVASCRIPT ---
+    function validateCourseForm() {
+        const name = document.getElementById('courseName').value.trim();
+        const thumbnail = document.getElementById('courseThumbnail').value.trim();
+        const desc = document.getElementById('courseDesc').value.trim();
+        const category = document.getElementById('courseCategory').value;
+        const owner = document.getElementById('courseOwner').value;
+
+        let errorMsg = "";
+
+        // 1. Validate Name
+        if (name.length < 5 || name.length > 100) {
+            errorMsg = "Tên môn học phải từ 5 đến 100 ký tự.";
+        }
+        // 2. Validate Dropdown
+        else if (category === "") {
+            errorMsg = "Vui lòng chọn danh mục.";
+        }
+        else if (owner === "") {
+            errorMsg = "Vui lòng chọn chủ sở hữu.";
+        }
+        // 3. Validate URL
+        else if (!isValidUrl(thumbnail)) {
+            errorMsg = "Đường dẫn ảnh không hợp lệ (Phải bắt đầu bằng http/https).";
+        }
+        // 4. Validate Description
+        else if (desc.length === 0) {
+            errorMsg = "Mô tả không được để trống.";
+        }
+
+        if (errorMsg !== "") {
+            errorAlert.innerText = errorMsg;
+            errorAlert.classList.remove('d-none');
+            return false; // Chặn submit
+        }
+
+        errorAlert.classList.add('d-none');
+        return true; // Cho phép submit
+    }
+
+    function isValidUrl(string) {
+        try {
+            new URL(string);
+            return true;
+        } catch (_) {
+            return false;
+        }
+    }
+
+    // Mở Modal Thêm Mới
     function openModalAdd() {
-        document.getElementById('modalTitle').innerHTML = '<i class="fas fa-plus-circle me-2"></i>Thêm Môn Học Mới';
+        document.getElementById('modalTitle').innerText = "Thêm Môn Học Mới";
         document.getElementById('courseId').value = "";
         document.getElementById('courseName').value = "";
         document.getElementById('courseThumbnail').value = "";
         document.getElementById('courseDesc').value = "";
         document.getElementById('courseCategory').value = "";
+        document.getElementById('courseOwner').value = "";
         document.getElementById('courseStatus').value = "ACTIVE";
+        document.getElementById('courseFeatured').checked = false;
+        errorAlert.classList.add('d-none'); // Ẩn lỗi cũ
 
         courseModal.show();
     }
 
-    // 2. Mở Modal Edit (Load dữ liệu từ API)
+    // Mở Modal Edit
     function openModalEdit(id) {
-        document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit me-2"></i>Cập Nhật Môn Học';
+        document.getElementById('modalTitle').innerText = "Cập Nhật Môn Học";
+        errorAlert.classList.add('d-none');
 
-        // Gọi API lấy dữ liệu (Đã sửa controller để trả về Map thay vì Entity -> Fix lỗi JSON)
         fetch(`/admin/subjects/api/${id}`)
-            .then(res => {
-                if (!res.ok) throw new Error("Lỗi tải dữ liệu");
-                return res.json();
-            })
+            .then(res => res.json())
             .then(data => {
                 document.getElementById('courseId').value = data.id;
                 document.getElementById('courseName').value = data.name;
                 document.getElementById('courseThumbnail').value = data.thumbnailUrl || '';
-
-                // Load Description (Không dùng tagline nữa)
                 document.getElementById('courseDesc').value = data.description || '';
-
-                // Load danh mục (key là categoryId như đã định nghĩa trong Map ở Controller)
                 document.getElementById('courseCategory').value = data.categoryId;
                 document.getElementById('courseStatus').value = data.status;
+
+                // Fill dữ liệu mới
+                document.getElementById('courseOwner').value = data.ownerId || '';
+                document.getElementById('courseFeatured').checked = data.isFeatured === true;
 
                 courseModal.show();
             })
