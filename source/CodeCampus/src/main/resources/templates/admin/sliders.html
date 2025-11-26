@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý Sliders | Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/admin-style.css}">
+    <style>
+        /* Thêm style cho Tab ảnh */
+        .nav-tabs .nav-link.active {
+            background-color: #f8f9fa;
+            border-bottom-color: transparent;
+            font-weight: bold;
+            color: #4361ee;
+        }
+        .img-preview-container {
+            background-color: #f8f9fa;
+            border: 1px dashed #ced4da;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        :root { --primary: #4361ee; --sidebar-width: 260px; --sidebar-collapsed: 70px; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f8fafc; }
+
+        /* Sidebar Style */
+        .sidebar { position: fixed; top: 0; left: 0; bottom: 0; z-index: 1000; width: var(--sidebar-width); background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%); color: #cbd5e1; transition: all 0.3s ease; box-shadow: 4px 0 20px rgba(0,0,0,0.25); }
+        .sidebar.collapsed { width: var(--sidebar-collapsed); }
+        .sidebar .logo { padding: 20px 15px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); color: white; font-weight: bold; font-size: 1.5rem; }
+        .sidebar .nav-link { color: #cbd5e1; padding: 12px 20px; margin: 4px 12px; border-radius: 8px; transition: all 0.3s; display: flex; align-items: center; white-space: nowrap; text-decoration: none; }
+        .sidebar .nav-link i { width: 30px; text-align: center; }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active { background: rgba(67, 97, 238, 0.3); color: white; }
+        .sidebar.collapsed .text { display: none; }
+        .sidebar.collapsed .logo span { display: none; }
+
+        /* Main Content */
+        .main-content { margin-left: var(--sidebar-width); transition: all 0.3s ease; min-height: 100vh; }
+        .main-content.expanded { margin-left: var(--sidebar-collapsed); }
+        .topbar { height: 70px; background: white; box-shadow: 0 2px 15px rgba(0,0,0,0.08); padding: 0 1.5rem; position: sticky; top: 0; z-index: 999; }
+        .toggle-btn { cursor: pointer; font-size: 1.5rem; color: #64748b; }
+
+        /* Table Customization */
+        .table-card { background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); overflow: hidden; }
+        .table thead th { background-color: #f1f5f9; color: #475569; font-weight: 600; border-bottom: 2px solid #e2e8f0; }
+        .avatar-sm { width: 32px; height: 32px; object-fit: cover; border-radius: 50%; }
+        .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 500; }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/sidebar-menu-admin :: sidebar('sliders')}"></div>
+
+<div class="main-content" id="mainContent">
+    <div class="topbar d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center">
+            <div class="toggle-btn me-4" onclick="toggleSidebar()"><i class="fas fa-bars"></i></div>
+            <h4 class="mb-0 fw-bold text-dark">Quản lý Sliders</h4>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <span class="text-muted small">Xin chào, <strong th:text="${#authentication?.name}">Admin</strong></span>
+            <img th:src="@{https://ui-avatars.com/api/?name=Admin&background=4361ee&color=fff}" width="40" class="rounded-circle">
+        </div>
+    </div>
+
+    <div class="container-fluid py-4">
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i> <span th:text="${successMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i> <span th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-lg-9">
+                        <form th:action="@{/admin/sliders}" method="get" class="row g-2">
+                            <div class="col-md-5">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                                    <input type="text" name="keyword" class="form-control border-start-0"
+                                           placeholder="Tìm theo tiêu đề, backlink..." th:value="${keyword}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <select name="status" class="form-select">
+                                    <option value="" th:selected="${status == null}">-- Tất cả trạng thái --</option>
+                                    <option value="active" th:selected="${status == 'active'}">Hiển thị (Active)</option>
+                                    <option value="inactive" th:selected="${status == 'inactive'}">Đã ẩn (Inactive)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 d-flex gap-1">
+                                <button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter"></i></button>
+                                <a th:href="@{/admin/sliders}" class="btn btn-light border" title="Làm mới"><i class="fas fa-sync"></i></a>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="col-lg-3 text-end border-start">
+                        <button class="btn btn-success fw-bold" onclick="openModalAdd()">
+                            <i class="fas fa-plus me-1"></i> Thêm Slider
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-card">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">ID</th>
+                        <th style="width: 150px;">Hình ảnh</th>
+                        <th>Tiêu đề</th>
+                        <th>Backlink</th>
+                        <th>Trạng thái</th>
+                        <th class="text-end pe-4">Hành động</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${sliderPage.empty}"><td colspan="6" class="text-center py-5 text-muted">Chưa có slider nào.</td></tr>
+
+                    <tr th:each="slider : ${sliderPage.content}">
+                        <td class="ps-4 text-muted" th:text="${'#' + slider.id}">#1</td>
+                        <td>
+                            <img th:src="${slider.imageUrl}" class="rounded border shadow-sm" width="120" height="60" style="object-fit: cover;" alt="Slider">
+                        </td>
+                        <td>
+                            <strong class="d-block text-dark" th:text="${slider.title}">Title</strong>
+                            <small class="text-muted text-truncate d-inline-block" style="max-width: 200px;" th:text="${slider.notes}">Notes...</small>
+                        </td>
+                        <td>
+                            <a th:href="${slider.backlink}" target="_blank" class="text-primary small text-decoration-none">
+                                <i class="fas fa-link me-1"></i> <span th:text="${slider.backlink}">link</span>
+                            </a>
+                        </td>
+                        <td>
+                            <span th:if="${#strings.equalsIgnoreCase(slider.status, 'active')}" class="badge bg-success-subtle text-success">Active</span>
+                            <span th:if="${!#strings.equalsIgnoreCase(slider.status, 'active')}" class="badge bg-secondary-subtle text-secondary">Hidden</span>
+                        </td>
+                        <td class="text-end pe-4">
+                            <button class="btn btn-sm btn-outline-primary me-1" th:onclick="'openModalEdit(' + ${slider.id} + ')'" title="Sửa">
+                                <i class="fas fa-edit"></i>
+                            </button>
+
+                            <form th:action="@{/admin/sliders/toggle/{id}(id=${slider.id})}" method="post" style="display: inline;">
+                                <button th:if="${#strings.equalsIgnoreCase(slider.status, 'active')}" type="submit" class="btn btn-sm btn-outline-warning" title="Ẩn slider">
+                                    <i class="fas fa-eye-slash"></i>
+                                </button>
+                                <button th:if="${!#strings.equalsIgnoreCase(slider.status, 'active')}" type="submit" class="btn btn-sm btn-outline-success" title="Hiện slider">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center p-3 border-top" th:if="${sliderPage.totalPages > 0}">
+                <span class="text-muted small">
+                    Hiển thị <strong th:text="${sliderPage.numberOfElements}">10</strong>
+                    trên tổng số <strong th:text="${sliderPage.totalElements}">50</strong> slider
+                </span>
+                <nav>
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item" th:classappend="${sliderPage.first ? 'disabled' : ''}">
+                            <a class="page-link"
+                               th:href="@{/admin/sliders(page=${sliderPage.number - 1}, keyword=${keyword}, status=${status})}">
+                                Trước
+                            </a>
+                        </li>
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, sliderPage.totalPages - 1)}"
+                            th:classappend="${i == sliderPage.number ? 'active' : ''}">
+                            <a class="page-link"
+                               th:href="@{/admin/sliders(page=${i}, keyword=${keyword}, status=${status})}"
+                               th:text="${i + 1}">1</a>
+                        </li>
+                        <li class="page-item" th:classappend="${sliderPage.last ? 'disabled' : ''}">
+                            <a class="page-link"
+                               th:href="@{/admin/sliders(page=${sliderPage.number + 1}, keyword=${keyword}, status=${status})}">
+                                Sau
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="sliderModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <form th:action="@{/admin/sliders/save}" method="post" enctype="multipart/form-data"
+              class="modal-content border-0 shadow" onsubmit="return validateSliderForm()">
+
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold" id="modalTitle">Thông tin Slider</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body p-4">
+                <input type="hidden" id="sliderId" name="id">
+                <div id="jsErrorAlert" class="alert alert-danger d-none small py-2"></div>
+
+                <div class="row g-3">
+                    <div class="col-12 mb-3">
+                        <div class="img-preview-container rounded">
+                            <img id="previewImage" src="https://via.placeholder.com/800x300?text=No+Image"
+                                 class="img-fluid rounded" style="max-height: 200px; object-fit: contain;">
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <ul class="nav nav-tabs" id="imageTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload-pane" type="button" role="tab">
+                                    <i class="fas fa-cloud-upload-alt me-1"></i> Tải ảnh lên
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="link-tab" data-bs-toggle="tab" data-bs-target="#link-pane" type="button" role="tab">
+                                    <i class="fas fa-link me-1"></i> Dán Link ảnh
+                                </button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content border border-top-0 p-3 rounded-bottom bg-light" id="imageTabsContent">
+                            <div class="tab-pane fade show active" id="upload-pane" role="tabpanel">
+                                <label class="form-label small text-muted">Chọn file từ máy tính (JPG, PNG, GIF)</label>
+                                <input type="file" class="form-control" name="imageFile" id="fileInput" accept="image/*" onchange="previewFile()">
+                            </div>
+
+                            <div class="tab-pane fade" id="link-pane" role="tabpanel">
+                                <label class="form-label small text-muted">Hoặc dán đường dẫn ảnh trực tiếp</label>
+                                <input type="text" class="form-control" name="imageUrl" id="urlInput"
+                                       placeholder="https://example.com/image.jpg" onchange="previewUrl()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-8">
+                        <label class="form-label small fw-bold text-muted">Tiêu đề <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="title" id="sliderTitle" required>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold text-muted">Trạng thái</label>
+                        <select class="form-select" name="status" id="sliderStatus">
+                            <option value="active">Hiển thị (Show)</option>
+                            <option value="inactive">Ẩn (Hide)</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label small fw-bold text-muted">Backlink (Đường dẫn khi click)</label>
+                        <input type="text" class="form-control" name="backlink" id="sliderBacklink" placeholder="/courses/1">
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label small fw-bold text-muted">Ghi chú (Notes)</label>
+                        <textarea class="form-control" name="notes" id="sliderNotes" rows="2"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="submit" class="btn btn-primary px-4">Lưu Slider</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('collapsed');
+        document.getElementById('mainContent').classList.toggle('expanded');
+    }
+
+    const sliderModal = new bootstrap.Modal(document.getElementById('sliderModal'));
+    const errorAlert = document.getElementById('jsErrorAlert');
+    const previewImg = document.getElementById('previewImage');
+
+    // 1. Preview khi Upload File
+    function previewFile() {
+        const file = document.getElementById('fileInput').files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImg.src = e.target.result;
+                // Xóa ô URL để tránh gửi đè
+                document.getElementById('urlInput').value = "";
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+
+    // 2. Preview khi Dán Link
+    function previewUrl() {
+        const url = document.getElementById('urlInput').value.trim();
+        if (url) {
+            previewImg.src = url;
+            document.getElementById('fileInput').value = ""; // Reset file input
+        } else {
+            previewImg.src = "https://via.placeholder.com/800x300?text=No+Image";
+        }
+    }
+
+    // 3. Mở Modal Thêm Mới
+    function openModalAdd() {
+        document.getElementById('modalTitle').innerText = 'Thêm Slider Mới';
+        document.getElementById('sliderId').value = "";
+
+        document.getElementById('sliderTitle').value = "";
+        document.getElementById('sliderBacklink').value = "";
+        document.getElementById('sliderNotes').value = "";
+        document.getElementById('sliderStatus').value = "active";
+
+        // Reset ảnh
+        document.getElementById('urlInput').value = "";
+        document.getElementById('fileInput').value = "";
+        previewImg.src = "https://via.placeholder.com/800x300?text=No+Image";
+
+        // Chuyển về Tab Upload mặc định
+        const uploadTab = new bootstrap.Tab(document.querySelector('#upload-tab'));
+        uploadTab.show();
+
+        errorAlert.classList.add('d-none');
+        sliderModal.show();
+    }
+
+    // 4. Mở Modal Sửa
+    function openModalEdit(id) {
+        document.getElementById('modalTitle').innerText = 'Cập nhật Slider';
+        errorAlert.classList.add('d-none');
+
+        fetch(`/admin/sliders/api/${id}`)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('sliderId').value = data.id;
+                document.getElementById('sliderTitle').value = data.title;
+                document.getElementById('sliderBacklink').value = data.backlink || "";
+                document.getElementById('sliderNotes').value = data.notes || "";
+                document.getElementById('sliderStatus').value = data.status ? data.status.toLowerCase() : 'active';
+
+                // Hiển thị ảnh cũ
+                if (data.imageUrl) {
+                    previewImg.src = data.imageUrl;
+                    document.getElementById('urlInput').value = data.imageUrl;
+                    document.getElementById('fileInput').value = "";
+
+                    // Chuyển sang Tab Link để người dùng thấy URL hiện tại
+                    const linkTab = new bootstrap.Tab(document.querySelector('#link-tab'));
+                    linkTab.show();
+                } else {
+                    previewImg.src = "https://via.placeholder.com/800x300?text=No+Image";
+                }
+
+                sliderModal.show();
+            })
+            .catch(err => alert("Lỗi: " + err));
+    }
+
+    // 5. Validate Form
+    function validateSliderForm() {
+        const title = document.getElementById('sliderTitle').value.trim();
+        const id = document.getElementById('sliderId').value;
+
+        // Kiểm tra có file hoặc link chưa
+        const hasFile = document.getElementById('fileInput').files.length > 0;
+        const hasUrl = document.getElementById('urlInput').value.trim() !== "";
+
+        let msg = "";
+
+        if (title.length < 2) {
+            msg = "Tiêu đề phải từ 2 ký tự trở lên.";
+        }
+            // Nếu là thêm mới (id rỗng) -> Bắt buộc phải có Ảnh
+        // Nếu là sửa (id có) -> Nếu không chọn ảnh mới, backend sẽ giữ ảnh cũ (nhưng nếu người dùng xóa url cũ đi mà không up file mới -> lỗi)
+        else if (!id && !hasFile && !hasUrl) {
+            msg = "Vui lòng tải ảnh lên hoặc dán đường dẫn ảnh.";
+        }
+        // Trường hợp Sửa: Nếu xóa trắng URL input và không chọn file -> Báo lỗi
+        else if (id && !hasFile && !hasUrl) {
+            // Logic này tùy thuộc backend: Nếu để trống thì giữ ảnh cũ hay xóa ảnh?
+            // Ở Controller tôi viết logic: nếu trống cả 2 thì giữ ảnh cũ. Nên ở đây có thể bỏ qua check này.
+            // Nhưng để UX tốt, nếu người dùng cố tình xóa URL ở tab Link, ta nên nhắc nhở.
+            // Tuy nhiên để đơn giản, ta cho qua, Backend sẽ handle giữ ảnh cũ.
+        }
+
+        if (msg) {
+            errorAlert.innerText = msg;
+            errorAlert.classList.remove('d-none');
+            return false;
+        }
+        return true;
+    }
+</script>
+</body>
+</html>
