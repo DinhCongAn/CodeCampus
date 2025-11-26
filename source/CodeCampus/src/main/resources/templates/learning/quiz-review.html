@@ -32,8 +32,6 @@
 <nav class="bg-white border-b border-gray-200 px-6 py-3 sticky top-0 z-20">
     <div class="container mx-auto max-w-6xl flex justify-between items-center">
         <div class="flex items-center text-gray-500 text-sm">
-            <a href="#" class="hover:text-blue-600">Khóa học</a>
-            <span class="material-icons text-sm mx-2">chevron_right</span>
             <span class="font-semibold text-gray-800 truncate" th:text="${review.quizName}">Tên Quiz</span>
         </div>
         <a th:href="@{/learning/quiz/{quizId}(quizId=${review.quizId}, lessonId=${review.lessonId})}"
@@ -41,8 +39,6 @@
             <span class="material-icons text-sm mr-1">exit_to_app</span>
             Thoát
         </a>
-
-
     </div>
 </nav>
 

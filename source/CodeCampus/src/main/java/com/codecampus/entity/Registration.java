@@ -28,7 +28,7 @@ public class Registration {
     private LocalDateTime registrationTime;
     @Column(name = "total_cost", nullable = false)
     private BigDecimal totalCost;
-    private String status;
+    public String status;
     @Column(name = "valid_from")
     private LocalDateTime validFrom;
     @Column(name = "valid_to")

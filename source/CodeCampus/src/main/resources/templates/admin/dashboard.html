@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard | Hệ thống Quản trị</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- ApexCharts -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+    <style>
+        :root {
+            --primary: #4361ee;
+            --sidebar-width: 260px;
+            --sidebar-collapsed: 70px;
+        }
+        body { font-family: 'Segoe UI', sans-serif; background: #f8fafc; }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0; left: 0; bottom: 0; z-index: 1000;
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+            color: #cbd5e1;
+            transition: all 0.3s ease;
+            overflow-y: auto;
+            box-shadow: 4px 0 20px rgba(0,0,0,0.25);
+        }
+        .sidebar.collapsed { width: var(--sidebar-collapsed); }
+        .sidebar .logo {
+            padding: 20px 15px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+        .sidebar .nav-link {
+            color: #cbd5e1;
+            padding: 12px 20px;
+            margin: 4px 12px;
+            border-radius: 8px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+        }
+        .sidebar .nav-link i { width: 30px; text-align: center; }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            background: rgba(67, 97, 238, 0.3);
+            color: white;
+        }
+        .sidebar.collapsed .text { display: none; }
+        .sidebar.collapsed .logo span { display: none; }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            transition: all 0.3s ease;
+            min-height: 100vh;
+        }
+        .main-content.expanded { margin-left: var(--sidebar-collapsed); }
+
+        .topbar {
+            height: 70px;
+            background: white;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+            padding: 0 1.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 999;
+        }
+        .toggle-btn { cursor: pointer; font-size: 1.5rem; color: #64748b; }
+
+        .stat-card {
+            border-radius: 12px;
+            transition: all 0.3s;
+        }
+        .stat-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.12) !important;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ====================== SIDEBAR ====================== -->
+<div th:replace="~{fragments/sidebar-menu-admin :: sidebar('dashboard')}"></div>
+
+<!-- ====================== MAIN CONTENT ====================== -->
+<div class="main-content" id="mainContent">
+
+    <!-- Topbar -->
+    <div class="topbar d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center">
+            <div class="toggle-btn me-4" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </div>
+            <h4 class="mb-0 fw-bold text-dark">Dashboard Tổng quan</h4>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <span class="text-muted small">Xin chào, <strong th:text="${#authentication?.name}">Admin</strong></span>
+            <div class="dropdown">
+                <a class="dropdown-toggle d-flex align-items-center text-decoration-none" data-bs-toggle="dropdown">
+                    <img th:src="@{https://ui-avatars.com/api/?name=Admin&background=4361ee&color=fff}"
+                         alt="avatar" width="40" height="40" class="rounded-circle">
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end shadow">
+                    <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Thông tin cá nhân</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-danger" th:href="@{/logout}"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Content -->
+    <div class="container-fluid py-4">
+
+        <!-- Date Range -->
+        <div class="row mb-4 align-items-center">
+            <div class="col-md-8">
+                <h5 class="mb-1">
+                    Thống kê từ <strong th:text="${#temporals.format(startDate, 'dd/MM/yyyy')}">20/11/2025</strong>
+                    đến <strong th:text="${#temporals.format(endDate, 'dd/MM/yyyy')}">26/11/2025</strong>
+                </h5>
+            </div>
+            <div class="col-md-4 text-end">
+                <form th:action="@{/admin/dashboard}" method="get" class="d-inline-flex gap-2">
+                    <input type="date" name="start" class="form-control form-control-sm" th:value="${#temporals.format(startDate, 'yyyy-MM-dd')}"/>
+                    <input type="date" name="end"   class="form-control form-control-sm" th:value="${#temporals.format(endDate, 'yyyy-MM-dd')}"/>
+                    <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-search"></i> Xem</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- 4 Cards Thống kê nhanh -->
+        <div class="row g-4 mb-5">
+
+            <!-- Tổng doanh thu -->
+            <div class="col-xl-3 col-md-6">
+                <div class="card stat-card border-0 text-white shadow-sm" style="background: linear-gradient(135deg, #4361ee, #3f37c9);">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="me-4"><i class="fas fa-dollar-sign fa-3x opacity-75"></i></div>
+                        <div>
+                            <p class="mb-1 opacity-75 small">Tổng doanh thu</p>
+                            <h3 class="mb-0 fw-bold"
+                                th:text="${#numbers.formatDecimal(totalRevenue, 0, 'POINT', 0, 'COMMA')} + ' ₫'">
+                                0 ₫
+                            </h3>
+                            <small th:if="${revenueChange != null}"
+                                   th:text="${revenueChange >= 0 ? '↑' : '↓'} + ' ' + ${#numbers.formatDecimal(revenueChange, 0, 1)} + '% so với kỳ trước'">
+                                +12.5%
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Môn học mới -->
+            <div class="col-xl-3 col-md-6">
+                <div class="card stat-card border-0 text-white shadow-sm" style="background: linear-gradient(135deg, #4cc9f0, #4361ee);">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="me-4"><i class="fas fa-book-open fa-3x opacity-75"></i></div>
+                        <div>
+                            <p class="mb-1 opacity-75 small">Môn học mới</p>
+                            <h3 class="mb-0 fw-bold" th:text="${newSubjectsAll}">0</h3>
+                            <small>Mới tạo: <strong th:text="${newSubjectsNew}">0</strong></small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Đăng ký mới -->
+            <div class="col-xl-3 col-md-6">
+                <div class="card stat-card border-0 text-white shadow-sm" style="background: linear-gradient(135deg, #f72585, #7209b7);">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="me-4"><i class="fas fa-user-plus fa-3x opacity-75"></i></div>
+                        <div>
+                            <p class="mb-1 opacity-75 small">Đăng ký mới</p>
+                            <h3 class="mb-0 fw-bold" th:text="${newRegistrationsSubmitted}">0</h3>
+                            <small>Thành công: <strong th:text="${newRegistrationsSuccess}">0</strong> | Hủy: <strong th:text="${newRegistrationsCancelled}">0</strong></small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Khách mới mua -->
+            <div class="col-xl-3 col-md-6">
+                <div class="card stat-card border-0 text-white shadow-sm" style="background: linear-gradient(135deg, #7209b7, #480ca8);">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="me-4"><i class="fas fa-shopping-cart fa-3x opacity-75"></i></div>
+                        <div>
+                            <p class="mb-1 opacity-75 small">Khách mới mua</p>
+                            <h3 class="mb-0 fw-bold" th:text="${newCustomersBought}">0</h3>
+                            <small>Đăng ký mới: <strong th:text="${newCustomersRegistered}">0</strong></small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Biểu đồ & Top 5 -->
+        <div class="row">
+            <!-- Biểu đồ xu hướng đơn hàng -->
+            <div class="col-lg-8 mb-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h5 class="mb-0 fw-bold"><i class="fas fa-chart-line text-primary me-2"></i>Xu hướng đơn hàng (7 ngày gần nhất)</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="orderTrendChart"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Doanh thu theo danh mục + Top 5 -->
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h5 class="mb-0 fw-bold"><i class="fas fa-chart-pie text-primary me-2"></i>Doanh thu theo danh mục</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="revenueByCategoryChart"></div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h5 class="mb-0 fw-bold"><i class="fas fa-trophy text-warning me-2"></i>Top 5 môn học bán chạy</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group list-group-flush">
+                            <th:block th:each="item, iter : ${topSubjects}">
+                                <div class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge bg-primary rounded-pill me-3" style="width: 32px;"
+                                              th:text="${iter.index + 1}">1</span>
+                                        <div>
+                                            <strong th:text="${item.name}">Toán Cao Cấp</strong>
+                                            <small class="d-block text-muted" th:text="${item.category}">Toán học</small>
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <strong th:text="${item.orders} + ' đơn'">268 đơn</strong><br>
+                                        <span class="text-success fw-bold"
+                                              th:text="${#numbers.formatDecimal(item.revenue, 0, 'POINT', 0, 'COMMA')} + ' ₫'">
+      48.000.000 ₫
+</span>
+                                    </div>
+                                </div>
+                            </th:block>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript -->
+<script th:inline="javascript">
+    /*<![CDATA[*/
+
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('collapsed');
+        document.getElementById('mainContent').classList.toggle('expanded');
+    }
+
+    // 1. Biểu đồ xu hướng đơn hàng
+    const dates = /*[[${orderTrendDates}]]*/ ["20/11","21/11","22/11","23/11","24/11","25/11","26/11"];
+    const success = /*[[${orderTrendSuccess}]]*/ [145,168,198,176,210,245,268];
+    const all = /*[[${orderTrendAll}]]*/ [178,192,224,201,238,278,302];
+
+    new ApexCharts(document.querySelector("#orderTrendChart"), {
+        series: [{ name: 'Thành công', data: success }, { name: 'Tổng đơn', data: all }],
+        chart: { type: 'area', height: 360, toolbar: { show: false } },
+        colors: ['#4361ee', '#f72585'],
+        stroke: { curve: 'smooth', width: 3 },
+        fill: { opacity: [0.8, 0.2], type: 'gradient' },
+        xaxis: { categories: dates },
+        tooltip: { x: { format: 'dd/MM' } },
+        legend: { position: 'top', horizontalAlign: 'right' }
+    }).render();
+
+    // 2. Doanh thu theo danh mục (horizontal bar)
+    const categories = /*[[${revenueCategories}]]*/ ["Toán","Lý","Hóa","Anh văn","Tin học","Ngữ văn"];
+    const revenues = /*[[${revenueValues}]]*/ [45000000,32000000,28000000,18000000,15000000,9000000];
+
+    new ApexCharts(document.querySelector("#revenueByCategoryChart"), {
+        series: [{ name: 'Doanh thu', data: revenues }],
+        chart: { type: 'bar', height: 280 },
+        plotOptions: { bar: { borderRadius: 6, horizontal: true, distributed: true } },
+        colors: ['#4361ee','#4cc9f0','#f72585','#7209b7','#3f37c9','#48cae4'],
+        dataLabels: { enabled: false },
+        xaxis: { categories: categories },
+        tooltip: { y: { formatter: val => new Intl.NumberFormat('vi-VN',{style:'currency',currency:'VND'}).format(val) } }
+    }).render();
+
+    /*]]>*/
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

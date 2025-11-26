@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,4 +37,8 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
 
     // 6. Lấy chi tiết khóa học
     Optional<Course> findByIdAndStatus(Integer id, String status);
+
+    // Đếm môn học mới tạo trong kỳ
+    long countByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
 }
+
