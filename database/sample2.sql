@@ -207,19 +207,20 @@ INSERT INTO blogs (title, content, blog_category_id, author_id, thumbnail_url, s
 (N'Top 5 extension VS Code', N'<p>1. Prettier - Code formatter</p>', 9, 3, N'https://loremflickr.com/640/480/vscode?random=4', N'published', GETDATE());
 GO
 
--- 11. Bảng price_packages
+-- 11. Bảng price_packages (giá demo)
 INSERT INTO price_packages (course_id, name, duration_months, list_price, sale_price, status, sale) VALUES
-(1, N'Gói 6 tháng (Course 1)', 6, 1200000, 600000, N'active', 50),
-(1, N'Gói trọn đời (Course 1)', 99, 3000000, 1500000, N'active', 50),
-(2, N'Gói 6 tháng (Course 2)', 6, 1500000, 750000, N'active', 50),
-(2, N'Gói trọn đời (Course 2)', 99, 3500000, 1750000, N'active', 50),
-(3, N'Gói 12 tháng (Course 3)', 12, 2500000, 1250000, N'active', 50),
-(3, N'Gói trọn đời (Course 3)', 99, 5000000, 2500000, N'active', 50),
-(4, N'Gói trọn đời (Course 4)', 99, 4000000, 2000000, N'active', 50),
-(5, N'Gói trọn đời (Course 5)', 99, 6000000, 3000000, N'active', 50),
-(6, N'Gói 6 tháng (Course 6)', 6, 1000000, 500000, N'active', 50),
-(7, N'Gói trọn đời (Course 7)', 99, 4500000, 2250000, N'active', 50);
+(1, N'Gói 6 tháng (Course 1)', 6, 10000, 5000, N'active', 50),
+(1, N'Gói trọn đời (Course 1)', 99, 15000, 7500, N'active', 50),
+(2, N'Gói 6 tháng (Course 2)', 6, 12000, 6000, N'active', 50),
+(2, N'Gói trọn đời (Course 2)', 99, 18000, 9000, N'active', 50),
+(3, N'Gói 12 tháng (Course 3)', 12, 14000, 7000, N'active', 50),
+(3, N'Gói trọn đời (Course 3)', 99, 20000, 10000, N'active', 50),
+(4, N'Gói trọn đời (Course 4)', 99, 16000, 8000, N'active', 50),
+(5, N'Gói trọn đời (Course 5)', 99, 20000, 10000, N'active', 50),
+(6, N'Gói 6 tháng (Course 6)', 6, 10000, 5000, N'active', 50),
+(7, N'Gói trọn đời (Course 7)', 99, 18000, 9000, N'active', 50);
 GO
+
 
 -- 12. Bảng quizzes
 INSERT INTO quizzes (course_id, test_type_id, name, exam_level_id, duration_minutes, pass_rate_percentage) VALUES
