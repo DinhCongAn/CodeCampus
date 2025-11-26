@@ -8,6 +8,9 @@ import com.codecampus.entity.VerificationToken;
 import com.codecampus.repository.UserRepository;
 import com.codecampus.repository.UserRoleRepository;
 import com.codecampus.repository.VerificationTokenRepository;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -279,5 +282,71 @@ public class UserService {
         userRepository.save(user);
 
         return avatarUrl;
+    }
+
+    public Page<User> getUsersForAdmin(String keyword, Integer roleId, String status, int page, int size) {
+        return userRepository.findUsersAdmin(keyword, roleId, status, PageRequest.of(page, size));
+    }
+
+    public User getUserById(Integer id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy User ID: " + id));
+    }
+
+    /**
+     * HÀM LƯU USER (Đã chỉnh theo Entity User của bạn)
+     */
+    public void saveUserAdmin(User userForm) {
+
+        // --- TRƯỜNG HỢP 1: THÊM MỚI (Create) ---
+        if (userForm.getId() == null) {
+            // 1. Check trùng email
+            if (userRepository.existsByEmail(userForm.getEmail())) {
+                throw new RuntimeException("Email '" + userForm.getEmail() + "' đã tồn tại.");
+            }
+
+            // 2. Sinh mật khẩu ngẫu nhiên (8 ký tự)
+            String randomPassword = RandomStringUtils.randomAlphanumeric(8);
+
+            // 3. Mã hóa và lưu vào field 'passwordHash'
+            userForm.setPasswordHash(passwordEncoder.encode(randomPassword));
+
+            // 4. Mặc định trạng thái nếu null (DB script là 'pending')
+            // Nhưng admin tạo thì thường cho ACTIVE luôn
+            if (userForm.getStatus() == null) userForm.setStatus("active"); // Hoặc 'pending' tùy bạn
+
+            // 5. Lưu vào DB
+            userRepository.save(userForm);
+
+            // 6. Gửi Email
+            new Thread(() -> {
+                emailService.sendNewAccountEmail(userForm.getEmail(), userForm.getFullName(), randomPassword);
+            }).start();
+        }
+
+        // --- TRƯỜNG HỢP 2: CẬP NHẬT (Update) ---
+        else {
+            User existingUser = getUserById(userForm.getId());
+
+            // Admin chỉ sửa Role và Status
+            existingUser.setRole(userForm.getRole());
+            existingUser.setStatus(userForm.getStatus());
+
+            // Các trường khác giữ nguyên (Logic nghiệp vụ)
+            // Lưu ý: Entity của bạn có @PreUpdate tự set updatedAt rồi
+
+            userRepository.save(existingUser);
+        }
+    }
+
+    public void toggleUserStatus(Integer id) {
+        User user = getUserById(id);
+        // Kiểm tra chuỗi String status
+        if ("active".equalsIgnoreCase(user.getStatus())) {
+            user.setStatus("blocked");
+        } else {
+            user.setStatus("active");
+        }
+        userRepository.save(user);
     }
 }

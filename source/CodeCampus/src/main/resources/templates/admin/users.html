@@ -6,12 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/admin-style.css}">
 
     <style>
         :root { --primary: #4361ee; --sidebar-width: 260px; --sidebar-collapsed: 70px; }
         body { font-family: 'Segoe UI', sans-serif; background: #f8fafc; }
 
-        /* Sidebar & Layout */
+        /* Sidebar Style */
         .sidebar { position: fixed; top: 0; left: 0; bottom: 0; z-index: 1000; width: var(--sidebar-width); background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%); color: #cbd5e1; transition: all 0.3s ease; box-shadow: 4px 0 20px rgba(0,0,0,0.25); }
         .sidebar.collapsed { width: var(--sidebar-collapsed); }
         .sidebar .logo { padding: 20px 15px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); color: white; font-weight: bold; font-size: 1.5rem; }
@@ -27,12 +28,11 @@
         .topbar { height: 70px; background: white; box-shadow: 0 2px 15px rgba(0,0,0,0.08); padding: 0 1.5rem; position: sticky; top: 0; z-index: 999; }
         .toggle-btn { cursor: pointer; font-size: 1.5rem; color: #64748b; }
 
-        /* Custom Elements */
+        /* Table Customization */
         .table-card { background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); overflow: hidden; }
         .table thead th { background-color: #f1f5f9; color: #475569; font-weight: 600; border-bottom: 2px solid #e2e8f0; }
-        .avatar-sm { width: 36px; height: 36px; object-fit: cover; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .avatar-sm { width: 32px; height: 32px; object-fit: cover; border-radius: 50%; }
         .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 500; }
-        .role-badge { font-size: 0.8rem; padding: 4px 10px; border-radius: 6px; background-color: #e2e8f0; color: #475569; font-weight: 600; }
     </style>
 </head>
 <body>
@@ -85,8 +85,9 @@
                             <div class="col-md-3">
                                 <select name="status" class="form-select">
                                     <option value="">-- Trạng thái --</option>
-                                    <option value="ACTIVE" th:selected="${status == 'ACTIVE'}">Hoạt động</option>
-                                    <option value="BLOCKED" th:selected="${status == 'BLOCKED'}">Đã khóa</option>
+                                    <option value="active" th:selected="${status == 'active'}">Hoạt động</option>
+                                    <option value="blocked" th:selected="${status == 'blocked'}">Đã khóa</option>
+                                    <option value="pending" th:selected="${status == 'pending'}">Chờ duyệt</option>
                                 </select>
                             </div>
                             <div class="col-md-2 d-flex gap-1">
@@ -119,54 +120,48 @@
                     </thead>
                     <tbody>
                     <tr th:if="${userPage.empty}">
-                        <td colspan="6" class="text-center py-5 text-muted">
-                            <i class="fas fa-users-slash fa-3x mb-3"></i><br>Không tìm thấy người dùng nào.
-                        </td>
+                        <td colspan="6" class="text-center py-5 text-muted">Không tìm thấy người dùng nào.</td>
                     </tr>
 
                     <tr th:each="user : ${userPage.content}">
                         <td class="ps-4 text-muted" th:text="${'#' + user.id}">#1</td>
                         <td>
                             <div class="d-flex align-items-center">
-                                <img th:src="${user.avatarUrl != null ? user.avatarUrl : 'https://ui-avatars.com/api/?name=' + user.fullName}"
+                                <img th:src="${user.avatarUrl != null && user.avatarUrl != '' ? user.avatarUrl : 'https://ui-avatars.com/api/?name=' + user.fullName}"
                                      class="avatar-sm me-3" alt="avatar">
                                 <div>
                                     <div class="fw-bold text-dark" th:text="${user.fullName}">Tên User</div>
                                     <div class="small text-muted">
                                         <i class="fas fa-envelope me-1"></i><span th:text="${user.email}">email</span>
-                                        <span th:if="${user.mobile}" class="ms-2"><i class="fas fa-phone me-1"></i><span th:text="${user.mobile}"></span></span>
+                                        <span th:if="${user.mobile != null}" class="ms-2 text-primary">
+                                            <i class="fas fa-phone me-1"></i><span th:text="${user.mobile}"></span>
+                                        </span>
                                     </div>
                                 </div>
                             </div>
                         </td>
                         <td>
-                            <span class="role-badge" th:text="${user.role.name}">STUDENT</span>
+                            <span class="role-badge" th:text="${user.role != null ? user.role.name : 'N/A'}">STUDENT</span>
                         </td>
                         <td>
-                            <span th:if="${user.status == 'ACTIVE'}" class="status-badge bg-success-subtle text-success">
-                                <i class="fas fa-check-circle me-1"></i>Active
-                            </span>
-                            <span th:if="${user.status == 'PENDING'}" class="status-badge bg-warning-subtle text-warning">
-                                <i class="fas fa-clock me-1"></i>Pending
-                            </span>
-                            <span th:if="${user.status == 'BLOCKED'}" class="status-badge bg-danger-subtle text-danger">
-                                <i class="fas fa-ban me-1"></i>Blocked
-                            </span>
+                            <span th:if="${#strings.equalsIgnoreCase(user.status, 'active')}" class="status-badge bg-success-subtle text-success"><i class="fas fa-check-circle me-1"></i>Active</span>
+                            <span th:if="${#strings.equalsIgnoreCase(user.status, 'pending')}" class="status-badge bg-warning-subtle text-warning"><i class="fas fa-clock me-1"></i>Pending</span>
+                            <span th:if="${#strings.equalsIgnoreCase(user.status, 'blocked')}" class="status-badge bg-danger-subtle text-danger"><i class="fas fa-ban me-1"></i>Blocked</span>
                         </td>
                         <td th:text="${#temporals.format(user.createdAt, 'dd/MM/yyyy')}">20/11/2025</td>
                         <td class="text-end pe-4">
                             <button type="button" class="btn btn-sm btn-outline-primary me-1"
-                                    th:onclick="'openModalEdit(' + ${user.id} + ')'" title="Chỉnh sửa">
+                                    th:onclick="'openModalEdit(' + ${user.id} + ')'" title="Xem / Sửa">
                                 <i class="fas fa-edit"></i>
                             </button>
 
                             <form th:action="@{/admin/users/toggle/{id}(id=${user.id})}" method="post" style="display: inline;">
-                                <button th:if="${user.status == 'ACTIVE'}" type="submit" class="btn btn-sm btn-outline-danger"
-                                        onclick="return confirm('Bạn có chắc chắn muốn KHÓA tài khoản này?')" title="Khóa tài khoản">
+                                <button th:if="${#strings.equalsIgnoreCase(user.status, 'active')}" type="submit" class="btn btn-sm btn-outline-danger"
+                                        onclick="return confirm('KHÓA tài khoản này?')" title="Khóa">
                                     <i class="fas fa-lock"></i>
                                 </button>
-                                <button th:if="${user.status == 'BLOCKED'}" type="submit" class="btn btn-sm btn-outline-success"
-                                        title="Mở khóa tài khoản">
+                                <button th:if="${!#strings.equalsIgnoreCase(user.status, 'active')}" type="submit" class="btn btn-sm btn-outline-success"
+                                        title="Mở khóa">
                                     <i class="fas fa-unlock"></i>
                                 </button>
                             </form>
@@ -175,24 +170,32 @@
                     </tbody>
                 </table>
             </div>
-
             <div class="d-flex justify-content-between align-items-center p-3 border-top" th:if="${userPage.totalPages > 0}">
-                <span class="text-muted small">
-                    Hiển thị <strong th:text="${userPage.numberOfElements}">10</strong>
-                    trên tổng số <strong th:text="${userPage.totalElements}">50</strong> bản ghi
-                </span>
+    <span class="text-muted small">
+        Hiển thị <strong th:text="${userPage.numberOfElements}">10</strong>
+        trên tổng số <strong th:text="${userPage.totalElements}">50</strong> người dùng
+    </span>
                 <nav>
                     <ul class="pagination pagination-sm mb-0">
                         <li class="page-item" th:classappend="${userPage.first ? 'disabled' : ''}">
-                            <a class="page-link" th:href="@{/admin/users(page=${userPage.number - 1}, keyword=${keyword}, roleId=${roleId}, status=${status})}">Trước</a>
+                            <a class="page-link"
+                               th:href="@{/admin/users(page=${userPage.number - 1}, keyword=${keyword}, roleId=${roleId}, status=${status})}">
+                                Trước
+                            </a>
                         </li>
+
                         <li class="page-item" th:each="i : ${#numbers.sequence(0, userPage.totalPages - 1)}"
                             th:classappend="${i == userPage.number ? 'active' : ''}">
-                            <a class="page-link" th:href="@{/admin/users(page=${i}, keyword=${keyword}, roleId=${roleId}, status=${status})}"
+                            <a class="page-link"
+                               th:href="@{/admin/users(page=${i}, keyword=${keyword}, roleId=${roleId}, status=${status})}"
                                th:text="${i + 1}">1</a>
                         </li>
+
                         <li class="page-item" th:classappend="${userPage.last ? 'disabled' : ''}">
-                            <a class="page-link" th:href="@{/admin/users(page=${userPage.number + 1}, keyword=${keyword}, roleId=${roleId}, status=${status})}">Sau</a>
+                            <a class="page-link"
+                               th:href="@{/admin/users(page=${userPage.number + 1}, keyword=${keyword}, roleId=${roleId}, status=${status})}">
+                                Sau
+                            </a>
                         </li>
                     </ul>
                 </nav>
@@ -203,58 +206,91 @@
 
 <div class="modal fade" id="userModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
-        <form th:action="@{/admin/users/save}" method="post" class="modal-content border-0 shadow">
+        <form th:action="@{/admin/users/save}" method="post" class="modal-content border-0 shadow" onsubmit="return validateUserForm()">
             <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="modalTitle"><i class="fas fa-user-edit me-2"></i>Thông tin Người dùng</h5>
+                <h5 class="modal-title fw-bold" id="modalTitle">Thông tin Người dùng</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
+
             <div class="modal-body p-4">
                 <input type="hidden" id="userId" name="id">
 
+                <div id="jsErrorAlert" class="alert alert-danger d-none small py-2"></div>
+
                 <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label small fw-bold text-muted">Họ và Tên <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="fullName" id="userFullName" required>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label small fw-bold text-muted">Email <span class="text-danger">*</span></label>
-                        <input type="email" class="form-control" name="email" id="userEmail" required>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label small fw-bold text-muted">Số điện thoại</label>
-                        <input type="text" class="form-control" name="mobile" id="userMobile">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label small fw-bold text-muted">Mật khẩu</label>
-                        <input type="password" class="form-control" name="password" id="userPassword" placeholder="(Để trống nếu không đổi)">
-                        <small class="text-muted fst-italic" id="passHelp">Mặc định: 123456 (nếu tạo mới)</small>
+                    <div class="col-md-3 text-center">
+                        <div class="position-relative d-inline-block mt-2">
+                            <img id="previewAvatar" src="https://via.placeholder.com/150"
+                                 class="rounded-circle border shadow-sm"
+                                 style="width: 120px; height: 120px; object-fit: cover;">
+                        </div>
+                        <div class="mt-3">
+                            <label class="form-label small fw-bold text-muted">Link Avatar</label>
+                            <input type="text" class="form-control form-control-sm" name="avatarUrl" id="userAvatarUrl"
+                                   onchange="updatePreview()" placeholder="https://...">
+                        </div>
                     </div>
 
-                    <div class="col-md-6">
-                        <label class="form-label small fw-bold text-muted">Vai trò (Role)</label>
-                        <select class="form-select" name="role.id" id="userRole">
+                    <div class="col-md-9">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Họ và tên <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="fullName" id="userFullName" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Giới tính</label>
+                                <select class="form-select" name="gender" id="userGender">
+                                    <option value="">-- Chọn --</option>
+                                    <option value="Nam">Nam</option>
+                                    <option value="Nữ">Nữ</option>
+                                    <option value="Khác">Khác</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Email <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" name="email" id="userEmail" required>
+                                <small class="text-success fst-italic small" id="emailHelp">
+                                    <i class="fas fa-envelope-open-text me-1"></i> Mật khẩu mới sẽ được gửi về đây.
+                                </small>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Số điện thoại</label>
+                                <input type="text" class="form-control" name="mobile" id="userMobile">
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label small fw-bold text-muted">Địa chỉ</label>
+                                <input type="text" class="form-control" name="address" id="userAddress">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12"><hr class="text-muted"></div>
+
+                    <div class="col-md-6 bg-light p-3 rounded-start border-top border-bottom border-start">
+                        <label class="form-label small fw-bold text-primary">Vai trò (Role)</label>
+                        <select class="form-select border-primary" name="role.id" id="userRole" required>
                             <option th:each="r : ${roles}" th:value="${r.id}" th:text="${r.name}"></option>
                         </select>
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label small fw-bold text-muted">Trạng thái</label>
-                        <select class="form-select" name="status" id="userStatus">
-                            <option value="ACTIVE">Hoạt động (Active)</option>
-                            <option value="BLOCKED">Khóa (Blocked)</option>
-                            <option value="PENDING">Chờ duyệt (Pending)</option>
+                    <div class="col-md-6 bg-light p-3 rounded-end border-top border-bottom border-end">
+                        <label class="form-label small fw-bold text-primary">Trạng thái</label>
+                        <select class="form-select border-primary" name="status" id="userStatus">
+                            <option value="active">Active (Hoạt động)</option>
+                            <option value="blocked">Blocked (Khóa)</option>
+                            <option value="pending">Pending (Chờ duyệt)</option>
                         </select>
-                    </div>
-
-                    <div class="col-12">
-                        <label class="form-label small fw-bold text-muted">Link Avatar (URL)</label>
-                        <input type="text" class="form-control" name="avatarUrl" id="userAvatar" placeholder="https://...">
                     </div>
                 </div>
             </div>
+
             <div class="modal-footer bg-light">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <button type="submit" class="btn btn-primary px-4">Lưu thông tin</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="submit" class="btn btn-primary px-4" id="btnSave">
+                    <i class="fas fa-save me-1"></i> Lưu thay đổi
+                </button>
             </div>
         </form>
     </div>
@@ -268,49 +304,115 @@
     }
 
     const userModal = new bootstrap.Modal(document.getElementById('userModal'));
+    const errorAlert = document.getElementById('jsErrorAlert');
 
-    // 1. Mở Modal Thêm Mới
+    // Preview Avatar
+    function updatePreview() {
+        const url = document.getElementById('userAvatarUrl').value;
+        if(url) document.getElementById('previewAvatar').src = url;
+        else document.getElementById('previewAvatar').src = 'https://via.placeholder.com/150';
+    }
+
+    // --- 1. MỞ MODAL THÊM MỚI ---
     function openModalAdd() {
         document.getElementById('modalTitle').innerHTML = '<i class="fas fa-user-plus me-2"></i>Thêm Người dùng Mới';
         document.getElementById('userId').value = "";
+
+        // Reset Form và Cho phép nhập
+        setInputStatus(false);
+
         document.getElementById('userFullName').value = "";
         document.getElementById('userEmail').value = "";
-        document.getElementById('userEmail').readOnly = false; // Cho phép sửa email khi thêm mới
         document.getElementById('userMobile').value = "";
-        document.getElementById('userAvatar').value = "";
-        document.getElementById('userPassword').value = "";
-        document.getElementById('passHelp').innerText = "Mặc định: 123456 (nếu để trống)";
-        document.getElementById('userStatus').value = "ACTIVE";
+        document.getElementById('userAddress').value = "";
+        document.getElementById('userGender').value = "";
+        document.getElementById('userAvatarUrl').value = "";
+        updatePreview();
 
+        document.getElementById('emailHelp').innerHTML = '<i class="fas fa-envelope-open-text me-1"></i> Mật khẩu ngẫu nhiên sẽ được gửi về email này.';
+        document.getElementById('emailHelp').classList.remove('text-muted');
+        document.getElementById('emailHelp').classList.add('text-success');
+
+        document.getElementById('userStatus').value = "active";
+
+        errorAlert.classList.add('d-none');
         userModal.show();
     }
 
-    // 2. Mở Modal Edit (Load AJAX)
+    // --- 2. MỞ MODAL SỬA / XEM ---
     function openModalEdit(id) {
-        document.getElementById('modalTitle').innerHTML = '<i class="fas fa-user-edit me-2"></i>Cập nhật Thông tin';
+        document.getElementById('modalTitle').innerHTML = '<i class="fas fa-user-edit me-2"></i>Cập nhật & Phân quyền';
+        errorAlert.classList.add('d-none');
 
-        // Gọi API lấy chi tiết User (Bạn cần tạo API này trong AdminUserController)
         fetch(`/admin/users/api/${id}`)
-            .then(res => {
-                if (!res.ok) throw new Error("Lỗi tải dữ liệu");
-                return res.json();
-            })
+            .then(res => res.json())
             .then(data => {
                 document.getElementById('userId').value = data.id;
+
+                // Fill data
                 document.getElementById('userFullName').value = data.fullName;
                 document.getElementById('userEmail').value = data.email;
-                document.getElementById('userEmail').readOnly = true; // Không cho sửa email khi edit
                 document.getElementById('userMobile').value = data.mobile || '';
-                document.getElementById('userAvatar').value = data.avatarUrl || '';
-                document.getElementById('userRole').value = data.roleId;
-                document.getElementById('userStatus').value = data.status;
+                document.getElementById('userAddress').value = data.address || '';
+                document.getElementById('userGender').value = data.gender || '';
+                document.getElementById('userAvatarUrl').value = data.avatarUrl || '';
+                updatePreview();
 
-                document.getElementById('userPassword').value = ""; // Reset ô pass
-                document.getElementById('passHelp').innerText = "Để trống nếu không muốn đổi mật khẩu";
+                document.getElementById('userRole').value = data.roleId;
+                document.getElementById('userStatus').value = data.status ? data.status.toLowerCase() : 'pending';
+
+                // --- QUAN TRỌNG: DISABLE CÁC TRƯỜNG CÁ NHÂN ---
+                // Admin không được sửa thông tin cá nhân của người dùng, chỉ sửa Role/Status
+                setInputStatus(true);
+
+                document.getElementById('emailHelp').innerHTML = '<i class="fas fa-lock me-1"></i> Thông tin cá nhân không thể chỉnh sửa bởi Admin.';
+                document.getElementById('emailHelp').classList.remove('text-success');
+                document.getElementById('emailHelp').classList.add('text-muted');
 
                 userModal.show();
             })
             .catch(err => alert("Lỗi: " + err));
+    }
+
+    // Helper bật/tắt input
+    function setInputStatus(isDisabled) {
+        const fields = ['userFullName', 'userEmail', 'userMobile', 'userAddress', 'userGender', 'userAvatarUrl'];
+        fields.forEach(id => {
+            const el = document.getElementById(id);
+            if(el) el.disabled = isDisabled;
+        });
+    }
+
+    // --- 3. VALIDATE CLIENT SIDE ---
+    function validateUserForm() {
+        // Nếu đang Edit (có ID) thì bỏ qua validate thông tin cá nhân (vì nó bị disable rồi)
+        const isEdit = document.getElementById('userId').value !== "";
+        if (isEdit) return true;
+
+        const name = document.getElementById('userFullName').value.trim();
+        const email = document.getElementById('userEmail').value.trim();
+        const phone = document.getElementById('userMobile').value.trim();
+
+        let msg = "";
+
+        // Regex Check
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const phoneRegex = /(84|0[3|5|7|8|9])+([0-9]{8})\b/;
+
+        if (name.length < 2) {
+            msg = "Họ tên phải từ 2 ký tự trở lên.";
+        } else if (!emailRegex.test(email)) {
+            msg = "Email không đúng định dạng.";
+        } else if (phone !== "" && !phoneRegex.test(phone)) {
+            msg = "Số điện thoại không hợp lệ (Đầu số VN 10 số).";
+        }
+
+        if (msg) {
+            errorAlert.innerText = msg;
+            errorAlert.classList.remove('d-none');
+            return false; // Chặn submit
+        }
+        return true; // Cho phép submit
     }
 </script>
 </body>

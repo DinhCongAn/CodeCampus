@@ -148,17 +148,31 @@
             </div>
 
             <div class="d-flex justify-content-between align-items-center p-3 border-top" th:if="${coursePage.totalPages > 0}">
-                <span class="text-muted small">Trang <strong th:text="${coursePage.number + 1}">1</strong> / <strong th:text="${coursePage.totalPages}">5</strong></span>
+    <span class="text-muted small">
+        Hiển thị <strong th:text="${coursePage.numberOfElements}">10</strong>
+        trên tổng số <strong th:text="${coursePage.totalElements}">50</strong> môn học
+    </span>
                 <nav>
                     <ul class="pagination pagination-sm mb-0">
                         <li class="page-item" th:classappend="${coursePage.first ? 'disabled' : ''}">
-                            <a class="page-link" th:href="@{/admin/subjects(page=${coursePage.number - 1}, keyword=${keyword}, categoryId=${categoryId}, status=${status})}">Trước</a>
+                            <a class="page-link"
+                               th:href="@{/admin/subjects(page=${coursePage.number - 1}, keyword=${keyword}, categoryId=${categoryId}, status=${status})}">
+                                Trước
+                            </a>
                         </li>
-                        <li class="page-item" th:each="i : ${#numbers.sequence(0, coursePage.totalPages - 1)}" th:classappend="${i == coursePage.number ? 'active' : ''}">
-                            <a class="page-link" th:href="@{/admin/subjects(page=${i}, keyword=${keyword}, categoryId=${categoryId}, status=${status})}" th:text="${i + 1}">1</a>
+
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, coursePage.totalPages - 1)}"
+                            th:classappend="${i == coursePage.number ? 'active' : ''}">
+                            <a class="page-link"
+                               th:href="@{/admin/subjects(page=${i}, keyword=${keyword}, categoryId=${categoryId}, status=${status})}"
+                               th:text="${i + 1}">1</a>
                         </li>
+
                         <li class="page-item" th:classappend="${coursePage.last ? 'disabled' : ''}">
-                            <a class="page-link" th:href="@{/admin/subjects(page=${coursePage.number + 1}, keyword=${keyword}, categoryId=${categoryId}, status=${status})}">Sau</a>
+                            <a class="page-link"
+                               th:href="@{/admin/subjects(page=${coursePage.number + 1}, keyword=${keyword}, categoryId=${categoryId}, status=${status})}">
+                                Sau
+                            </a>
                         </li>
                     </ul>
                 </nav>

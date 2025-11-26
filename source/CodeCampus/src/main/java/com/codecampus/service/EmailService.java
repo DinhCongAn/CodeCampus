@@ -1,8 +1,11 @@
 package com.codecampus.service;
 
 import com.codecampus.entity.Registration;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -114,6 +117,43 @@ public class EmailService {
             mailSender.send(message);
         } catch (Exception e) {
             System.err.println("Lỗi gửi email thành công: " + e.getMessage());
+        }
+    }
+
+    // Hàm gửi mail thông báo tài khoản mới
+    @Async
+    public void sendNewAccountEmail(String toEmail, String fullName, String randomPassword) {
+        try {
+            // Tạo mail định dạng HTML
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(toEmail);
+            helper.setSubject("Chào mừng đến với CodeCampus - Thông tin tài khoản");
+
+            // Nội dung HTML đẹp
+            String htmlContent = """
+                <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #ddd;">
+                    <h2 style="color: #4361ee;">Xin chào %s,</h2>
+                    <p>Tài khoản của bạn đã được tạo thành công trên hệ thống CodeCampus.</p>
+                    <p>Dưới đây là thông tin đăng nhập của bạn:</p>
+                    <ul style="background: #f8f9fa; padding: 15px; list-style: none;">
+                        <li><strong>Email:</strong> %s</li>
+                        <li><strong>Mật khẩu:</strong> <span style="color: #d63384; font-weight: bold; font-size: 16px;">%s</span></li>
+                    </ul>
+                    <p>Vui lòng đăng nhập và đổi mật khẩu ngay sau khi truy cập.</p>
+                    <a href="http://localhost:8080/login" style="background: #4361ee; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Đăng nhập ngay</a>
+                </div>
+            """.formatted(fullName, toEmail, randomPassword);
+
+            helper.setText(htmlContent, true); // true = html
+
+            mailSender.send(message);
+            System.out.println("Đã gửi mail mật khẩu cho: " + toEmail);
+
+        } catch (MessagingException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Lỗi khi gửi email: " + e.getMessage());
         }
     }
 }
