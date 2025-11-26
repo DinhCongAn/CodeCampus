@@ -154,4 +154,27 @@ public interface RegistrationRepository extends JpaRepository<Registration, Inte
     Page<Registration> findOrders(@Param("keyword") String keyword,
                                   @Param("status") String status,
                                   Pageable pageable);
+
+    // =========================================================================
+    // BỔ SUNG CHO MODULE DOANH THU (REVENUE)
+    // =========================================================================
+
+    // 1. Lấy dữ liệu biểu đồ Doanh thu theo ngày (Group by Date)
+    // Khác với countOrdersByDay (đếm số đơn), hàm này tính TỔNG TIỀN (SUM revenue)
+    // Trả về: [Ngày, Tổng tiền]
+    @Query("SELECT CAST(r.registrationTime AS date) as date, SUM(r.totalCost) as revenue " +
+            "FROM Registration r " +
+            "WHERE r.status = 'COMPLETED' AND r.registrationTime BETWEEN :start AND :end " +
+            "GROUP BY CAST(r.registrationTime AS date) ORDER BY CAST(r.registrationTime AS date)")
+    List<Object[]> getRevenueByDate(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+    // 2. Lấy danh sách chi tiết các giao dịch thành công trong khoảng thời gian
+    // Dùng để hiển thị bảng "Chi tiết giao dịch thành công" ở cuối trang Doanh thu
+    @Query("SELECT r FROM Registration r " +
+            "WHERE r.status = 'COMPLETED' " +
+            "AND r.registrationTime BETWEEN :start AND :end " +
+            "ORDER BY r.registrationTime DESC")
+    Page<Registration> findSuccessfulOrders(@Param("start") LocalDateTime start,
+                                            @Param("end") LocalDateTime end,
+                                            Pageable pageable);
 }
