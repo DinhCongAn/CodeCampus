@@ -4,6 +4,8 @@ import com.codecampus.entity.Course;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -40,5 +42,16 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
 
     // Đếm môn học mới tạo trong kỳ
     long countByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
+
+    // Tìm kiếm môn học (Search theo Tên) + Lọc theo Category + Status
+    @Query("SELECT c FROM Course c " +
+            "WHERE (:keyword IS NULL OR :keyword = '' OR LOWER(c.name) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+            "AND (:categoryId IS NULL OR c.category.id = :categoryId) " +
+            "AND (:status IS NULL OR c.status = :status) " +
+            "ORDER BY c.createdAt DESC")
+    Page<Course> findCoursesAdmin(@Param("keyword") String keyword,
+                                  @Param("categoryId") Integer categoryId,
+                                  @Param("status") String status,
+                                  Pageable pageable);
 }
 

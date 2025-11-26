@@ -11,6 +11,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -68,5 +69,36 @@ public class CourseService {
     public Course findCourseById(Integer id) {
         return courseRepository.findById(Long.valueOf(id))
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học với ID: " + id));
+    }
+
+    // Lấy danh sách phân trang
+    public Page<Course> getCoursesForAdmin(String keyword, Integer categoryId, String status, int page, int size) {
+        return courseRepository.findCoursesAdmin(keyword, categoryId, status, PageRequest.of(page, size));
+    }
+
+    // Lưu/Cập nhật môn học
+    public void saveCourse(Course course) {
+        if (course.getId() == null) {
+            course.setCreatedAt(LocalDateTime.now());
+            // Mặc định các trường khác nếu null
+        }
+        course.setUpdatedAt(LocalDateTime.now());
+        courseRepository.save(course);
+    }
+
+    // Lấy chi tiết (để Edit)
+    public Course getCourseById(Long id) {
+        return courseRepository.findById(id).orElseThrow(() -> new RuntimeException("Không tìm thấy môn học"));
+    }
+
+    // Xóa (Chuyển sang INACTIVE thay vì xóa thật để giữ lịch sử đơn hàng)
+    public void toggleCourseStatus(Long id) {
+        Course course = getCourseById(id);
+        if ("ACTIVE".equals(course.getStatus())) {
+            course.setStatus("INACTIVE");
+        } else {
+            course.setStatus("ACTIVE");
+        }
+        courseRepository.save(course);
     }
 }
