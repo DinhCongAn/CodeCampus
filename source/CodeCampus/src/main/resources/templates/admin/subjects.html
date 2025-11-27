@@ -134,6 +134,11 @@
                             <span th:if="${course.status == 'INACTIVE'}" class="badge bg-secondary-subtle text-secondary">Inactive</span>
                         </td>
                         <td class="text-end pe-4">
+                            <a th:href="@{/admin/price-packages(courseId=${course.id})}"
+                               class="btn btn-sm btn-outline-info me-1"
+                               title="Cấu hình gói giá">
+                                <i class="fas fa-tags"></i>
+                            </a>
                             <button class="btn btn-sm btn-outline-primary me-1" th:onclick="'openModalEdit(' + ${course.id} + ')'" title="Sửa">
                                 <i class="fas fa-edit"></i>
                             </button>

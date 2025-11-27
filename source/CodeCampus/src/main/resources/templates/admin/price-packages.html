@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý Gói giá | Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/admin-style.css}">
+
+    <style>
+        :root { --primary: #4361ee; --sidebar-width: 260px; --sidebar-collapsed: 70px; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f8fafc; }
+
+        /* Sidebar Style */
+        .sidebar { position: fixed; top: 0; left: 0; bottom: 0; z-index: 1000; width: var(--sidebar-width); background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%); color: #cbd5e1; transition: all 0.3s ease; box-shadow: 4px 0 20px rgba(0,0,0,0.25); }
+        .sidebar.collapsed { width: var(--sidebar-collapsed); }
+        .sidebar .logo { padding: 20px 15px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); color: white; font-weight: bold; font-size: 1.5rem; }
+        .sidebar .nav-link { color: #cbd5e1; padding: 12px 20px; margin: 4px 12px; border-radius: 8px; transition: all 0.3s; display: flex; align-items: center; white-space: nowrap; text-decoration: none; }
+        .sidebar .nav-link i { width: 30px; text-align: center; }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active { background: rgba(67, 97, 238, 0.3); color: white; }
+        .sidebar.collapsed .text { display: none; }
+        .sidebar.collapsed .logo span { display: none; }
+
+        /* Main Content */
+        .main-content { margin-left: var(--sidebar-width); transition: all 0.3s ease; min-height: 100vh; }
+        .main-content.expanded { margin-left: var(--sidebar-collapsed); }
+        .topbar { height: 70px; background: white; box-shadow: 0 2px 15px rgba(0,0,0,0.08); padding: 0 1.5rem; position: sticky; top: 0; z-index: 999; }
+        .toggle-btn { cursor: pointer; font-size: 1.5rem; color: #64748b; }
+
+        /* Table Customization */
+        .table-card { background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); overflow: hidden; }
+        .table thead th { background-color: #f1f5f9; color: #475569; font-weight: 600; border-bottom: 2px solid #e2e8f0; }
+        .avatar-sm { width: 32px; height: 32px; object-fit: cover; border-radius: 50%; }
+        .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 500; }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/sidebar-menu-admin :: sidebar('subjects')}"></div>
+
+<div class="main-content" id="mainContent">
+    <div class="topbar d-flex align-items-center justify-content-between">
+<!--        <div class="alert alert-warning border-warning shadow-sm m-3">-->
+<!--            <strong>DEBUG INFO:</strong> <br>-->
+<!--            User: <span class="fw-bold" th:text="${#authentication.name}"></span> <br>-->
+<!--            Authorities: <span class="fw-bold text-danger" th:text="${#authentication.authorities}"></span>-->
+<!--        </div>-->
+        <div class="d-flex align-items-center">
+            <div class="toggle-btn me-4" onclick="toggleSidebar()"><i class="fas fa-bars"></i></div>
+            <h4 class="mb-0 fw-bold text-dark">Gói giá: <span class="text-primary" th:text="${course.name}">Java Basic</span></h4>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <span class="text-muted small">Xin chào, <strong th:text="${#authentication?.name}">Admin</strong></span>
+            <img th:src="@{https://ui-avatars.com/api/?name=Admin&background=4361ee&color=fff}" width="40" class="rounded-circle">
+        </div>
+    </div>
+
+    <div class="container-fluid py-4">
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i> <span th:text="${successMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i> <span th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div class="d-flex justify-content-between mb-3">
+            <a th:href="@{/admin/subjects}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i> Quay lại Môn học</a>
+
+            <button sec:authorize="hasAuthority('ADMIN')" class="btn btn-success fw-bold" onclick="openModalAdd()">
+                <i class="fas fa-plus me-1"></i> Thêm Gói Giá
+            </button>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">Tên gói</th>
+                        <th>Thời gian</th>
+                        <th>Giá niêm yết</th>
+                        <th>Giá bán</th>
+                        <th>Trạng thái</th>
+                        <th class="text-end pe-4">Hành động</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${packages.empty}"><td colspan="6" class="text-center py-4 text-muted">Chưa có gói giá nào.</td></tr>
+
+                    <tr th:each="pkg : ${packages}">
+                        <td class="ps-4 fw-bold" th:text="${pkg.name}">Gói 3 tháng</td>
+                        <td th:text="${pkg.durationMonths + ' tháng'}">3 tháng</td>
+                        <td class="text-decoration-line-through text-muted"
+                            th:text="${#numbers.formatDecimal(pkg.listPrice, 0, 'POINT', 0, 'COMMA')} + ' đ'">100.000 đ</td>
+                        <td class="text-danger fw-bold"
+                            th:text="${pkg.salePrice != null ? #numbers.formatDecimal(pkg.salePrice, 0, 'POINT', 0, 'COMMA') + ' đ' : '-'}">90.000 đ</td>
+                        <td>
+                            <span th:if="${pkg.status == 'active'}" class="badge bg-success">Active</span>
+                            <span th:if="${pkg.status != 'active'}" class="badge bg-secondary">Inactive</span>
+                        </td>
+                        <td class="text-end pe-4">
+                            <button class="btn btn-sm btn-outline-primary me-1"
+                                    th:onclick="'openModalEdit(' + ${pkg.id} + ')'"
+                                    title="Chi tiết">
+                                <i class="fas fa-edit" sec:authorize="hasAuthority('ADMIN')"></i>
+                                <i class="fas fa-eye" sec:authorize="!hasAuthority('ADMIN')"></i>
+                            </button>
+
+                            <form sec:authorize="hasAuthority('ADMIN')"
+                                  th:action="@{/admin/price-packages/delete/{id}(id=${pkg.id})}" method="post" style="display: inline;">
+                                <input type="hidden" name="courseId" th:value="${courseId}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Xóa gói giá này?')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="priceModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form th:action="@{/admin/price-packages/save}" method="post" class="modal-content border-0 shadow" onsubmit="return validatePriceForm()">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold" id="modalTitle">Thông tin Gói giá</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <input type="hidden" id="pkgId" name="id">
+                <input type="hidden" name="courseId" th:value="${courseId}">
+
+                <div id="jsErrorAlert" class="alert alert-danger d-none small py-2"></div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-muted">Tên gói <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="name" id="pkgName" required>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <label class="form-label small fw-bold text-muted">Thời gian (Tháng) <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" name="durationMonths" id="pkgDuration" min="1" required>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small fw-bold text-muted">Trạng thái</label>
+                        <select class="form-select" name="status" id="pkgStatus">
+                            <option value="active">Hoạt động</option>
+                            <option value="inactive">Ẩn</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <label class="form-label small fw-bold text-muted">Giá niêm yết <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" name="listPrice" id="pkgListPrice" min="0" required>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small fw-bold text-muted">Giá bán (Sale)</label>
+                        <input type="number" class="form-control" name="salePrice" id="pkgSalePrice" min="0">
+                        <small class="text-muted" style="font-size: 0.7rem">Phải nhỏ hơn giá niêm yết</small>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-muted">Mô tả</label>
+                    <textarea class="form-control" name="description" id="pkgDesc" rows="3"></textarea>
+                </div>
+            </div>
+
+            <div class="modal-footer bg-light" sec:authorize="hasAuthority('ADMIN')">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="submit" class="btn btn-primary px-4">Lưu thông tin</button>
+            </div>
+            <div class="modal-footer bg-light" sec:authorize="!hasAuthority('ADMIN')">
+                <button type="button" class="btn btn-secondary w-100" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    const isAdmin = /*[[${#authorization.expression('hasAuthority(''ADMIN'')')}]]*/ false;
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('collapsed');
+        document.getElementById('mainContent').classList.toggle('expanded');
+    }
+
+    const priceModal = new bootstrap.Modal(document.getElementById('priceModal'));
+    const errorAlert = document.getElementById('jsErrorAlert');
+
+    // Mở Modal Thêm
+    function openModalAdd() {
+        document.getElementById('modalTitle').innerText = 'Thêm Gói Giá Mới';
+        document.getElementById('pkgId').value = "";
+
+        setInputStatus(false); // Unlock
+        document.getElementById('pkgName').value = "";
+        document.getElementById('pkgDuration').value = "3";
+        document.getElementById('pkgListPrice').value = "";
+        document.getElementById('pkgSalePrice').value = "";
+        document.getElementById('pkgDesc').value = "";
+        document.getElementById('pkgStatus').value = "active";
+
+        errorAlert.classList.add('d-none');
+        priceModal.show();
+    }
+
+    // Mở Modal Sửa/Xem
+    function openModalEdit(id) {
+        document.getElementById('modalTitle').innerText = isAdmin ? 'Cập nhật Gói giá' : 'Chi tiết Gói giá';
+        errorAlert.classList.add('d-none');
+
+        fetch(`/admin/price-packages/api/${id}`)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('pkgId').value = data.id;
+                document.getElementById('pkgName').value = data.name;
+                document.getElementById('pkgDuration').value = data.durationMonths;
+                document.getElementById('pkgListPrice').value = data.listPrice;
+                document.getElementById('pkgSalePrice').value = data.salePrice;
+                document.getElementById('pkgDesc').value = data.description || "";
+                document.getElementById('pkgStatus').value = data.status;
+
+                // Nếu không phải Admin -> Disable toàn bộ input
+                setInputStatus(!isAdmin);
+
+                priceModal.show();
+            })
+            .catch(err => alert("Lỗi: " + err));
+    }
+
+    function setInputStatus(isDisabled) {
+        const fields = ['pkgName', 'pkgDuration', 'pkgListPrice', 'pkgSalePrice', 'pkgDesc', 'pkgStatus'];
+        fields.forEach(id => {
+            document.getElementById(id).disabled = isDisabled;
+        });
+    }
+
+    // Validate Logic
+    function validatePriceForm() {
+        const listPrice = parseFloat(document.getElementById('pkgListPrice').value);
+        const salePriceInput = document.getElementById('pkgSalePrice').value;
+
+        if (salePriceInput) {
+            const salePrice = parseFloat(salePriceInput);
+            if (salePrice > listPrice) {
+                errorAlert.innerText = "Giá bán không được cao hơn giá niêm yết.";
+                errorAlert.classList.remove('d-none');
+                return false;
+            }
+        }
+        return true;
+    }
+</script>
+</body>
+</html>

@@ -17,5 +17,5 @@ public interface PricePackageRepository extends JpaRepository<PricePackage, Inte
     Optional<PricePackage> findLowestPricePackageByCourseId(Integer courseId);
     List<PricePackage> findByCourseId(Integer courseId);
     List<PricePackage> getPackagesByCourseId(Integer courseId);
-
+    List<PricePackage> findByCourseId(Long courseId); // Lưu ý CourseId là Long hay Integer thì sửa cho khớp
 }
