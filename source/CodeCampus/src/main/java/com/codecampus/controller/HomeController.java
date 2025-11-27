@@ -1,4 +1,4 @@
-package com.codecampus.home;
+package com.codecampus.controller;
 
 import com.codecampus.entity.Blog;
 import com.codecampus.entity.Course;
@@ -37,7 +37,7 @@ public class HomeController {
 
         // 3. Lấy dữ liệu cho Featured Subjects (Khóa học nổi bật)
         // Lấy tất cả các khóa học có cờ is_featured = true và đã publish
-        List<Course> featuredCourses = courseRepository.findByIsFeaturedAndStatus(true, "published");
+        List<Course> featuredCourses = courseRepository.findByIsFeaturedAndStatus(true, "ACTIVE");
         model.addAttribute("featuredCourses", featuredCourses);
 
         // 4. Lấy dữ liệu cho Sidebar with latest posts

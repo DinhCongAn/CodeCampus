@@ -30,7 +30,7 @@ public class CourseService {
         this.priceRepository = priceRepository;
     }
 
-    private static final String STATUS_PUBLISHED = "published";
+    private static final String STATUS_PUBLISHED = "ACTIVE";
 
     public Page<Course> getPublishedCourses(int page, int size, String keyword, Integer categoryId) {
         Pageable pageable = PageRequest.of(page, size);
