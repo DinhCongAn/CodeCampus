@@ -25,8 +25,24 @@ public class PricePackageService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy gói giá ID: " + id));
     }
 
+    private void checkDuplicateName(Integer id, String name, Integer courseId) {
+        // Kiểm tra trùng tên với các gói khác trong khóa học này
+        boolean isDuplicate = pricePackageRepository.existsByNameAndCourse(courseId, name, id);
+        if (isDuplicate) {
+            // Nếu tìm thấy -> Báo lỗi ngay
+            throw new RuntimeException("Tên gói '" + name + "' đã tồn tại trong khóa học này.");
+        }
+    }
     public void savePackage(PricePackage pkg, Long courseId) {
-        // 1. Check Validate Logic
+
+        // 1. Xử lý tên
+        String cleanName = pkg.getName().trim();
+        pkg.setName(cleanName);
+
+        // Gọi hàm check (courseId.intValue() vì DB lưu Integer)
+        checkDuplicateName(pkg.getId(), cleanName, courseId.intValue());
+
+
         if (pkg.getSalePrice() != null && pkg.getSalePrice().compareTo(pkg.getListPrice()) > 0) {
             throw new RuntimeException("Giá bán phải nhỏ hơn hoặc bằng giá niêm yết.");
         }
