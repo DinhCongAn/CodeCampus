@@ -95,7 +95,7 @@ public class LabController {
             }
 
             // 3. Lấy các bài học cho sidebar
-            List<Lesson> allLessons = lessonService.getLessonsByCourseId(course.getId());
+            List<Lesson> allLessons = lessonService.getActiveLessonsByCourseId(course.getId());
 
             // 4. Đẩy tất cả dữ liệu ra Model
             model.addAttribute("attempt", attempt);

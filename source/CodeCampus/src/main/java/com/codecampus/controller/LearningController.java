@@ -67,7 +67,7 @@ public class LearningController {
             Lesson firstLesson = lessonService.getFirstLesson(courseId);
             return "redirect:/learning/" + courseId + "/" + firstLesson.getId();
         } catch (RuntimeException e) {
-            redirectAttributes.addFlashAttribute("error", "Lỗi: Khóa học này chưa có bài học.");
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
             return "redirect:/my-courses";
         }
     }
@@ -92,23 +92,35 @@ public class LearningController {
             return "redirect:/my-courses";
         }
 
-        Lesson currentLesson = lessonService.getLessonById(lessonId);
-        //Cập nhật tiến độ
+        // 1. Lấy bài học
+        Lesson currentLesson = lessonService.getLessonById(Long.valueOf(lessonId));
+
+        // [MỚI] 2. KIỂM TRA TRẠNG THÁI ACTIVE
+        // Nếu bài học đang ẩn (Inactive), không cho xem và đẩy về trang danh sách
+        if (!"active".equalsIgnoreCase(currentLesson.getStatus())) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Bài học này hiện đang bị khóa hoặc bảo trì.");
+            // Quay về bài học đầu tiên của khóa (hoặc về my-courses)
+            return "redirect:/learning/" + courseId;
+        }
+
+        // Cập nhật tiến độ
         myCourseService.updateProgress(currentUser.getId(), courseId, Math.toIntExact(currentLesson.getId()));
 
+        // Chuyển hướng Lab/Quiz (Giữ nguyên)
         if (currentLesson.getLab() != null) {
             return "redirect:/learning/lab/" + currentLesson.getLab().getId() + "?lessonId=" + lessonId;
         }
-
         if (currentLesson.getQuiz() != null) {
             return "redirect:/learning/quiz/" + currentLesson.getQuiz().getId() + "?lessonId=" + lessonId;
         }
 
-
-
         Course course = courseService.findCourseById(courseId);
-        List<Lesson> allLessons = lessonService.getLessonsByCourseId(courseId);
 
+        // 3. Lấy danh sách Sidebar (CHỈ LẤY ACTIVE)
+        // Đảm bảo hàm này trong Service gọi đúng Query lọc status='active'
+        List<Lesson> allLessons = lessonService.getActiveLessonsByCourseId(courseId);
+
+        // Logic tìm bài trước/sau (Giữ nguyên)
         Lesson prevLesson = null;
         Lesson nextLesson = null;
         int currentIndex = -1;

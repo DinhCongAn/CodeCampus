@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý Bài học | Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/admin-style.css}">
+</head>
+<body>
+
+<div th:replace="~{fragments/sidebar-menu-admin :: sidebar('subjects')}"></div>
+
+<div class="main-content" id="mainContent">
+    <div class="topbar d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center">
+            <div class="toggle-btn me-4" onclick="toggleSidebar()"><i class="fas fa-bars"></i></div>
+            <h4 class="mb-0 fw-bold text-dark">
+                Bài học: <span class="text-primary" th:text="${course.name}">Course Name</span>
+            </h4>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <span class="text-muted small">Xin chào, <strong th:text="${#authentication?.name}">Admin</strong></span>
+            <img th:src="@{https://ui-avatars.com/api/?name=Admin&background=4361ee&color=fff}" width="40" class="rounded-circle">
+        </div>
+    </div>
+
+    <div class="container-fluid py-4">
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i> <span th:text="${successMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i> <span th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div class="d-flex justify-content-between mb-3 align-items-center">
+            <div class="d-flex gap-2">
+                <a th:href="@{/admin/subjects}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i> Quay lại Môn học
+                </a>
+                <form th:action="@{/admin/lessons}" method="get" class="d-flex gap-2">
+                    <input type="hidden" name="courseId" th:value="${courseId}">
+                    <select name="status" class="form-select form-select-sm" style="width: 150px;" onchange="this.form.submit()">
+                        <option value="" th:selected="${status == null}">-- Tất cả --</option>
+                        <option value="active" th:selected="${status == 'active'}">Hiển thị</option>
+                        <option value="inactive" th:selected="${status == 'inactive'}">Đã ẩn</option>
+                    </select>
+                </form>
+            </div>
+
+            <button class="btn btn-success fw-bold" onclick="openModalAdd()">
+                <i class="fas fa-plus me-1"></i> Thêm Bài học
+            </button>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4 text-center" style="width: 80px;">Thứ tự</th>
+                        <th>Tên bài học</th>
+                        <th>Loại</th>
+                        <th>Nội dung / Link</th>
+                        <th>Gói</th>
+                        <th>Trạng thái</th>
+                        <th class="text-end pe-4">Hành động</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${lessonPage.empty}"><td colspan="7" class="text-center py-4 text-muted">Chưa có bài học nào.</td></tr>
+
+                    <tr th:each="lesson : ${lessonPage.content}">
+                        <td class="ps-4 text-center">
+                            <span class="badge bg-light text-dark border rounded-circle p-2" style="width: 30px; height: 30px;" th:text="${lesson.orderNumber}">1</span>
+                        </td>
+                        <td>
+                            <strong class="text-dark" th:text="${lesson.name}">Lesson Name</strong>
+                        </td>
+                        <td>
+                                <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle"
+                                      th:text="${lesson.lessonType != null ? lesson.lessonType.name : 'Unknown'}">Video</span>
+                        </td>
+                        <td>
+                                <span th:if="${lesson.videoUrl != null && lesson.videoUrl != ''}" class="text-primary small" title="Video Link">
+                                    <i class="fab fa-youtube me-1"></i> Video Link
+                                </span>
+                            <span th:if="${lesson.htmlContent != null && lesson.htmlContent != ''}" class="text-success small ms-2" title="HTML Content">
+                                    <i class="fas fa-file-alt me-1"></i> Text
+                                </span>
+                            <span th:if="${lesson.lab != null}" class="text-danger small ms-2" title="Lab Exercise">
+                                    <i class="fas fa-flask me-1"></i> Lab
+                                </span>
+                            <span th:if="${lesson.quiz != null}" class="text-warning small ms-2" title="Quiz Test">
+                                    <i class="fas fa-question-circle me-1"></i> Quiz
+                                </span>
+                        </td>
+                        <td>
+                            <small class="text-muted" th:text="${lesson.pricePackage != null ? lesson.pricePackage.name : 'Chung'}">Basic</small>
+                        </td>
+                        <td>
+                            <span th:if="${#strings.equalsIgnoreCase(lesson.status, 'active')}" class="badge bg-success-subtle text-success">Active</span>
+                            <span th:if="${!#strings.equalsIgnoreCase(lesson.status, 'active')}" class="badge bg-secondary-subtle text-secondary">Inactive</span>
+                        </td>
+                        <td class="text-end pe-4">
+                            <button class="btn btn-sm btn-outline-primary me-1"
+                                    th:onclick="'openModalEdit(' + ${lesson.id} + ')'" title="Sửa">
+                                <i class="fas fa-edit"></i>
+                            </button>
+
+                            <form th:action="@{/admin/lessons/toggle/{id}(id=${lesson.id})}" method="post" style="display: inline;">
+                                <input type="hidden" name="courseId" th:value="${courseId}">
+                                <button th:if="${#strings.equalsIgnoreCase(lesson.status, 'active')}" type="submit" class="btn btn-sm btn-outline-warning" title="Ẩn">
+                                    <i class="fas fa-eye-slash"></i>
+                                </button>
+                                <button th:if="${!#strings.equalsIgnoreCase(lesson.status, 'active')}" type="submit" class="btn btn-sm btn-outline-success" title="Hiện">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center p-3 border-top" th:if="${lessonPage.totalPages > 0}">
+                <span class="text-muted small">Trang <strong th:text="${lessonPage.number + 1}"></strong> / <strong th:text="${lessonPage.totalPages}"></strong></span>
+                <nav>
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item" th:classappend="${lessonPage.first ? 'disabled' : ''}">
+                            <a class="page-link" th:href="@{/admin/lessons(page=${lessonPage.number - 1}, courseId=${courseId}, status=${status})}">Trước</a>
+                        </li>
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, lessonPage.totalPages - 1)}" th:classappend="${i == lessonPage.number ? 'active' : ''}">
+                            <a class="page-link" th:href="@{/admin/lessons(page=${i}, courseId=${courseId}, status=${status})}" th:text="${i + 1}">1</a>
+                        </li>
+                        <li class="page-item" th:classappend="${lessonPage.last ? 'disabled' : ''}">
+                            <a class="page-link" th:href="@{/admin/lessons(page=${lessonPage.number + 1}, courseId=${courseId}, status=${status})}">Sau</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="lessonModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <form th:action="@{/admin/lessons/save}" method="post" class="modal-content border-0 shadow" onsubmit="return validateLesson()">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold" id="modalTitle">Thông tin Bài học</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <input type="hidden" id="lessonId" name="id">
+                <input type="hidden" name="courseId" th:value="${courseId}">
+
+                <div id="jsErrorAlert" class="alert alert-danger d-none small py-2"></div>
+
+                <div class="row g-3">
+                    <div class="col-md-8">
+                        <label class="form-label small fw-bold text-muted">Tên bài học <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="name" id="lessonName" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold text-muted">Thứ tự (Order) <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" name="orderNumber" id="lessonOrder" required min="1">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold text-muted">Loại bài học <span class="text-danger">*</span></label>
+                        <select class="form-select" name="lessonType.id" id="lessonType" required onchange="onTypeChange()">
+                            <option th:each="t : ${types}" th:value="${t.id}" th:text="${t.name}"></option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold text-muted">Thuộc Gói (Package)</label>
+                        <select class="form-select" name="pricePackage.id" id="lessonPackage">
+                            <option value="">-- Tất cả (Mặc định) --</option>
+                            <option th:each="p : ${packages}" th:value="${p.id}" th:text="${p.name}"></option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold text-muted">Trạng thái</label>
+                        <select class="form-select" name="status" id="lessonStatus">
+                            <option value="active">Hiển thị</option>
+                            <option value="inactive">Ẩn</option>
+                        </select>
+                    </div>
+
+                    <div id="videoFields" class="col-12 d-none">
+                        <div class="border rounded p-3 bg-light">
+                            <h6 class="text-primary fw-bold mb-2"><i class="fab fa-youtube me-2"></i>Cấu hình Video</h6>
+                            <label class="form-label small fw-bold text-muted">Video URL (YouTube/Vimeo) <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="videoUrl" id="lessonVideo" placeholder="https://www.youtube.com/embed/...">
+                        </div>
+                    </div>
+
+                    <div id="labFields" class="col-12 d-none">
+                        <div class="border rounded p-3 bg-light">
+                            <h6 class="text-danger fw-bold mb-3"><i class="fas fa-flask me-2"></i>Cấu hình bài Lab</h6>
+                            <input type="hidden" name="lab.id" id="labId">
+                            <div class="row g-3">
+                                <div class="col-md-8">
+                                    <label class="form-label small fw-bold">Tên bài Lab <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="lab.name" id="labName">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-bold">Dạng Lab</label>
+                                    <select class="form-select" name="lab.labType" id="labType">
+                                        <option value="coding">Coding</option>
+                                        <option value="sql">SQL</option>
+                                        <option value="devops">DevOps</option>
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label small fw-bold">Mô tả / Đề bài</label>
+                                    <textarea class="form-control" name="lab.description" id="labDesc" rows="2"></textarea>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label small fw-bold">Tiêu chí chấm (Cho AI)</label>
+                                    <textarea class="form-control" name="lab.evaluationCriteria" id="labCriteria" rows="2"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="quizFields" class="col-12 d-none">
+                        <div class="border rounded p-3 bg-light">
+                            <h6 class="text-warning fw-bold mb-3"><i class="fas fa-question-circle me-2"></i>Cấu hình Bài kiểm tra</h6>
+                            <input type="hidden" name="quiz.id" id="quizId">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label class="form-label small fw-bold">Tên bài kiểm tra <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="quiz.name" id="quizName">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold">Loại bài thi <span class="text-danger">*</span></label>
+                                    <select class="form-select" name="quiz.testType.id" id="quizType">
+                                        <option value="">-- Chọn loại --</option>
+                                        <option th:each="tt : ${testTypes}" th:value="${tt.id}" th:text="${tt.name}"></option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold">Độ khó <span class="text-danger">*</span></label>
+                                    <select class="form-select" name="quiz.examLevel.id" id="quizLevel">
+                                        <option value="">-- Chọn độ khó --</option>
+                                        <option th:each="ql : ${quizLevels}" th:value="${ql.id}" th:text="${ql.name}"></option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold">Thời gian (Phút) <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control" name="quiz.durationMinutes" id="quizDuration" min="1" placeholder="Ví dụ: 45">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold">Điểm đạt (%)</label>
+                                    <input type="number" class="form-control" name="quiz.passRatePercentage" id="quizPassRate" min="0" max="100" placeholder="Ví dụ: 50">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label small fw-bold">Mô tả / Hướng dẫn</label>
+                                    <textarea class="form-control" name="quiz.description" id="quizDesc" rows="2"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="htmlFields" class="col-12 d-none">
+                        <label class="form-label small fw-bold text-muted">Nội dung HTML / Mô tả <span class="text-danger">*</span></label>
+                        <textarea class="form-control" name="htmlContent" id="lessonContent" rows="5"></textarea>
+                    </div>
+
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="submit" class="btn btn-primary px-4">Lưu Bài học</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:inline="javascript">
+    // Lấy giá trị từ Server (Thymeleaf)
+    const nextOrder = /*[[${nextOrder}]]*/ 1;
+
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('collapsed');
+        document.getElementById('mainContent').classList.toggle('expanded');
+    }
+
+    const lessonModal = new bootstrap.Modal(document.getElementById('lessonModal'));
+    const errorAlert = document.getElementById('jsErrorAlert');
+
+    // Helper an toàn để set value (tránh lỗi null nếu input không tồn tại)
+    function setVal(id, value) {
+        const el = document.getElementById(id);
+        if (el) el.value = value;
+    }
+
+    // --- LOGIC ẨN HIỆN FORM THEO LOẠI ---
+    function onTypeChange() {
+        const typeSelect = document.getElementById('lessonType');
+        if (!typeSelect) return;
+        const typeName = typeSelect.options[typeSelect.selectedIndex].text.toLowerCase();
+
+        const labDiv = document.getElementById('labFields');
+        const quizDiv = document.getElementById('quizFields');
+        const videoDiv = document.getElementById('videoFields');
+        const htmlDiv = document.getElementById('htmlFields');
+
+        // 1. Ẩn hết
+        if(labDiv) labDiv.classList.add('d-none');
+        if(quizDiv) quizDiv.classList.add('d-none');
+        if(videoDiv) videoDiv.classList.add('d-none');
+        if(htmlDiv) htmlDiv.classList.add('d-none');
+
+        // 2. Hiện cái cần thiết dựa trên tên loại
+        if (typeName.includes('lab')) {
+            if(labDiv) labDiv.classList.remove('d-none');
+        }
+        else if (typeName.includes('quiz') || typeName.includes('kiểm tra')) {
+            if(quizDiv) quizDiv.classList.remove('d-none');
+        }
+        else if (typeName.includes('video') || typeName.includes('youtube')) {
+            if(videoDiv) videoDiv.classList.remove('d-none');
+        }
+        else {
+            // Các loại còn lại (HTML, Reading...) dùng ô Textarea chung
+            if(htmlDiv) htmlDiv.classList.remove('d-none');
+        }
+    }
+
+    // --- MỞ MODAL THÊM MỚI ---
+    function openModalAdd() {
+        document.getElementById('modalTitle').innerText = 'Thêm Bài học Mới';
+
+        // Reset fields
+        setVal('lessonId', "");
+        setVal('lessonName', "");
+        setVal('lessonOrder', nextOrder); // Auto-fill next order
+        setVal('lessonVideo', "");
+        setVal('lessonContent', "");
+        setVal('lessonPackage', "");
+        setVal('lessonStatus', "active");
+
+        // Reset Lab
+        setVal('labId', "");
+        setVal('labName', "");
+        setVal('labDesc', "");
+        setVal('labCriteria', "");
+
+        // Reset Quiz
+        setVal('quizId', "");
+        setVal('quizName', "");
+        setVal('quizType', "");  // Reset dropdown Type
+        setVal('quizLevel', ""); // Reset dropdown Level
+        setVal('quizDuration', "45");
+        setVal('quizPassRate', "50");
+        setVal('quizDesc', "");
+
+        // Reset dropdown type về đầu tiên
+        const typeSelect = document.getElementById('lessonType');
+        if(typeSelect) typeSelect.selectedIndex = 0;
+
+        onTypeChange(); // Update UI
+        if(errorAlert) errorAlert.classList.add('d-none');
+
+        lessonModal.show();
+    }
+
+    // --- MỞ MODAL SỬA (Load API) ---
+    function openModalEdit(id) {
+        document.getElementById('modalTitle').innerText = 'Cập nhật Bài học';
+        if(errorAlert) errorAlert.classList.add('d-none');
+
+        fetch(`/admin/lessons/api/${id}`)
+            .then(res => res.json())
+            .then(data => {
+                setVal('lessonId', data.id);
+                setVal('lessonName', data.name);
+                setVal('lessonOrder', data.orderNumber);
+                setVal('lessonType', data.typeId);
+                setVal('lessonPackage', data.packageId || "");
+                setVal('lessonStatus', data.status ? data.status.toLowerCase() : 'active');
+
+                setVal('lessonVideo', data.videoUrl || "");
+                setVal('lessonContent', data.htmlContent || "");
+
+                // Fill Lab
+                if (data.lab) {
+                    setVal('labId', data.lab.id);
+                    setVal('labName', data.lab.name);
+                    setVal('labType', data.lab.labType);
+                    setVal('labDesc', data.lab.description || "");
+                    setVal('labCriteria', data.lab.criteria || "");
+                } else {
+                    setVal('labId', "");
+                    setVal('labName', "");
+                }
+
+                // Fill Quiz
+                if (data.quiz) {
+                    setVal('quizId', data.quiz.id);
+                    setVal('quizName', data.quiz.name);
+                    setVal('quizType', data.quiz.testTypeId || "");
+                    setVal('quizLevel', data.quiz.levelId || "");
+                    setVal('quizDuration', data.quiz.duration);
+                    setVal('quizPassRate', data.quiz.passRate);
+                    setVal('quizDesc', data.quiz.description || "");
+                } else {
+                    setVal('quizId', "");
+                    setVal('quizName', "");
+                }
+
+                onTypeChange();
+                lessonModal.show();
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Lỗi tải dữ liệu: " + err);
+            });
+    }
+
+    // --- VALIDATE TRƯỚC KHI GỬI ---
+    function validateLesson() {
+        const name = document.getElementById('lessonName').value.trim();
+        const typeSelect = document.getElementById('lessonType');
+        const typeName = typeSelect.options[typeSelect.selectedIndex].text.toLowerCase();
+
+        let msg = "";
+
+        if (name.length < 3) {
+            msg = "Tên bài học quá ngắn (tối thiểu 3 ký tự).";
+        }
+
+        // Validate theo loại
+        else if (typeName.includes("video")) {
+            const vid = document.getElementById('lessonVideo').value.trim();
+            if(vid === "") msg = "Vui lòng nhập Video URL.";
+        }
+        else if (typeName.includes("lab")) {
+            const labName = document.getElementById('labName').value.trim();
+            if(labName === "") msg = "Vui lòng nhập Tên bài Lab.";
+        }
+        else if (typeName.includes("quiz")) {
+            const quizName = document.getElementById('quizName').value.trim();
+            const quizType = document.getElementById('quizType').value;
+            const quizLevel = document.getElementById('quizLevel').value;
+            const duration = document.getElementById('quizDuration').value;
+
+            if (quizName === "") msg = "Vui lòng nhập Tên bài kiểm tra.";
+            else if (quizType === "") msg = "Vui lòng chọn Loại bài kiểm tra.";
+            else if (quizLevel === "") msg = "Vui lòng chọn Độ khó.";
+            else if (!duration || duration <= 0) msg = "Thời gian làm bài phải lớn hơn 0.";
+        }
+        else if (typeName.includes("html") || typeName.includes("text")) {
+            // Nếu muốn bắt buộc nhập text
+            const content = document.getElementById('lessonContent').value.trim();
+            if(content === "") msg = "Vui lòng nhập nội dung bài học.";
+        }
+
+        if (msg) {
+            if(errorAlert) {
+                errorAlert.innerText = msg;
+                errorAlert.classList.remove('d-none');
+            } else {
+                alert(msg);
+            }
+            return false; // Chặn submit
+        }
+        return true;
+    }
+
+    // Gắn sự kiện
+    document.getElementById('lessonType')?.addEventListener('change', onTypeChange);
+</script>
+</body>
+</html>

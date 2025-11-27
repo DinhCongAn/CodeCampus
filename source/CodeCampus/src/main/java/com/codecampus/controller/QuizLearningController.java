@@ -84,8 +84,7 @@ public class QuizLearningController {
             }
 
             // 4. Lấy danh sách bài học để vẽ Sidebar & Tính toán Prev/Next
-            // (Phần này copy logic từ getLessonView của bạn để đảm bảo đồng bộ)
-            List<Lesson> allLessons = lessonService.getLessonsByCourseId(course.getId());
+            List<Lesson> allLessons = lessonService.getActiveLessonsByCourseId(course.getId());
 
             Lesson prevLesson = null;
             Lesson nextLesson = null;

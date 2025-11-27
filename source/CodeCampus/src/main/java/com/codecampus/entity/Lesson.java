@@ -53,6 +53,11 @@ public class Lesson {
     @JoinColumn(name = "lesson_type_id")
     private LessonType lessonType;
 
+    // Quan hệ Gói (Optional - nếu bài này thuộc gói cụ thể)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "package_id")
+    private PricePackage pricePackage;
+
     // --- BỔ SUNG FIELD NÀY ĐỂ SỬA LỖI ---
     @Column(name = "status")
     private String status;
