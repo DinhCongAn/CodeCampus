@@ -34,13 +34,16 @@ public class AdminLessonController {
     public String showLessons(
             @RequestParam("courseId") Long courseId,
             @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "") String keyword, // [MỚI]
+            @RequestParam(required = false) Integer typeId,
             @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "7") int size,
+
             Model model) {
 
         if (status != null && status.trim().isEmpty()) status = null;
 
-        Page<Lesson> lessonPage = lessonService.getLessonsByCourse(courseId, status, page, 20);
-
+        Page<Lesson> lessonPage = lessonService.getLessonsByCourse(courseId, keyword, typeId, status, page, size);
         // [LOGIC MỚI] TÍNH SỐ THỨ TỰ TIẾP THEO
         Integer maxOrder = lessonRepository.findMaxOrderNumber(courseId);
         model.addAttribute("nextOrder", maxOrder + 1);
@@ -52,7 +55,10 @@ public class AdminLessonController {
         model.addAttribute("testTypes", testTypeRepository.findAll());
         model.addAttribute("quizLevels", questionLevelRepository.findAll());// Ép kiểu .intValue() nếu courseId là Integer trong Repo
 
+        // Giữ lại giá trị bộ lọc để hiển thị trên View
         model.addAttribute("courseId", courseId);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("typeId", typeId);
         model.addAttribute("status", status);
 
         return "admin/lessons";

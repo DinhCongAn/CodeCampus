@@ -76,10 +76,9 @@ public class LessonService {
 
     //Admin management lesson
 
-    public Page<Lesson> getLessonsByCourse(Long courseId, String status, int page, int size) {
-        // Ép kiểu Integer cho courseId nếu Entity Course dùng Integer ID (như bài trước)
-        // Nếu bạn đã sửa Entity Course thành Long ID thì bỏ .intValue()
-        return lessonRepository.findLessonsByCourse(courseId, status, PageRequest.of(page, size));
+    // Thêm keyword và typeId vào tham số
+    public Page<Lesson> getLessonsByCourse(Long courseId, String keyword, Integer typeId, String status, int page, int size) {
+        return lessonRepository.findLessonsByCourse(courseId, keyword, typeId, status, PageRequest.of(page, size));
     }
 
     public Lesson getLessonById(Long id) {

@@ -36,24 +36,56 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
 
-        <div class="d-flex justify-content-between mb-3 align-items-center">
-            <div class="d-flex gap-2">
-                <a th:href="@{/admin/subjects}" class="btn btn-outline-secondary">
-                    <i class="fas fa-arrow-left me-1"></i> Quay lại Môn học
-                </a>
-                <form th:action="@{/admin/lessons}" method="get" class="d-flex gap-2">
-                    <input type="hidden" name="courseId" th:value="${courseId}">
-                    <select name="status" class="form-select form-select-sm" style="width: 150px;" onchange="this.form.submit()">
-                        <option value="" th:selected="${status == null}">-- Tất cả --</option>
-                        <option value="active" th:selected="${status == 'active'}">Hiển thị</option>
-                        <option value="inactive" th:selected="${status == 'inactive'}">Đã ẩn</option>
-                    </select>
-                </form>
-            </div>
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-lg-10">
+                        <form th:action="@{/admin/lessons}" method="get" class="row g-2">
+                            <input type="hidden" name="courseId" th:value="${courseId}">
 
-            <button class="btn btn-success fw-bold" onclick="openModalAdd()">
-                <i class="fas fa-plus me-1"></i> Thêm Bài học
-            </button>
+                            <div class="col-md-4">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                                    <input type="text" name="keyword" class="form-control border-start-0"
+                                           placeholder="Tìm tên bài học..." th:value="${keyword}">
+                                </div>
+                            </div>
+
+                            <div class="col-md-3">
+                                <select name="typeId" class="form-select">
+                                    <option value="">-- Loại bài --</option>
+                                    <option th:each="t : ${types}"
+                                            th:value="${t.id}"
+                                            th:text="${t.name}"
+                                            th:selected="${t.id == typeId}"></option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-3">
+                                <select name="status" class="form-select">
+                                    <option value="" th:selected="${status == null}">-- Trạng thái --</option>
+                                    <option value="active" th:selected="${status == 'active'}">Hiển thị</option>
+                                    <option value="inactive" th:selected="${status == 'inactive'}">Đã ẩn</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-2 d-flex gap-1">
+                                <button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter"></i></button>
+                                <a th:href="@{/admin/lessons(courseId=${courseId})}" class="btn btn-light border" title="Reset"><i class="fas fa-sync"></i></a>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="col-lg-2 text-end border-start d-flex flex-column gap-2 justify-content-center">
+                        <button class="btn btn-success fw-bold w-100" onclick="openModalAdd()">
+                            <i class="fas fa-plus me-1"></i> Thêm Bài
+                        </button>
+                        <a th:href="@{/admin/subjects}" class="btn btn-sm btn-outline-secondary w-100">
+                            <i class="fas fa-arrow-left me-1"></i> Quay lại Môn học
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="card border-0 shadow-sm">
@@ -127,21 +159,36 @@
             </div>
 
             <div class="d-flex justify-content-between align-items-center p-3 border-top" th:if="${lessonPage.totalPages > 0}">
-                <span class="text-muted small">Trang <strong th:text="${lessonPage.number + 1}"></strong> / <strong th:text="${lessonPage.totalPages}"></strong></span>
-                <nav>
+<span class="text-muted small">Hiển thị <strong th:text="${lessonPage.numberOfElements}">10</strong>trên tổng số <strong th:text="${lessonPage.totalElements}">50</strong> đơn hàng
+                </span>                <nav>
                     <ul class="pagination pagination-sm mb-0">
                         <li class="page-item" th:classappend="${lessonPage.first ? 'disabled' : ''}">
-                            <a class="page-link" th:href="@{/admin/lessons(page=${lessonPage.number - 1}, courseId=${courseId}, status=${status})}">Trước</a>
+                            <a class="page-link"
+                               th:href="@{/admin/lessons(page=${lessonPage.number - 1}, courseId=${courseId}, keyword=${keyword}, typeId=${typeId}, status=${status})}">
+                                Trước
+                            </a>
                         </li>
-                        <li class="page-item" th:each="i : ${#numbers.sequence(0, lessonPage.totalPages - 1)}" th:classappend="${i == lessonPage.number ? 'active' : ''}">
-                            <a class="page-link" th:href="@{/admin/lessons(page=${i}, courseId=${courseId}, status=${status})}" th:text="${i + 1}">1</a>
+
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, lessonPage.totalPages - 1)}"
+                            th:classappend="${i == lessonPage.number ? 'active' : ''}">
+                            <a class="page-link"
+                               th:href="@{/admin/lessons(page=${i}, courseId=${courseId}, keyword=${keyword}, typeId=${typeId}, status=${status})}"
+                               th:text="${i + 1}">1</a>
                         </li>
+
                         <li class="page-item" th:classappend="${lessonPage.last ? 'disabled' : ''}">
-                            <a class="page-link" th:href="@{/admin/lessons(page=${lessonPage.number + 1}, courseId=${courseId}, status=${status})}">Sau</a>
+                            <a class="page-link"
+                               th:href="@{/admin/lessons(page=${lessonPage.number + 1}, courseId=${courseId}, keyword=${keyword}, typeId=${typeId}, status=${status})}">
+                                Sau
+                            </a>
                         </li>
                     </ul>
                 </nav>
             </div>
+
+<!--            <div class="d-flex justify-content-center align-items-center p-3 border-top" th:if="${lessonPage.totalPages == 0}">-->
+<!--                <span class="text-muted small">Không có bài học nào.</span>-->
+<!--            </div>-->
         </div>
     </div>
 </div>

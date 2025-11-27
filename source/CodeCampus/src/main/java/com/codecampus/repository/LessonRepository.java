@@ -67,4 +67,15 @@ public interface LessonRepository extends JpaRepository<Lesson, Long> {
     boolean existsByName(@Param("courseId") Long courseId,
                          @Param("name") String name,
                          @Param("lessonId") Long lessonId);
+
+    @Query("SELECT l FROM Lesson l WHERE l.course.id = :courseId " +
+            "AND (:keyword IS NULL OR :keyword = '' OR LOWER(l.name) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+            "AND (:typeId IS NULL OR l.lessonType.id = :typeId) " +
+            "AND (:status IS NULL OR :status = '' OR l.status = :status) " +
+            "ORDER BY l.orderNumber ASC")
+    Page<Lesson> findLessonsByCourse(@Param("courseId") Long courseId,
+                                     @Param("keyword") String keyword,
+                                     @Param("typeId") Integer typeId,
+                                     @Param("status") String status,
+                                     Pageable pageable);
 }
