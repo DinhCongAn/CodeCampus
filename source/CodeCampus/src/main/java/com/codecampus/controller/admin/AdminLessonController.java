@@ -28,7 +28,7 @@ public class AdminLessonController {
     @Autowired private PricePackageRepository pricePackageRepository;
     @Autowired private TestTypeRepository testTypeRepository;
     @Autowired private QuestionLevelRepository questionLevelRepository;
-
+    @Autowired private QuizRepository quizRepository;
     // 1. HIỂN THỊ DANH SÁCH
     @GetMapping("/lessons")
     public String showLessons(
@@ -55,6 +55,7 @@ public class AdminLessonController {
         model.addAttribute("testTypes", testTypeRepository.findAll());
         model.addAttribute("quizLevels", questionLevelRepository.findAll());// Ép kiểu .intValue() nếu courseId là Integer trong Repo
 
+        model.addAttribute("existingQuizzes", quizRepository.findByCourseId(courseId));
         // Giữ lại giá trị bộ lọc để hiển thị trên View
         model.addAttribute("courseId", courseId);
         model.addAttribute("keyword", keyword);
@@ -147,6 +148,7 @@ public class AdminLessonController {
                              @RequestParam(value = "quiz.description", required = false) String quizDesc,
                              @RequestParam(value = "quiz.testType.id", required = false) Integer quizTypeId,
                              @RequestParam(value = "quiz.examLevel.id", required = false) Integer quizLevelId,
+                             @RequestParam(value = "quizIdSelect", required = false) Integer quizIdSelect,
 
                              RedirectAttributes redirectAttributes) {
 
@@ -183,8 +185,13 @@ public class AdminLessonController {
                 lesson.getLab().setEvaluationCriteria(labCriteria);
             }
 
+            if (quizIdSelect != null) {
+                com.codecampus.entity.Quiz selectedQuiz = quizRepository.findById(quizIdSelect)
+                        .orElseThrow(() -> new RuntimeException("Bài kiểm tra đã chọn không tồn tại"));
+                lesson.setQuiz(selectedQuiz);
+            }
             // 4. XỬ LÝ QUIZ (Đóng gói thủ công)
-            if (quizName != null && !quizName.isEmpty()) {
+           else if (quizName != null && !quizName.isEmpty()) {
                 if (lesson.getQuiz() == null) lesson.setQuiz(new com.codecampus.entity.Quiz());
                 lesson.getQuiz().setId(quizId);
                 lesson.getQuiz().setName(quizName);

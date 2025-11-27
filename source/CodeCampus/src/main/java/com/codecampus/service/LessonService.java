@@ -131,7 +131,7 @@ public class LessonService {
         }
 
         // --- CASE: QUIZ ---
-        if (typeName.contains("quiz")) {
+        else if (typeName.contains("quiz")) {
             Quiz quiz = lesson.getQuiz();
 
             // 1. Validate cơ bản

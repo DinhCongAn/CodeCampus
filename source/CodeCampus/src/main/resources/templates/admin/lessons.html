@@ -276,49 +276,85 @@
 
                     <div id="quizFields" class="col-12 d-none">
                         <div class="border rounded p-3 bg-light">
-                            <h6 class="text-warning fw-bold mb-3"><i class="fas fa-question-circle me-2"></i>Cấu hình Bài kiểm tra</h6>
-                            <input type="hidden" name="quiz.id" id="quizId">
-                            <div class="row g-3">
-                                <div class="col-12">
-                                    <label class="form-label small fw-bold">Tên bài kiểm tra <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" name="quiz.name" id="quizName">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label small fw-bold">Loại bài thi <span class="text-danger">*</span></label>
-                                    <select class="form-select" name="quiz.testType.id" id="quizType">
-                                        <option value="">-- Chọn loại --</option>
-                                        <option th:each="tt : ${testTypes}" th:value="${tt.id}" th:text="${tt.name}"></option>
+                            <h6 class="text-warning fw-bold mb-3">
+                                <i class="fas fa-question-circle me-2"></i>Cấu hình Bài kiểm tra
+                            </h6>
+
+                            <ul class="nav nav-tabs mb-3" id="quizModeTab">
+                                <li class="nav-item">
+                                    <button class="nav-link active" type="button" onclick="switchQuizMode('select')">
+                                        <i class="fas fa-list me-1"></i> Chọn có sẵn
+                                    </button>
+                                </li>
+                                <li class="nav-item">
+                                    <button class="nav-link" type="button" onclick="switchQuizMode('create')">
+                                        <i class="fas fa-plus me-1"></i> Tạo mới / Chỉnh sửa
+                                    </button>
+                                </li>
+                            </ul>
+
+                            <div id="quizSelectMode">
+                                <div class="mb-2">
+                                    <label class="form-label small fw-bold">Chọn bài kiểm tra từ ngân hàng đề:</label>
+                                    <select class="form-select" name="quizIdSelect" id="quizIdSelect">
+                                        <option value="">-- Chọn bài kiểm tra --</option>
+                                        <option th:each="q : ${existingQuizzes}"
+                                                th:value="${q.id}"
+                                                th:text="${q.name + ' (' + q.durationMinutes + ' phút)'}"></option>
                                     </select>
                                 </div>
-                                <div class="col-md-6">
-                                    <label class="form-label small fw-bold">Độ khó <span class="text-danger">*</span></label>
-                                    <select class="form-select" name="quiz.examLevel.id" id="quizLevel">
-                                        <option value="">-- Chọn độ khó --</option>
-                                        <option th:each="ql : ${quizLevels}" th:value="${ql.id}" th:text="${ql.name}"></option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label small fw-bold">Thời gian (Phút) <span class="text-danger">*</span></label>
-                                    <input type="number" class="form-control" name="quiz.durationMinutes" id="quizDuration" min="1" placeholder="Ví dụ: 45">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label small fw-bold">Điểm đạt (%)</label>
-                                    <input type="number" class="form-control" name="quiz.passRatePercentage" id="quizPassRate" min="0" max="100" placeholder="Ví dụ: 50">
-                                </div>
-                                <div class="col-12">
-                                    <label class="form-label small fw-bold">Mô tả / Hướng dẫn</label>
-                                    <textarea class="form-control" name="quiz.description" id="quizDesc" rows="2"></textarea>
+                                <small class="text-muted fst-italic">
+                                    <i class="fas fa-info-circle me-1"></i> Bạn có thể tạo trước các bài thi ở menu "Bài kiểm tra" rồi chọn tại đây.
+                                </small>
+                            </div>
+
+                            <div id="quizCreateMode" class="d-none">
+                                <input type="hidden" name="quiz.id" id="quizId">
+
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <label class="form-label small fw-bold">Tên bài kiểm tra <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" name="quiz.name" id="quizName">
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">Loại bài thi <span class="text-danger">*</span></label>
+                                        <select class="form-select" name="quiz.testType.id" id="quizType">
+                                            <option value="">-- Chọn loại --</option>
+                                            <option th:each="tt : ${types}" th:value="${tt.id}" th:text="${tt.name}"></option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">Độ khó <span class="text-danger">*</span></label>
+                                        <select class="form-select" name="quiz.examLevel.id" id="quizLevel">
+                                            <option value="">-- Chọn độ khó --</option>
+                                            <option th:each="ql : ${quizLevels}" th:value="${ql.id}" th:text="${ql.name}"></option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">Thời gian (Phút) <span class="text-danger">*</span></label>
+                                        <input type="number" class="form-control" name="quiz.durationMinutes" id="quizDuration" min="1" placeholder="Ví dụ: 45">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">Điểm đạt (%)</label>
+                                        <input type="number" class="form-control" name="quiz.passRatePercentage" id="quizPassRate" min="0" max="100" placeholder="Ví dụ: 50">
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label small fw-bold">Mô tả / Hướng dẫn</label>
+                                        <textarea class="form-control" name="quiz.description" id="quizDesc" rows="2"></textarea>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-
                     <div id="htmlFields" class="col-12 d-none">
-                        <label class="form-label small fw-bold text-muted">Nội dung HTML / Mô tả <span class="text-danger">*</span></label>
-                        <textarea class="form-control" name="htmlContent" id="lessonContent" rows="5"></textarea>
+                        <div class="border rounded p-3 bg-light">
+                            <h6 class="text-danger fw-bold mb-3"><i class="fas fa-file-code me-2"></i>Cấu hình HTML</h6>
+                            <textarea class="form-control" name="content" id="lessonContent" rows="10"></textarea>
+                        </div>
                     </div>
-
-                </div>
             </div>
             <div class="modal-footer bg-light">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
@@ -330,27 +366,30 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script th:inline="javascript">
-    // Lấy giá trị từ Server (Thymeleaf)
+    // Lấy biến nextOrder từ Server
     const nextOrder = /*[[${nextOrder}]]*/ 1;
 
+    // --- TOGGLE SIDEBAR ---
     function toggleSidebar() {
         document.getElementById('sidebar').classList.toggle('collapsed');
         document.getElementById('mainContent').classList.toggle('expanded');
     }
 
+    // --- KHỞI TẠO ---
     const lessonModal = new bootstrap.Modal(document.getElementById('lessonModal'));
     const errorAlert = document.getElementById('jsErrorAlert');
 
-    // Helper an toàn để set value (tránh lỗi null nếu input không tồn tại)
+    // --- HELPER: Gán giá trị an toàn (Tránh lỗi null) ---
     function setVal(id, value) {
         const el = document.getElementById(id);
         if (el) el.value = value;
     }
 
-    // --- LOGIC ẨN HIỆN FORM THEO LOẠI ---
+    // --- LOGIC 1: ẨN HIỆN FORM THEO LOẠI BÀI HỌC ---
     function onTypeChange() {
         const typeSelect = document.getElementById('lessonType');
         if (!typeSelect) return;
+
         const typeName = typeSelect.options[typeSelect.selectedIndex].text.toLowerCase();
 
         const labDiv = document.getElementById('labFields');
@@ -358,13 +397,13 @@
         const videoDiv = document.getElementById('videoFields');
         const htmlDiv = document.getElementById('htmlFields');
 
-        // 1. Ẩn hết
+        // 1. Ẩn tất cả trước
         if(labDiv) labDiv.classList.add('d-none');
         if(quizDiv) quizDiv.classList.add('d-none');
         if(videoDiv) videoDiv.classList.add('d-none');
         if(htmlDiv) htmlDiv.classList.add('d-none');
 
-        // 2. Hiện cái cần thiết dựa trên tên loại
+        // 2. Hiện cái cần thiết
         if (typeName.includes('lab')) {
             if(labDiv) labDiv.classList.remove('d-none');
         }
@@ -375,19 +414,48 @@
             if(videoDiv) videoDiv.classList.remove('d-none');
         }
         else {
-            // Các loại còn lại (HTML, Reading...) dùng ô Textarea chung
+            // Mặc định (HTML/Text)
             if(htmlDiv) htmlDiv.classList.remove('d-none');
         }
     }
 
-    // --- MỞ MODAL THÊM MỚI ---
+    // --- LOGIC 2: CHUYỂN CHẾ ĐỘ QUIZ (CHỌN / TẠO) ---
+    function switchQuizMode(mode) {
+        const selectDiv = document.getElementById('quizSelectMode');
+        const createDiv = document.getElementById('quizCreateMode');
+        const btns = document.querySelectorAll('#quizModeTab .nav-link');
+
+        // Reset active tab
+        if(btns.length > 0) {
+            btns[0].classList.remove('active');
+            btns[1].classList.remove('active');
+        }
+
+        if (mode === 'select') {
+            selectDiv.classList.remove('d-none');
+            createDiv.classList.add('d-none');
+            if(btns.length > 0) btns[0].classList.add('active');
+
+            // Clear dữ liệu bên tạo mới để tránh gửi nhầm
+            setVal('quizName', '');
+        } else {
+            selectDiv.classList.add('d-none');
+            createDiv.classList.remove('d-none');
+            if(btns.length > 0) btns[1].classList.add('active');
+
+            // Clear lựa chọn bên dropdown
+            setVal('quizIdSelect', '');
+        }
+    }
+
+    // --- LOGIC 3: MỞ MODAL THÊM MỚI ---
     function openModalAdd() {
         document.getElementById('modalTitle').innerText = 'Thêm Bài học Mới';
 
-        // Reset fields
+        // Reset Lesson Info
         setVal('lessonId', "");
         setVal('lessonName', "");
-        setVal('lessonOrder', nextOrder); // Auto-fill next order
+        setVal('lessonOrder', nextOrder); // Auto fill
         setVal('lessonVideo', "");
         setVal('lessonContent', "");
         setVal('lessonPackage', "");
@@ -400,25 +468,27 @@
         setVal('labCriteria', "");
 
         // Reset Quiz
+        switchQuizMode('select'); // Mặc định tab Chọn
+        setVal('quizIdSelect', "");
         setVal('quizId', "");
         setVal('quizName', "");
-        setVal('quizType', "");  // Reset dropdown Type
-        setVal('quizLevel', ""); // Reset dropdown Level
         setVal('quizDuration', "45");
         setVal('quizPassRate', "50");
         setVal('quizDesc', "");
+        setVal('quizType', "");
+        setVal('quizLevel', "");
 
-        // Reset dropdown type về đầu tiên
+        // Reset Type về index 0
         const typeSelect = document.getElementById('lessonType');
         if(typeSelect) typeSelect.selectedIndex = 0;
 
-        onTypeChange(); // Update UI
-        if(errorAlert) errorAlert.classList.add('d-none');
+        onTypeChange(); // Cập nhật giao diện
 
+        if(errorAlert) errorAlert.classList.add('d-none');
         lessonModal.show();
     }
 
-    // --- MỞ MODAL SỬA (Load API) ---
+    // --- LOGIC 4: MỞ MODAL SỬA (FETCH API) ---
     function openModalEdit(id) {
         document.getElementById('modalTitle').innerText = 'Cập nhật Bài học';
         if(errorAlert) errorAlert.classList.add('d-none');
@@ -426,13 +496,13 @@
         fetch(`/admin/lessons/api/${id}`)
             .then(res => res.json())
             .then(data => {
+                // Fill Lesson
                 setVal('lessonId', data.id);
                 setVal('lessonName', data.name);
                 setVal('lessonOrder', data.orderNumber);
                 setVal('lessonType', data.typeId);
                 setVal('lessonPackage', data.packageId || "");
                 setVal('lessonStatus', data.status ? data.status.toLowerCase() : 'active');
-
                 setVal('lessonVideo', data.videoUrl || "");
                 setVal('lessonContent', data.htmlContent || "");
 
@@ -450,14 +520,23 @@
 
                 // Fill Quiz
                 if (data.quiz) {
+                    // Nếu đã có quiz, chuyển sang tab Create/Edit để hiện thông tin chi tiết
+                    switchQuizMode('create');
                     setVal('quizId', data.quiz.id);
                     setVal('quizName', data.quiz.name);
-                    setVal('quizType', data.quiz.testTypeId || "");
-                    setVal('quizLevel', data.quiz.levelId || "");
                     setVal('quizDuration', data.quiz.duration);
                     setVal('quizPassRate', data.quiz.passRate);
                     setVal('quizDesc', data.quiz.description || "");
+
+                    // Set dropdowns Type & Level
+                    if(data.quiz.testTypeId) setVal('quizType', data.quiz.testTypeId);
+                    if(data.quiz.levelId) setVal('quizLevel', data.quiz.levelId);
+
+                    // Clear dropdown select
+                    setVal('quizIdSelect', "");
                 } else {
+                    switchQuizMode('select');
+                    setVal('quizIdSelect', "");
                     setVal('quizId', "");
                     setVal('quizName', "");
                 }
@@ -471,7 +550,7 @@
             });
     }
 
-    // --- VALIDATE TRƯỚC KHI GỬI ---
+    // --- LOGIC 5: VALIDATE TRƯỚC KHI SUBMIT ---
     function validateLesson() {
         const name = document.getElementById('lessonName').value.trim();
         const typeSelect = document.getElementById('lessonType');
@@ -479,11 +558,12 @@
 
         let msg = "";
 
+        // 1. Validate Chung
         if (name.length < 3) {
             msg = "Tên bài học quá ngắn (tối thiểu 3 ký tự).";
         }
 
-        // Validate theo loại
+        // 2. Validate theo loại
         else if (typeName.includes("video")) {
             const vid = document.getElementById('lessonVideo').value.trim();
             if(vid === "") msg = "Vui lòng nhập Video URL.";
@@ -493,18 +573,28 @@
             if(labName === "") msg = "Vui lòng nhập Tên bài Lab.";
         }
         else if (typeName.includes("quiz")) {
-            const quizName = document.getElementById('quizName').value.trim();
-            const quizType = document.getElementById('quizType').value;
-            const quizLevel = document.getElementById('quizLevel').value;
-            const duration = document.getElementById('quizDuration').value;
+            // Check xem đang ở Tab nào
+            const isSelectMode = !document.getElementById('quizSelectMode').classList.contains('d-none');
 
-            if (quizName === "") msg = "Vui lòng nhập Tên bài kiểm tra.";
-            else if (quizType === "") msg = "Vui lòng chọn Loại bài kiểm tra.";
-            else if (quizLevel === "") msg = "Vui lòng chọn Độ khó.";
-            else if (!duration || duration <= 0) msg = "Thời gian làm bài phải lớn hơn 0.";
+            if (isSelectMode) {
+                // Tab Chọn: Phải chọn dropdown
+                if (document.getElementById('quizIdSelect').value === "") {
+                    msg = "Vui lòng chọn một bài kiểm tra có sẵn hoặc chuyển sang tab Tạo mới.";
+                }
+            } else {
+                // Tab Tạo mới: Phải nhập tên, thời gian, loại, cấp độ
+                const qName = document.getElementById('quizName').value.trim();
+                const qType = document.getElementById('quizType').value;
+                const qLevel = document.getElementById('quizLevel').value;
+                const qDuration = document.getElementById('quizDuration').value;
+
+                if (qName === "") msg = "Vui lòng nhập Tên bài kiểm tra.";
+                else if (qType === "") msg = "Vui lòng chọn Loại bài thi.";
+                else if (qLevel === "") msg = "Vui lòng chọn Độ khó.";
+                else if (!qDuration || qDuration <= 0) msg = "Thời gian làm bài phải lớn hơn 0.";
+            }
         }
         else if (typeName.includes("html") || typeName.includes("text")) {
-            // Nếu muốn bắt buộc nhập text
             const content = document.getElementById('lessonContent').value.trim();
             if(content === "") msg = "Vui lòng nhập nội dung bài học.";
         }
@@ -518,11 +608,14 @@
             }
             return false; // Chặn submit
         }
-        return true;
+        return true; // Cho phép submit
     }
 
-    // Gắn sự kiện
-    document.getElementById('lessonType')?.addEventListener('change', onTypeChange);
+    // Gắn sự kiện change
+    const typeDropdown = document.getElementById('lessonType');
+    if(typeDropdown) {
+        typeDropdown.addEventListener('change', onTypeChange);
+    }
 </script>
 </body>
 </html>

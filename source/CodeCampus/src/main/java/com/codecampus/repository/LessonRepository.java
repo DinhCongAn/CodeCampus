@@ -26,6 +26,7 @@ public interface LessonRepository extends JpaRepository<Lesson, Long> {
     Optional<Lesson> findFirstByCourseIdAndStatusOrderByOrderNumberAsc(Integer courseId, String status);
     Optional<Lesson> findByLabId(Integer labId);
     Optional<Lesson> findByQuizId(Integer quizId);
+    List<Lesson> findAllByQuizId(Integer quizId);
 
     long countByCourseIdAndStatus(Integer courseId, String status);
     List<Lesson> findByCourseId(Integer courseId);
