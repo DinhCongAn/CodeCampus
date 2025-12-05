@@ -1,16 +1,16 @@
 package com.codecampus.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import java.time.LocalDateTime;
 
-@Getter
-@Setter
 @Entity
 @Table(name = "blogs")
+@Data
 public class Blog {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -18,8 +18,23 @@ public class Blog {
     @Column(nullable = false)
     private String title;
 
+    @Column(name = "summary", length = 500)
+    private String summary; // Brief info
+
     @Column(columnDefinition = "NVARCHAR(MAX)")
     private String content;
+
+    @Column(name = "thumbnail_url", columnDefinition = "NTEXT")
+    private String thumbnailUrl;
+
+    @Column(length = 50)
+    private String status; // 'draft', 'published', 'hidden'
+
+    @Column(name = "is_featured")
+    private Boolean isFeatured = false;
+
+    @Column(name = "published_at")
+    private LocalDateTime publishedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "blog_category_id")
@@ -27,31 +42,13 @@ public class Blog {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id")
-    private User author; // Liên kết tới bảng 'users'
+    private User author;
 
-    @Column(name = "thumbnail_url", columnDefinition = "NTEXT")
-    private String thumbnailUrl;
-
-    @Column(length = 50, columnDefinition = "NVARCHAR(50) DEFAULT 'draft'")
-    private String status; // Ví dụ: 'draft', 'published'
-
-    @Column(name = "published_at")
-    private LocalDateTime publishedAt;
-
+    @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 }

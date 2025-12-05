@@ -32,7 +32,8 @@ public class HomeController {
 
         // 2. Lấy dữ liệu cho Hot Posts (Bài viết nổi bật)
         // Giả sử "hot posts" là 4 bài viết mới nhất đã được publish
-        List<Blog> hotPosts = blogRepository.findTop4ByStatusOrderByPublishedAtDesc("published");
+        List<Blog> hotPosts = blogRepository.findTop4ByStatusAndIsFeaturedTrueOrderByPublishedAtDesc("published");
+
         model.addAttribute("hotPosts", hotPosts);
 
         // 3. Lấy dữ liệu cho Featured Subjects (Khóa học nổi bật)
@@ -42,7 +43,7 @@ public class HomeController {
 
         // 4. Lấy dữ liệu cho Sidebar with latest posts
         // Giả sử sidebar hiển thị 5 bài viết mới nhất
-        List<Blog> latestPostsForSidebar = blogRepository.findTop5ByStatusOrderByPublishedAtDesc("published");
+        List<Blog> latestPostsForSidebar = blogRepository.findTop5ByStatusOrderByCreatedAtDesc("published");
         model.addAttribute("latestPostsForSidebar", latestPostsForSidebar);
 
         // Trả về tên của file view là "home.html"
