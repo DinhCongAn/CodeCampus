@@ -1,21 +1,29 @@
 package com.codecampus.entity;
 
 import jakarta.persistence.*;
+import lombok.*;
 import org.hibernate.annotations.Nationalized;
 
 @Entity
 @Table(name = "settings")
+@Data // Tự động sinh Getter, Setter, toString, equals, hashCode
+@NoArgsConstructor // Constructor không tham số (Bắt buộc cho JPA)
+@AllArgsConstructor // Constructor full tham số
+@Builder // Giúp tạo đối tượng nhanh: Setting.builder().key("...").build()
 public class Setting {
+
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // QUAN TRỌNG: Để SQL Server tự tăng ID
     @Column(name = "id", nullable = false)
     private Integer id;
 
-    @Nationalized
+    @Nationalized // Hỗ trợ lưu tiếng Việt (NVARCHAR)
     @Column(name = "type", length = 100)
     private String type;
 
+    // Dùng escape \"value\" vì 'value' là từ khóa trong một số DB, giữ nguyên để an toàn
     @Nationalized
-    @Column(name = "\"value\"")
+    @Column(name = "\"value\"", length = 255)
     private String value;
 
     @Column(name = "order_num")
@@ -24,81 +32,16 @@ public class Setting {
     @Column(name = "status", length = 50)
     private String status;
 
-    @Column(name = "setting_key", length = 100)
+    @Column(name = "setting_key", length = 100, unique = true) // Nên để unique để tránh trùng Key
     private String settingKey;
 
     @Nationalized
-    @Lob
-    @Column(name = "setting_value")
+    @Lob // Báo hiệu đây là dữ liệu lớn (Large Object)
+    @Column(name = "setting_value", columnDefinition = "NVARCHAR(MAX)") // Định nghĩa rõ cho SQL Server
     private String settingValue;
 
     @Nationalized
     @Lob
-    @Column(name = "description")
+    @Column(name = "description", columnDefinition = "NVARCHAR(MAX)")
     private String description;
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public void setValue(String value) {
-        this.value = value;
-    }
-
-    public Integer getOrderNum() {
-        return orderNum;
-    }
-
-    public void setOrderNum(Integer orderNum) {
-        this.orderNum = orderNum;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public String getSettingKey() {
-        return settingKey;
-    }
-
-    public void setSettingKey(String settingKey) {
-        this.settingKey = settingKey;
-    }
-
-    public String getSettingValue() {
-        return settingValue;
-    }
-
-    public void setSettingValue(String settingValue) {
-        this.settingValue = settingValue;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
 }

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hồ sơ • Siêu mượt</title>
+    <title>Hồ sơ của bạn</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 min-h-screen flex flex-col">
@@ -19,7 +19,7 @@
             <p class="text-gray-500 mt-2">Cập nhật thông tin và mật khẩu</p>
         </header>
 
-        <!-- Thông báo chung -->
+        <!-- Thông báo -->
         <div th:if="${profileSuccess}" class="mb-4 p-4 bg-green-100 text-green-800 rounded-lg border border-green-200 text-center text-sm">
             <p th:text="${profileSuccess}"></p>
         </div>
@@ -62,6 +62,7 @@
         <!-- Thông tin cá nhân -->
         <section class="mb-8 bg-white p-6 rounded-xl shadow border border-gray-200">
             <h2 class="text-2xl font-bold mb-4 text-gray-800">Thông tin cá nhân</h2>
+
             <form th:action="@{/profile/update}" th:object="${user}" method="post" class="grid md:grid-cols-2 gap-4">
                 <input type="hidden" th:name="${_csrf?.parameterName}" th:value="${_csrf?.token}"/>
 
@@ -84,9 +85,47 @@
                     </select>
                 </div>
 
+                <!-- Email readonly -->
+                <div>
+                    <label class="block text-gray-700 mb-1">Email</label>
+
+                    <input type="text"
+                           th:value="*{email}"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-200 cursor-not-allowed"
+                           readonly />
+
+                    <input type="hidden" th:field="*{email}" />
+                </div>
+
+                <!-- Địa chỉ với API realtime -->
                 <div class="md:col-span-2">
+
                     <label class="block text-gray-700 mb-1">Địa chỉ</label>
-                    <textarea th:field="*{address}" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2"></textarea>
+
+                    <!-- Province -->
+                    <select id="province" class="w-full border border-gray-300 rounded-lg px-3 py-2 mb-2">
+                        <option value="">-- Chọn Tỉnh/Thành phố --</option>
+                    </select>
+
+                    <!-- District -->
+                    <select id="district" class="w-full border border-gray-300 rounded-lg px-3 py-2 mb-2">
+                        <option value="">-- Chọn Quận/Huyện --</option>
+                    </select>
+
+                    <!-- Ward -->
+                    <select id="ward" class="w-full border border-gray-300 rounded-lg px-3 py-2 mb-2">
+                        <option value="">-- Chọn Phường/Xã --</option>
+                    </select>
+
+                    <!-- Detail -->
+                    <textarea id="addressDetail"
+                              placeholder="Số nhà, đường..."
+                              class="w-full border border-gray-300 rounded-lg px-3 py-2 mb-2"></textarea>
+
+                    <!-- Final Address (submitted to backend) -->
+                    <textarea th:field="*{address}" id="finalAddress"
+                              rows="2"
+                              class="hidden"></textarea>
                 </div>
 
                 <div class="md:col-span-2 text-center">
@@ -100,25 +139,23 @@
         <!-- Đổi mật khẩu -->
         <section class="bg-white p-6 rounded-xl shadow border border-gray-200">
             <h2 class="text-2xl font-bold mb-4 text-gray-800">Đổi mật khẩu</h2>
+
             <form th:action="@{/profile/change-password}" th:object="${passwordDto}" method="post" class="space-y-4">
                 <input type="hidden" th:name="${_csrf?.parameterName}" th:value="${_csrf?.token}"/>
 
                 <div>
                     <label class="block text-gray-700 mb-1">Mật khẩu cũ *</label>
                     <input type="password" th:field="*{oldPassword}" required class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
-                    <span th:if="${#fields.hasErrors('oldPassword')}" th:errors="*{oldPassword}" class="text-red-600 text-xs"></span>
                 </div>
 
                 <div>
                     <label class="block text-gray-700 mb-1">Mật khẩu mới *</label>
                     <input type="password" th:field="*{newPassword}" required class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
-                    <span th:if="${#fields.hasErrors('newPassword')}" th:errors="*{newPassword}" class="text-red-600 text-xs"></span>
                 </div>
 
                 <div>
                     <label class="block text-gray-700 mb-1">Xác nhận *</label>
                     <input type="password" th:field="*{confirmPassword}" required class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
-                    <span th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}" class="text-red-600 text-xs"></span>
                 </div>
 
                 <div class="text-center">
@@ -134,6 +171,77 @@
 
 <!-- Footer -->
 <div th:replace="~{fragments/footer :: footer}"></div>
+
+<!-- ======================= -->
+<!-- API ĐỊA CHỈ REAL-TIME  -->
+<!-- ======================= -->
+<script>
+    // Load Provinces
+    fetch("https://provinces.open-api.vn/api/p/")
+        .then(res => res.json())
+        .then(data => {
+            const province = document.getElementById("province");
+            data.forEach(p => {
+                province.innerHTML += `<option value="${p.code}">${p.name}</option>`;
+            });
+        });
+
+    // Load Districts
+    document.getElementById("province").addEventListener("change", function () {
+        const code = this.value;
+        const district = document.getElementById("district");
+        const ward = document.getElementById("ward");
+
+        district.innerHTML = "<option value=''>-- Chọn Quận/Huyện --</option>";
+        ward.innerHTML = "<option value=''>-- Chọn Phường/Xã --</option>";
+
+        if (!code) return;
+
+        fetch(`https://provinces.open-api.vn/api/p/${code}?depth=2`)
+            .then(res => res.json())
+            .then(data => {
+                data.districts.forEach(d => {
+                    district.innerHTML += `<option value="${d.code}">${d.name}</option>`;
+                });
+            });
+
+        updateFinalAddress();
+    });
+
+    // Load Wards
+    document.getElementById("district").addEventListener("change", function () {
+        const code = this.value;
+        const ward = document.getElementById("ward");
+
+        ward.innerHTML = "<option value=''>-- Chọn Phường/Xã --</option>";
+
+        if (!code) return;
+
+        fetch(`https://provinces.open-api.vn/api/d/${code}?depth=2`)
+            .then(res => res.json())
+            .then(data => {
+                data.wards.forEach(w => {
+                    ward.innerHTML += `<option value="${w.name}">${w.name}</option>`;
+                });
+            });
+
+        updateFinalAddress();
+    });
+
+    // Update final address
+    function updateFinalAddress() {
+        const p = document.querySelector("#province option:checked")?.textContent || "";
+        const d = document.querySelector("#district option:checked")?.textContent || "";
+        const w = document.querySelector("#ward option:checked")?.textContent || "";
+        const detail = document.getElementById("addressDetail").value;
+
+        document.getElementById("finalAddress").value =
+            `${detail}, ${w}, ${d}, ${p}`;
+    }
+
+    document.getElementById("ward").addEventListener("change", updateFinalAddress);
+    document.getElementById("addressDetail").addEventListener("input", updateFinalAddress);
+</script>
 
 </body>
 </html>
