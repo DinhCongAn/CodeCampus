@@ -25,7 +25,7 @@ DELETE FROM quiz_questions;
 DELETE FROM question_group;
 DELETE FROM notes;
 DELETE FROM my_courses;
---DELETE FROM registrations;
+DELETE FROM registrations;
 DELETE FROM feedbacks;
 DELETE FROM answer_options;
 DELETE FROM quiz_settings;
@@ -43,7 +43,7 @@ DELETE FROM blogs;
 DELETE FROM courses;
 
 -- Xóa bảng người dùng (Core data)
---DELETE FROM users;
+DELETE FROM users;
 
 -- Xóa các bảng danh mục (Independent data)
 DELETE FROM user_roles;
