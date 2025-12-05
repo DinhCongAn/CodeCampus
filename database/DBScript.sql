@@ -483,3 +483,7 @@ CREATE TABLE user_lesson_progress (
     CONSTRAINT uq_user_lesson UNIQUE (user_id, lesson_id) -- Quan trọng: 1 user chỉ có 1 record cho 1 bài
 );
 GO
+
+-- Chạy lệnh này trong SQL Server
+ALTER TABLE blogs ADD summary NVARCHAR(500); -- Mô tả ngắn
+ALTER TABLE blogs ADD is_featured BIT DEFAULT 0; -- Cờ nổi bật
