@@ -349,4 +349,10 @@ public class UserService {
         }
         userRepository.save(user);
     }
+
+    public void updatePasswordWithoutOldCheck(String email, String newPassword) {
+        User user = findUserByEmail(email);
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
 }
