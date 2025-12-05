@@ -8,14 +8,17 @@ import java.time.LocalDateTime;
 public class BlogDto {
     private Integer id;
     private String title;
-    private String brief; // Map với summary
+    private String brief;
     private String content;
     private String status;
     private Boolean isFeatured;
     private LocalDateTime publishedAt;
     private Integer blogCategoryId;
 
-    // Xử lý ảnh
-    private MultipartFile thumbnail; // File mới upload
-    private String thumbnailUrl;     // Đường dẫn ảnh cũ
+    // File
+    private MultipartFile thumbnail;
+    private String thumbnailUrl;
+
+    // MỚI: Để check quyền ở Frontend
+    private String authorEmail;
 }

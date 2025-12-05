@@ -43,7 +43,7 @@ public class AdminBlogController {
         return "admin/blogs";
     }
 
-    // API JSON cho Modal Edit
+    // API JSON
     @GetMapping("/api/{id}")
     @ResponseBody
     public ResponseEntity<BlogDto> getBlogApi(@PathVariable Integer id) {
@@ -59,6 +59,10 @@ public class AdminBlogController {
             dto.setThumbnailUrl(blog.getThumbnailUrl());
             dto.setPublishedAt(blog.getPublishedAt());
             if(blog.getCategory() != null) dto.setBlogCategoryId(blog.getCategory().getId());
+
+            // QUAN TRỌNG: Gửi email tác giả về
+            if(blog.getAuthor() != null) dto.setAuthorEmail(blog.getAuthor().getEmail());
+
             return ResponseEntity.ok(dto);
         } catch (Exception e) {
             return ResponseEntity.notFound().build();

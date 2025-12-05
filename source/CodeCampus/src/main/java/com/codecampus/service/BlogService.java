@@ -29,7 +29,7 @@ public class BlogService {
     private final BlogCategoryRepository categoryRepository;
     private final UserRepository userRepository;
 
-    @Value("${app.upload.dir:uploads/thumbnails}")
+    @Value("${app.upload.dir:uploads}")
     private String uploadDir;
 
     private static final String STATUS_PUBLISHED = "published";
@@ -129,71 +129,83 @@ public class BlogService {
     /**
      * Lưu bài viết (Xử lý chung cho cả Admin và User)
      */
+    // --- LOGIC LƯU (ĐÃ SỬA ĐỔI) ---
     public void saveBlog(BlogDto dto, String userEmail, boolean isAdmin) throws IOException {
         Blog blog = new Blog();
-        User currentUser = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
+        User currentUser = userRepository.findByEmail(userEmail).orElseThrow(() -> new RuntimeException("User not found"));
 
-        // 1. Kiểm tra ID để biết là Thêm mới hay Sửa
-        if (dto.getId() != null) {
-            blog = blogRepository.findById(Long.valueOf(dto.getId())).orElseThrow(() -> new RuntimeException("Không tìm thấy bài viết"));
+        boolean isUpdate = dto.getId() != null;
+        boolean isOwner = false;
 
-            // Check quyền: Nếu không phải Admin VÀ không phải tác giả -> Chặn
-            if (!isAdmin && !blog.getAuthor().getId().equals(currentUser.getId())) {
+        if (isUpdate) {
+            blog = blogRepository.findById(Long.valueOf(dto.getId())).orElseThrow(() -> new RuntimeException("Bài viết không tồn tại"));
+            isOwner = blog.getAuthor().getId().equals(currentUser.getId());
+
+            // 1. Nếu không phải Admin VÀ không phải tác giả -> Chặn
+            if (!isAdmin && !isOwner) {
                 throw new RuntimeException("Bạn không có quyền chỉnh sửa bài viết này!");
             }
         } else {
-            // Tạo mới -> Set tác giả
+            // Tạo mới -> Tác giả là người hiện tại
             blog.setAuthor(currentUser);
+            isOwner = true; // Tạo mới thì chắc chắn là owner
         }
 
-        // 2. Map dữ liệu từ DTO sang Entity
-        blog.setTitle(dto.getTitle());
-        blog.setSummary(dto.getBrief()); // Map 'brief' từ form vào 'summary' trong DB
-        blog.setContent(dto.getContent());
+        // 2. Logic cập nhật dữ liệu
+        if (isAdmin && !isOwner) {
+            // --- TRƯỜNG HỢP ADMIN DUYỆT BÀI NGƯỜI KHÁC ---
+            // Chỉ cho phép update Status, Featured, PublishedAt
+            // KHÔNG update Title, Content, Summary, Category, Image
 
-        if (dto.getBlogCategoryId() != null) {
-            BlogCategory category = categoryRepository.findById(dto.getBlogCategoryId()).orElse(null);
-            blog.setCategory(category);
-        }
-
-        // 3. Phân quyền dữ liệu (Status & Featured)
-        if (isAdmin) {
-            // Admin có toàn quyền quyết định
             blog.setStatus(dto.getStatus());
             blog.setIsFeatured(dto.getIsFeatured() != null ? dto.getIsFeatured() : false);
             blog.setPublishedAt(dto.getPublishedAt());
+
         } else {
-            // User thường:
-            // - Nếu bài mới: Luôn set là DRAFT
-            // - Nếu bài cũ: Giữ nguyên hoặc reset về Draft (Ở đây ta reset về Draft để Admin duyệt lại nội dung mới)
-            blog.setStatus("draft");
+            // --- TRƯỜNG HỢP CÒN LẠI (Tác giả tự sửa hoặc Tạo mới) ---
+            // Update Full nội dung
+            blog.setTitle(dto.getTitle());
+            blog.setSummary(dto.getBrief());
+            blog.setContent(dto.getContent());
 
-            // User không được quyền set Featured
-            if (blog.getIsFeatured() == null) {
-                blog.setIsFeatured(false);
+            if (dto.getBlogCategoryId() != null) {
+                blog.setCategory(categoryRepository.findById(dto.getBlogCategoryId()).orElse(null));
             }
-        }
 
-        // 4. Xử lý Upload Ảnh (Thumbnail)
-        if (dto.getThumbnail() != null && !dto.getThumbnail().isEmpty()) {
-            // Nếu có upload ảnh mới
-            String fileName = saveFile(dto.getThumbnail());
-            blog.setThumbnailUrl("/uploads/" + fileName);
-        } else if (dto.getThumbnailUrl() != null) {
-            // Nếu không upload, giữ nguyên URL ảnh cũ (từ hidden input)
-            blog.setThumbnailUrl(dto.getThumbnailUrl());
+            // --- XỬ LÝ ẢNH (FILE & LINK) ---
+
+            // Ưu tiên 1: Upload File mới (Nếu người dùng chọn file)
+            if (dto.getThumbnail() != null && !dto.getThumbnail().isEmpty()) {
+                String fileName = saveFile(dto.getThumbnail());
+                // Lưu đường dẫn web (URL) vào DB (map với resource handler)
+                blog.setThumbnailUrl("/uploads/blogs/" + fileName);
+            }
+            // Ưu tiên 2: Lưu Link ảnh (URL)
+            // - Nếu người dùng nhập link ảnh online vào tab URL
+            // - Hoặc nếu người dùng giữ nguyên ảnh cũ (frontend gửi lại link cũ)
+            else if (dto.getThumbnailUrl() != null) {
+                // Trim() để xóa khoảng trắng thừa, đảm bảo link sạch
+                String url = dto.getThumbnailUrl().trim();
+                blog.setThumbnailUrl(url);
+            }
+
+            // Logic Status cho User/Admin (khi sửa bài của chính mình)
+            if (isAdmin) {
+                blog.setStatus(dto.getStatus());
+                blog.setIsFeatured(dto.getIsFeatured() != null ? dto.getIsFeatured() : false);
+                blog.setPublishedAt(dto.getPublishedAt());
+            } else {
+                // User thường -> Reset về Draft
+                blog.setStatus("draft");
+                if (blog.getIsFeatured() == null) blog.setIsFeatured(false);
+            }
         }
 
         blogRepository.save(blog);
     }
 
-    /**
-     * Xóa bài viết
-     */
     public void deleteBlog(Integer id, String userEmail, boolean isAdmin) {
         Blog blog = getBlogById(id);
-
         if (!isAdmin) {
             User currentUser = userRepository.findByEmail(userEmail).orElseThrow();
             if (!blog.getAuthor().getId().equals(currentUser.getId())) {
@@ -203,28 +215,11 @@ public class BlogService {
         blogRepository.delete(blog);
     }
 
-    /**
-     * Helper: Lưu file vào thư mục server
-     */
     private String saveFile(MultipartFile file) throws IOException {
         Path uploadPath = Paths.get(uploadDir);
-
-        if (!Files.exists(uploadPath)) {
-            Files.createDirectories(uploadPath);
-        }
-
-        // Tạo tên file ngẫu nhiên để tránh trùng lặp
-        String originalFileName = StringUtils.cleanPath(file.getOriginalFilename());
-        String extension = "";
-        int i = originalFileName.lastIndexOf('.');
-        if (i > 0) {
-            extension = originalFileName.substring(i);
-        }
-        String fileName = UUID.randomUUID().toString() + extension;
-
-        Path filePath = uploadPath.resolve(fileName);
-        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-
+        if (!Files.exists(uploadPath)) Files.createDirectories(uploadPath);
+        String fileName = UUID.randomUUID().toString() + "_" + StringUtils.cleanPath(file.getOriginalFilename());
+        Files.copy(file.getInputStream(), uploadPath.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
         return fileName;
     }
 }
