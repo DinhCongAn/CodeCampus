@@ -28,6 +28,12 @@
             <span class="text">Bài kiểm tra</span>
         </a>
 
+        <a class="nav-link" th:href="@{/admin/questions}"
+           th:classappend="${activePage == 'questions' ? 'active' : ''}">
+            <i class="fas fa-question-circle"></i>
+            <span class="text">Ngân hàng câu hỏi</span>
+        </a>
+
         <a class="nav-link" th:href="@{/admin/users}"
            th:classappend="${activePage == 'users' ? 'active' : ''}">
             <i class="fas fa-users"></i> <span class="text">Người dùng</span>

@@ -41,4 +41,5 @@ public interface QuizRepository extends JpaRepository<Quiz, Integer> {
                                   @Param("quizId") Integer quizId);
 
     List<Quiz> findByCourseId(Long courseId); // Hoặc Integer tùy Entity Course
+
 }

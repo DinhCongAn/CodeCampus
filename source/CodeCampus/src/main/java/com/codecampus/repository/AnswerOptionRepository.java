@@ -2,6 +2,7 @@ package com.codecampus.repository;
 
 import com.codecampus.entity.AnswerOption;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -17,4 +18,8 @@ public interface AnswerOptionRepository extends JpaRepository<AnswerOption, Inte
             "JOIN q.quizzes quiz " +
             "WHERE quiz.id = :quizId AND ao.isCorrect = true")
     Set<Integer> findCorrectAnswerIdsByQuizId(@Param("quizId") Integer quizId);
+
+    @Modifying
+    @Query("DELETE FROM AnswerOption a WHERE a.question.id = :questionId")
+    void deleteByQuestionId(Integer questionId);
 }

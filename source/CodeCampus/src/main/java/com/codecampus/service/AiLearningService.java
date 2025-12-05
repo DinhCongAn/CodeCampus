@@ -324,6 +324,75 @@ public class AiLearningService { // <-- Đổi tên thành AiLearningService
         }
     }
 
+    /**
+     * Prompt để sinh câu hỏi trắc nghiệm tự động
+     */
+    public String generateQuestionsPrompt(String courseName, String topic, String level, int count) {
+        return String.format("""
+        Đóng vai trò chuyên gia giáo dục môn "%s". Tạo %d câu hỏi trắc nghiệm chủ đề "%s", độ khó %s.
+        
+        QUAN TRỌNG:
+        1. Trả về JSON thuần (Raw JSON), KHÔNG dùng Markdown (```json).
+        2. Bắt buộc phải có đúng 1 đáp án đúng ("isCorrect": true).
+        3. Các đáp án sai phải là ("isCorrect": false).
+        
+        Cấu trúc JSON bắt buộc:
+        {
+          "questions": [
+            {
+              "content": "Nội dung câu hỏi?",
+              "explanation": "Giải thích...",
+              "answers": [
+                { "content": "Đáp án A", "isCorrect": false },
+                { "content": "Đáp án B (Đúng)", "isCorrect": true },
+                { "content": "Đáp án C", "isCorrect": false },
+                { "content": "Đáp án D", "isCorrect": false }
+              ]
+            }
+          ]
+        }
+        """, courseName, count, topic, level);
+    }
+
+    /**
+     * Phương thức gọi AI để sinh câu hỏi và trả về chuỗi JSON thô
+     * @param contextTopic: Chủ đề + Ngữ cảnh môn học
+     * @param count: Số lượng câu
+     * @param level: Độ khó
+     */
+    public String generateQuizJson(String contextTopic, int count, String level) {
+        // Prompt cực kỳ chi tiết về định dạng JSON
+        String prompt = String.format("""
+            Bạn là chuyên gia tạo đề thi trắc nghiệm.
+            Nhiệm vụ: Tạo %d câu hỏi trắc nghiệm về chủ đề: "%s". Độ khó: %s.
+            
+            YÊU CẦU BẮT BUỘC VỀ JSON OUTPUT:
+            1. Chỉ trả về 1 chuỗi JSON duy nhất. Không Markdown, không ```json```.
+            2. Cấu trúc JSON phải chính xác như sau (chú ý trường 'isCorrect'):
+            
+            {
+              "questions": [
+                {
+                  "content": "Nội dung câu hỏi?",
+                  "explanation": "Giải thích ngắn gọn",
+                  "answers": [
+                    { "content": "Đáp án sai 1", "isCorrect": false },
+                    { "content": "Đáp án ĐÚNG", "isCorrect": true },
+                    { "content": "Đáp án sai 2", "isCorrect": false },
+                    { "content": "Đáp án sai 3", "isCorrect": false }
+                  ]
+                }
+              ]
+            }
+            
+            LƯU Ý QUAN TRỌNG:
+            - Mỗi câu hỏi BẮT BUỘC phải có đúng 1 đáp án có "isCorrect": true.
+            - Không được bỏ field "isCorrect".
+            - Ngôn ngữ: Tiếng Việt.
+            """, count, contextTopic, level);
+
+        return callGeminiApi(prompt, "generateQuizJson");
+    }
     // --- HELPER METHODS (Giữ nguyên và Bổ sung) ---
 
     /** Hàm lọc JSON sạch (Giữ nguyên) */
