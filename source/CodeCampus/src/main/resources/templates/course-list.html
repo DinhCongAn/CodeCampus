@@ -6,93 +6,232 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Danh sách Khóa học - CodeCampus</title>
 
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Đồng bộ Font & Config như trang chủ -->
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="icon" th:href="@{/images/logo.png}" />
-    <link rel="stylesheet" th:href="@{/css/main.css}"> </head>
-<body class="bg-gray-50 text-gray-800 font-sans">
+    <!-- Giữ lại main.css nếu có các style global khác, nhưng ưu tiên Tailwind config dưới đây -->
+    <link rel="stylesheet" th:href="@{/css/main.css}">
 
-<div th:replace="~{fragments/header :: header}"></div>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Manrope', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            primary: '#4f46e5',
+                            secondary: '#7c3aed',
+                        }
+                    },
+                    boxShadow: {
+                        'soft-xl': '0 20px 40px -10px rgba(0, 0, 0, 0.08), 0 10px 20px -10px rgba(79, 70, 229, 0.05)',
+                        'glow-light': '0 0 20px rgba(79, 70, 229, 0.15)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #f8fafc;
+            background-image:
+                    radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.05), transparent 40%),
+                    radial-gradient(circle at 90% 60%, rgba(139, 92, 246, 0.05), transparent 40%);
+            color: #0f172a;
+        }
 
-<div class="max-w-7xl mx-auto px-6 py-12 md:flex">
+        /* Glassmorphism Classes */
+        .glass-card {
+            background: #ffffff;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
 
-    <main class="w-full md:w-3/4 lg:w-2/3 md:pr-8">
-        <h1 class="text-4xl font-bold text-gray-900 mb-10">Tất cả Khóa học</h1>
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
 
-        <div th:if="${param.error == 'notFound'}" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
-            <span class="block sm:inline">Không tìm thấy khóa học bạn yêu cầu.</span>
+        /* Hiệu ứng Shine */
+        .glass-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.8), transparent);
+            transform: skewX(-25deg);
+            transition: 0.5s;
+            pointer-events: none;
+        }
+        .glass-card:hover::after {
+            left: 150%;
+            transition: 0.7s ease-in-out;
+        }
+
+        .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+        .text-gradient {
+            background: linear-gradient(to right, #4f46e5, #9333ea);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="antialiased font-sans selection:bg-indigo-100 selection:text-indigo-900">
+
+<!-- Header Sticky -->
+<div class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200 shadow-sm">
+    <div th:replace="~{fragments/header :: header}"></div>
+</div>
+
+<div class="max-w-[1450px] mx-auto px-4 sm:px-6 py-12 md:flex gap-8 relative">
+
+    <!-- Background Decor -->
+    <div class="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+        <div class="absolute top-[10%] left-[5%] w-72 h-72 bg-blue-400/10 rounded-full blur-[100px]"></div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <main class="w-full md:w-3/4 lg:w-3/4">
+
+        <!-- Page Title & Controls -->
+        <div class="mb-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <h1 class="text-3xl md:text-4xl font-extrabold text-slate-800 tracking-tight">
+                    Khám phá <span class="text-gradient">Khóa học</span>
+                </h1>
+                <p class="text-slate-500 mt-2 text-sm">Nâng cao kỹ năng lập trình của bạn với các khóa học chất lượng.</p>
+            </div>
+            <!-- Có thể thêm bộ lọc hoặc sort ở đây nếu cần sau này -->
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- Error / Alert Message -->
+        <div th:if="${param.error == 'notFound'}" class="glass-card bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-r-xl mb-8 flex items-center shadow-sm" role="alert">
+            <svg class="w-6 h-6 mr-3 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span class="font-medium">Không tìm thấy khóa học bạn yêu cầu.</span>
+        </div>
+
+        <!-- Course Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
 
             <div th:each="course : ${coursePage.content}"
-                 class="bg-white rounded-2xl shadow-lg overflow-hidden transition-transform duration-300 hover:scale-105">
+                 class="glass-card group rounded-2xl flex flex-col h-full shadow-soft-xl hover:shadow-2xl">
 
-                <a th:href="@{'/courses/' + ${course.id}}">
-                    <img th:src="@{${course.thumbnailUrl}}" alt="Thumbnail" class="w-full h-48 object-cover" />
+                <!-- Image Area -->
+                <a th:href="@{'/courses/' + ${course.id}}" class="block relative aspect-video overflow-hidden border-b border-slate-100">
+                    <img th:src="@{${course.thumbnailUrl}}" alt="Thumbnail" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700" />
+
+                    <!-- Overlay Button -->
+                    <div class="absolute inset-0 bg-indigo-900/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+                        <span class="bg-white text-indigo-700 font-bold px-4 py-2 rounded-full shadow-xl transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 text-xs uppercase tracking-wide">Xem ngay</span>
+                    </div>
                 </a>
 
-                <div class="p-6">
-                    <span class="text-sm font-semibold text-blue-600" th:text="${course.category?.name}">Danh mục</span>
+                <!-- Content Area -->
+                <div class="p-5 flex flex-col flex-1 bg-white">
+                    <!-- Category Badge -->
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="inline-block bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider hover:bg-indigo-50 hover:text-indigo-600 transition-colors cursor-default"
+                              th:text="${course.category?.name}">Danh mục</span>
+                    </div>
 
+                    <!-- Title -->
                     <a th:href="@{'/courses/' + ${course.id}}">
-                        <h2 class="text-xl font-bold text-gray-900 my-2" th:text="${course.name}">Tiêu đề khóa học</h2>
+                        <h2 class="text-lg font-bold text-slate-800 group-hover:text-indigo-600 transition-colors mb-2 line-clamp-2 leading-snug"
+                            th:text="${course.name}">Tiêu đề khóa học</h2>
                     </a>
 
-                    <div class="mt-4">
+                    <!-- Price Logic -->
+                    <div class="mt-auto pt-4 border-t border-slate-50">
                         <div th:with="lowestPriceOpt=${courseService.getLowestPrice(course.id)}">
                             <div th:if="${lowestPriceOpt.isPresent()}">
-                                <div th:with="lowestPrice=${lowestPriceOpt.get()}">
+                                <div th:with="lowestPrice=${lowestPriceOpt.get()}" class="flex items-center flex-wrap gap-2">
+                                    <!-- Sale Price -->
                                     <span th:if="${lowestPrice.salePrice != null}"
-                                          class="text-2xl font-bold text-red-600"
+                                          class="text-xl font-extrabold text-rose-600 font-mono"
                                           th:text="${#numbers.formatDecimal(lowestPrice.salePrice, 0, 'COMMA', 0, 'POINT') + ' đ'}">
                                     </span>
+                                    <!-- List Price (Gạch ngang) -->
                                     <span th:if="${lowestPrice.salePrice != null}"
-                                          class="text-lg text-gray-500 line-through ml-2"
+                                          class="text-sm text-slate-400 line-through font-mono decoration-slate-400"
                                           th:text="${#numbers.formatDecimal(lowestPrice.listPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}">
                                     </span>
+                                    <!-- Normal Price (No Sale) -->
                                     <span th:unless="${lowestPrice.salePrice != null}"
-                                          class="text-2xl font-bold text-gray-900"
+                                          class="text-xl font-extrabold text-indigo-600 font-mono"
                                           th:text="${#numbers.formatDecimal(lowestPrice.listPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}">
                                     </span>
                                 </div>
                             </div>
                             <div th:unless="${lowestPriceOpt.isPresent()}">
-                                <span class="text-xl font-bold text-green-600">Miễn phí</span>
+                                <span class="text-lg font-bold text-emerald-500 flex items-center">
+                                    <span class="mr-1">Free</span>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                </span>
                             </div>
                         </div>
                     </div>
 
+                    <!-- Mobile Button (Visible on all screens but styled nicely) -->
                     <a th:href="@{'/courses/' + ${course.id}}"
-                       class="mt-5 block w-full text-center bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700">
-                        Xem chi tiết
+                       class="mt-4 block w-full text-center bg-slate-50 border border-slate-200 text-slate-700 py-2.5 rounded-xl font-bold text-sm hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all duration-300 shadow-sm">
+                        Chi tiết khóa học
                     </a>
                 </div>
             </div>
-            <div th:if="${#lists.isEmpty(coursePage.content)}" class="bg-white p-6 rounded-2xl shadow-lg text-center md:col-span-2">                <h2 class="text-xl font-semibold text-gray-700">Không tìm thấy khóa học nào</h2>
-                <p class="text-gray-500">Vui lòng thử lại với từ khóa hoặc danh mục khác.</p>
+
+            <!-- Empty State -->
+            <div th:if="${#lists.isEmpty(coursePage.content)}" class="col-span-1 md:col-span-2 lg:col-span-3">
+                <div class="glass-card p-12 rounded-2xl text-center border-dashed border-2 border-slate-300">
+                    <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <h2 class="text-xl font-bold text-slate-700 mb-2">Không tìm thấy khóa học nào</h2>
+                    <p class="text-slate-500">Thử tìm kiếm với từ khóa khác hoặc xóa bộ lọc danh mục.</p>
+                </div>
             </div>
 
         </div>
 
-        <div class="flex justify-center items-center space-x-4 mt-12"
+        <!-- Pagination -->
+        <div class="flex justify-center items-center space-x-2 mt-16"
              th:if="${coursePage.totalPages > 1}">
+
             <a th:if="${!coursePage.isFirst()}"
                th:href="@{/courses(page=${coursePage.number - 1}, size=${coursePage.size}, keyword=${keyword}, categoryId=${selectedCategoryId})}"
-               class="px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-gray-700 hover:bg-gray-50">
-                &larr; Trang trước
+               class="px-4 py-2.5 bg-white border border-slate-200 rounded-xl shadow-sm text-slate-600 font-semibold hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-all flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                Trang trước
             </a>
-            <span class="text-gray-700" th:text="|Trang ${coursePage.number + 1} / ${coursePage.totalPages}|"></span>
+
+            <span class="px-4 py-2.5 bg-indigo-600 text-white rounded-xl shadow-md font-bold text-sm"
+                  th:text="|${coursePage.number + 1} / ${coursePage.totalPages}|"></span>
+
             <a th:if="${!coursePage.isLast()}"
                th:href="@{/courses(page=${coursePage.number + 1}, size=${coursePage.size}, keyword=${keyword}, categoryId=${selectedCategoryId})}"
-               class="px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-gray-700 hover:bg-gray-50">
-                Trang sau &rarr;
+               class="px-4 py-2.5 bg-white border border-slate-200 rounded-xl shadow-sm text-slate-600 font-semibold hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-all flex items-center">
+                Trang sau
+                <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
             </a>
         </div>
 
     </main>
 
-    <div th:replace="~{fragments/course-sidebar :: course-sidebar}"></div>
+    <!-- Sidebar Wrapper -->
+    <aside class="hidden md:block w-full md:w-1/4 lg:w-1/4 space-y-8">
+        <!-- Sidebar content được wrap để style không bị vỡ -->
+        <div th:replace="~{fragments/course-sidebar :: course-sidebar}"></div>
+    </aside>
 
 </div>
 

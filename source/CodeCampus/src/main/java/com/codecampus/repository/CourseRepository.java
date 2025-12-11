@@ -13,9 +13,8 @@ import java.util.Optional;
 
 public interface CourseRepository extends JpaRepository<Course, Long> {
     List<Course> findByIsFeaturedAndStatus(boolean isFeatured, String status);
-    // Trạng thái mặc định
-    String STATUS_PUBLISHED = "published";
 
+    List<Course> findCourseByStatus(String status);
     // --- CÁC PHƯƠNG THỨC CHO TRANG DANH SÁCH (Courses List) ---
 
     // 1. Mặc định: Lấy tất cả (phân trang, sắp xếp theo ngày cập nhật)
@@ -55,5 +54,13 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
                                   Pageable pageable);
 
     Course findByName(String name);
+
+//    // Load course + category (tránh lỗi Lazy)
+//    @Query("SELECT c FROM Course c LEFT JOIN FETCH c.category")
+//    List<Course> findAllWithCategory();
+//
+//    // Lọc khóa học đang active (trong DB bạn status là VARCHAR)
+//    @Query("SELECT c FROM Course c LEFT JOIN FETCH c.category WHERE c.status = 'active'")
+//    List<Course> findActiveCoursesWithCategory();
 }
 

@@ -415,7 +415,7 @@ public class AiLearningService { // <-- Đổi tên thành AiLearningService
     }
 
     /** Helper gọi Gemini API đơn giản (Sửa đổi để linh hoạt hơn) */
-    private String callGeminiApi(String prompt, String methodName) {
+    public String callGeminiApi(String prompt, String methodName) {
         if (this.geminiClient == null) {
             logger.warn("AIService ({}): Client chưa khởi tạo. Trả về lỗi.", methodName);
             return "Lỗi: Dịch vụ AI chưa sẵn sàng.";
@@ -449,6 +449,4 @@ public class AiLearningService { // <-- Đổi tên thành AiLearningService
         return CompletableFuture.supplyAsync(() -> getLabHelp(labContext, userQuestion));
     }
 
-    // (Chúng ta không cần hàm chatWithContext cũ nữa
-    // vì đã có getContextualAnswer mạnh mẽ hơn)
 }

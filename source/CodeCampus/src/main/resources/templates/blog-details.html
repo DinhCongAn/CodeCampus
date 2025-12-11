@@ -46,8 +46,10 @@
             <img th:src="@{${blog.thumbnailUrl}}" alt="Thumbnail" class="w-full rounded-2xl shadow-lg mb-8" />
 
             <div class="blog-content text-lg"
-                 th:utext="${blog.content}">
+                 style="white-space: pre-wrap;"
+                 th:text="${blog.content}">
             </div>
+
         </article>
     </main>
 

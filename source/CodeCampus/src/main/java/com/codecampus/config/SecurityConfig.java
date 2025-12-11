@@ -25,7 +25,7 @@ public class SecurityConfig {
         http
                 // 1. [QUAN TRỌNG] Tắt CSRF cho Webhook
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/payment/**")
+                        .ignoringRequestMatchers("/payment/**", "/api/ai/**")
                 )
                 .authorizeHttpRequests(authz -> authz
                         // Cho phép các trang public
@@ -36,7 +36,7 @@ public class SecurityConfig {
                                 "/css/**", "/js/**", "/images/**",
                                 // ===== THAY ĐỔI =====
                                 "/register-process","/payment/**", // Chỉ cần mở cái này
-                                "/payment-info"
+                                "/payment-info", "/api/ai/**" // mở quyền cho chatbot AI
                         ).permitAll()
                         // Tất cả các request khác phải được xác thực
                         .anyRequest().authenticated()
