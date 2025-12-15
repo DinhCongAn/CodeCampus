@@ -106,7 +106,8 @@ public class CourseService {
      */
     private void checkDuplicateName(Integer id, String name) {
         // Tìm xem có thằng nào tên giống vậy không
-        Course existingCourse = courseRepository.findByName(name);
+        Course existingCourse = courseRepository.findByName(name)
+                .orElseThrow(() -> new RuntimeException("Course not found"));
 
         if (existingCourse != null) {
             // TRƯỜNG HỢP 1: Thêm mới (id truyền vào là NULL)

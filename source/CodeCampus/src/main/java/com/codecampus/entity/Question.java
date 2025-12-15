@@ -1,13 +1,17 @@
 package com.codecampus.entity;
 
 import jakarta.persistence.*;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(name = "questions")
 @Getter @Setter
+@Data
 public class Question {
 
     @Id
@@ -51,7 +55,7 @@ public class Question {
     @OneToMany(mappedBy = "question", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AnswerOption> answerOptions;
 
-    // 5. Liên kết ngược với Quiz (Câu hỏi này nằm trong những đề thi nào)
+
     @ManyToMany(mappedBy = "questions", fetch = FetchType.LAZY)
-    private List<Quiz> quizzes;
+    private List<Quiz> quizzes = new ArrayList<>();
 }

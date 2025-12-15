@@ -1,6 +1,7 @@
 package com.codecampus.repository;
 
 import com.codecampus.entity.Course;
+import com.codecampus.entity.QuestionLevel;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -53,14 +54,9 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
                                   @Param("status") String status,
                                   Pageable pageable);
 
-    Course findByName(String name);
 
-//    // Load course + category (tránh lỗi Lazy)
-//    @Query("SELECT c FROM Course c LEFT JOIN FETCH c.category")
-//    List<Course> findAllWithCategory();
-//
-//    // Lọc khóa học đang active (trong DB bạn status là VARCHAR)
-//    @Query("SELECT c FROM Course c LEFT JOIN FETCH c.category WHERE c.status = 'active'")
-//    List<Course> findActiveCoursesWithCategory();
+    Optional<Course> findByName(String name);
+
+    List<Course> findByStatus(String status);
 }
 

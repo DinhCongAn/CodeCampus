@@ -47,12 +47,12 @@ public class Quiz {
     @OneToMany(mappedBy = "quiz", fetch = FetchType.LAZY)
     private List<Lesson> lessons;
 
+    // QUAN TRỌNG: Mapping bảng trung gian
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-            name = "quiz_questions",
-            joinColumns = @JoinColumn(name = "quiz_id"),
-            inverseJoinColumns = @JoinColumn(name = "question_id")
+            name = "quiz_questions", // Tên bảng trung gian trong DB
+            joinColumns = @JoinColumn(name = "quiz_id"), // Khóa ngoại trỏ về Quiz
+            inverseJoinColumns = @JoinColumn(name = "question_id") // Khóa ngoại trỏ về Question
     )
-    @OrderBy("id ASC")
     private List<Question> questions;
 }

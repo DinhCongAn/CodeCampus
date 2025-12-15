@@ -65,7 +65,7 @@ public class QuizAttemptController {
 
             try {
                 Integer quizId = attempt.getQuiz().getId();
-                List<Question> questionEntities = questionRepository.findQuestionsByQuizIdWithOptions(quizId);
+                List<Question> questionEntities = questionRepository.findActiveQuestionsByQuizIdWithOptions(quizId);
                 List<QuestionDto> questionDtos = questionEntities.stream()
                         .map(QuestionDto::fromEntity)
                         .collect(Collectors.toList());

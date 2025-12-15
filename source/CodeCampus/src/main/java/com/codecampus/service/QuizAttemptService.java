@@ -194,7 +194,7 @@ public class QuizAttemptService {
 
             // Tìm đáp án đúng từ 'q'
             AnswerOption correctAnswer = q.getAnswerOptions().stream()
-                    .filter(AnswerOption::isCorrect)
+                    .filter(option -> Boolean.TRUE.equals(option.getIsCorrect()))
                     .findFirst()
                     .orElse(null);
 

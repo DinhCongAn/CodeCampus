@@ -2,155 +2,158 @@
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Quản lý Ngân hàng câu hỏi | Admin</title>
+    <title>Ngân hàng câu hỏi | Admin</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/admin-style.css}">
 
-    <style>
-        #loadingOverlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 9999;
-            display: none; /* Mặc định ẩn */
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            backdrop-filter: blur(3px);
-        }
-        .spinner-border { width: 3rem; height: 3rem; }
-    </style>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 </head>
 <body>
-
-<div id="loadingOverlay">
-    <div class="spinner-border text-warning mb-3" role="status"></div>
-    <h5 class="fw-bold">AI đang suy nghĩ và tạo câu hỏi...</h5>
-    <p class="small text-white-50">Vui lòng không tắt trình duyệt.</p>
-</div>
 
 <div th:replace="~{fragments/sidebar-menu-admin :: sidebar('questions')}"></div>
 
 <div class="main-content" id="mainContent">
 
-    <div class="topbar d-flex align-items-center justify-content-between p-3 border-bottom bg-white shadow-sm">
+    <div class="topbar d-flex align-items-center justify-content-between">
         <div class="d-flex align-items-center">
-            <button class="btn btn-light border shadow-sm me-3" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
-            <h4 class="mb-0 fw-bold text-primary">Ngân hàng câu hỏi</h4>
+            <div class="toggle-btn me-4" onclick="toggleSidebar()"><i class="fas fa-bars"></i></div>
+            <h4 class="mb-0 fw-bold text-dark">Ngân hàng Câu hỏi</h4>
         </div>
-        <div class="user-info">
-            <span class="text-muted small">Admin</span>
+        <div class="d-flex align-items-center gap-3">
+            <span class="text-muted small">Xin chào, <strong th:text="${#authentication?.name}">Admin</strong></span>
+            <img th:src="@{https://ui-avatars.com/api/?name=Admin&background=4361ee&color=fff}" width="40" class="rounded-circle">
         </div>
     </div>
 
-    <div class="container-fluid py-4">
+    <div class="container-fluid">
         <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show"><i class="fas fa-check-circle me-2"></i> <span th:text="${successMessage}"></span><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
         <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show"><i class="fas fa-exclamation-circle me-2"></i> <span th:text="${errorMessage}"></span><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
 
         <div class="card border-0 shadow-sm mb-4">
-            <div class="card-body bg-light rounded">
-                <form th:action="@{/admin/questions}" method="get" class="row g-2 align-items-end">
-                    <div class="col-md-3">
-                        <label class="small fw-bold text-muted">Từ khóa</label>
-                        <input type="text" name="keyword" class="form-control" th:value="${keyword}" placeholder="Nội dung câu hỏi...">
-                    </div>
+            <div class="card-body">
+                <form th:action="@{/admin/questions}" method="get">
+                    <div class="row g-2">
+                        <div class="col-md-2">
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                                <input type="text" name="keyword" class="form-control border-start-0" placeholder="Tìm kiếm..." th:value="${keyword}">
+                            </div>
+                        </div>
 
-                    <div class="col-md-3">
-                        <label class="small fw-bold text-muted">Môn học</label>
-                        <select name="courseId" class="form-select" onchange="loadQuizzes(this.value, 'filterQuizId')">
-                            <option value="">-- Tất cả Môn --</option>
-                            <option th:each="c : ${courses}" th:value="${c.id}" th:text="${c.name}" th:selected="${c.id == courseId}"></option>
-                        </select>
-                    </div>
+                        <div class="col-md-2">
+                            <select name="courseId" id="filterCourse" class="form-select" onchange="loadQuizzesByCourse(this.value, 'filterQuiz')">
+                                <option value="">-- Khóa học --</option>
+                                <option th:each="c : ${courses}" th:value="${c.id}" th:text="${c.name}" th:selected="${c.id == courseId}"></option>
+                            </select>
+                        </div>
 
-                    <div class="col-md-3">
-                        <label class="small fw-bold text-muted">Bài kiểm tra (Quiz)</label>
-                        <select name="quizId" id="filterQuizId" class="form-select">
-                            <option value="">-- Tất cả Quiz --</option>
-                            <option th:if="${quizId != null}" th:each="z : ${quizzes}"
-                                    th:value="${z.id}" th:text="${z.name}" th:selected="${z.id == quizId}"></option>
-                        </select>
-                    </div>
+                        <div class="col-md-2">
+                            <select name="quizId" id="filterQuiz" class="form-select">
+                                <option value="">-- Bài kiểm tra --</option>
+                                <th:block th:if="${quizzes != null}">
+                                    <option th:each="q : ${quizzes}" th:value="${q.id}" th:text="${q.name}" th:selected="${q.id == quizId}"></option>
+                                </th:block>
+                            </select>
+                        </div>
 
-                    <div class="col-md-3">
-                        <button type="submit" class="btn btn-primary w-100 fw-bold"><i class="fas fa-filter me-1"></i> Lọc Dữ Liệu</button>
+                        <div class="col-md-2">
+                            <select name="levelId" class="form-select">
+                                <option value="">-- Mức độ --</option>
+                                <option th:each="l : ${levels}" th:value="${l.id}" th:text="${l.name}" th:selected="${l.id == levelId}"></option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-2">
+                            <select name="status" class="form-select">
+                                <option value="">-- Trạng thái --</option>
+                                <option value="active" th:selected="${status == 'active'}">Hiển thị (Active)</option>
+                                <option value="inactive" th:selected="${status == 'inactive'}">Đã ẩn (Inactive)</option>
+                                <option value="draft" th:selected="${status == 'draft'}">Bản nháp (Draft)</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-2 d-flex gap-1 justify-content-end">
+                            <button type="submit" class="btn btn-primary" title="Lọc"><i class="fas fa-filter"></i></button>
+                            <a th:href="@{/admin/questions}" class="btn btn-light border" title="Reset"><i class="fas fa-sync"></i></a>
+                            <button type="button" class="btn btn-warning text-white" onclick="openImportModal()" title="Import"><i class="fas fa-file-import"></i></button>
+                            <button type="button" class="btn btn-success" onclick="openModalAdd()" title="Thêm mới"><i class="fas fa-plus"></i></button>
+                        </div>
                     </div>
                 </form>
-
-                <hr class="my-3 text-muted opacity-25">
-                <div class="text-end">
-                    <button class="btn btn-success fw-bold shadow-sm" onclick="openModalAdd()">
-                        <i class="fas fa-plus-circle me-1"></i> Thêm Câu Hỏi Mới
-                    </button>
-                </div>
             </div>
         </div>
 
-        <div class="card border-0 shadow-sm">
+        <div class="table-card">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
-                    <thead class="bg-light table-light">
+                    <thead class="bg-light">
                     <tr>
                         <th class="ps-4">ID</th>
-                        <th style="width: 40%;">Nội dung</th>
-                        <th>Thuộc Quiz</th>
-                        <th>Mức độ</th>
-                        <th class="text-end pe-4">Thao tác</th>
+                        <th style="min-width: 300px;">Nội dung câu hỏi</th>
+                        <th class="text-center">Mức độ</th>
+                        <th class="text-center">Trạng thái</th>
+                        <th>Thuộc Khóa/Quiz</th>
+                        <th class="text-end pe-4">Hành động</th>
                     </tr>
                     </thead>
                     <tbody>
-                    <tr th:if="${qPage.empty}"><td colspan="5" class="text-center py-5 text-muted"><i class="fas fa-box-open fa-2x mb-2"></i><br>Không tìm thấy câu hỏi nào.</td></tr>
+                    <tr th:if="${qPage.empty}"><td colspan="6" class="text-center py-5 text-muted">Không tìm thấy câu hỏi nào.</td></tr>
 
                     <tr th:each="q : ${qPage.content}">
-                        <td class="ps-4 fw-bold text-muted" th:text="${'#' + q.id}"></td>
+                        <td class="ps-4 text-muted fw-bold" th:text="${'#' + q.id}">#1</td>
+
                         <td>
-                            <span class="d-block fw-bold text-dark text-wrap mb-1" th:text="${q.content}"></span>
-                            <small class="text-success"><i class="fas fa-check-circle me-1"></i>
-                                <span th:each="a:${q.answerOptions}" th:if="${a.correct}" th:text="${a.content}"></span>
+                            <p class="mb-1 fw-bold text-dark" th:text="${q.content}" style="white-space: pre-wrap;">Content</p>
+                            <small class="text-success" th:if="${!q.answerOptions.empty}">
+                                <i class="fas fa-check-circle me-1"></i>
+                                <span th:each="ans : ${q.answerOptions}" th:if="${ans.isCorrect}" th:text="${ans.content}"></span>
                             </small>
                         </td>
-                        <td>
-                            <div th:if="${not #lists.isEmpty(q.quizzes)}">
-                                <span th:each="z : ${q.quizzes}" class="badge bg-primary-subtle text-primary border border-primary-subtle me-1 mb-1" th:text="${z.name}"></span>
-                            </div>
-                            <span th:if="${#lists.isEmpty(q.quizzes)}" class="text-muted small">Chưa gán</span>
+
+                        <td class="text-center">
+                            <span th:if="${q.questionLevel != null}"
+                                  th:text="${q.questionLevel.name}"
+                                  class="badge-level"
+                                  th:classappend="${q.questionLevel.id == 1 ? 'level-easy' : (q.questionLevel.id == 2 ? 'level-medium' : 'level-hard')}">
+                                Level
+                            </span>
                         </td>
-                        <td><span class="badge bg-light text-dark border" th:text="${q.questionLevel != null ? q.questionLevel.name : '-'}"></span></td>
+
+                        <td class="text-center">
+                            <span th:if="${q.status == 'active'}" class="badge bg-success-subtle text-success">Active</span>
+                            <span th:if="${q.status == 'inactive'}" class="badge bg-secondary-subtle text-secondary">Inactive</span>
+                            <span th:if="${q.status == 'draft'}" class="badge bg-warning-subtle text-warning">Draft</span>
+                        </td>
+
+                        <td>
+                            <div class="small text-muted" th:if="${q.course != null}"><i class="fas fa-book me-1"></i> <span th:text="${q.course.name}">Course</span></div>
+                            <div class="small text-primary" th:if="${!q.quizzes.empty}"><i class="fas fa-clipboard-list me-1"></i> <span th:text="${q.quizzes[0].name}">Quiz</span></div>
+                        </td>
                         <td class="text-end pe-4">
-                            <button class="btn btn-sm btn-outline-primary" th:onclick="'editQuestion(' + ${q.id} + ')'" title="Sửa"><i class="fas fa-edit"></i></button>
+                            <button class="btn btn-sm btn-outline-primary me-1" th:onclick="'openModalEdit(' + ${q.id} + ')'" title="Sửa"><i class="fas fa-edit"></i></button>
+                            <form th:action="@{/admin/questions/toggle/{id}(id=${q.id})}" method="post" style="display: inline;">
+                                <button th:if="${q.status == 'active'}" type="submit" class="btn btn-sm btn-outline-warning" title="Ẩn" onclick="return confirm('Ẩn môn này?')"><i class="fas fa-eye-slash"></i></button>
+                                <button th:if="${q.status != 'active'}" type="submit" class="btn btn-sm btn-outline-success" title="Hiện"><i class="fas fa-eye"></i></button>
+                            </form>
                         </td>
                     </tr>
                     </tbody>
                 </table>
             </div>
 
-            <div class="d-flex justify-content-between align-items-center p-3 border-top bg-light" th:if="${qPage.totalPages > 0}">
+            <div class="d-flex justify-content-between align-items-center p-3 border-top" th:if="${qPage.totalPages > 0}">
                 <span class="text-muted small">
-                    Hiển thị <strong th:text="${qPage.numberOfElements}"></strong>
-                    trên tổng số <strong th:text="${qPage.totalElements}"></strong> câu hỏi
+                    Hiển thị <strong th:text="${qPage.numberOfElements}"></strong> / <strong th:text="${qPage.totalElements}"></strong> câu hỏi
                 </span>
                 <nav>
                     <ul class="pagination pagination-sm mb-0">
-                        <li class="page-item" th:classappend="${qPage.first ? 'disabled' : ''}">
-                            <a class="page-link" th:href="@{/admin/questions(page=${qPage.number - 1}, keyword=${keyword}, courseId=${courseId}, quizId=${quizId}, levelId=${levelId})}">Trước</a>
-                        </li>
-
-                        <li class="page-item" th:each="i : ${#numbers.sequence(0, qPage.totalPages - 1)}"
-                            th:classappend="${i == qPage.number ? 'active' : ''}"
-                            th:if="${i == 0 or i == qPage.totalPages - 1 or (i >= qPage.number - 2 and i <= qPage.number + 2)}">
-
-                            <a class="page-link" th:if="${i >= qPage.number - 2 and i <= qPage.number + 2}"
-                               th:href="@{/admin/questions(page=${i}, keyword=${keyword}, courseId=${courseId}, quizId=${quizId}, levelId=${levelId})}"
-                               th:text="${i + 1}">1</a>
-
-                            <span class="page-link border-0 bg-transparent text-muted" th:if="${!(i >= qPage.number - 2 and i <= qPage.number + 2)}" th:text="${'...'}" ></span>
-                        </li>
-
-                        <li class="page-item" th:classappend="${qPage.last ? 'disabled' : ''}">
-                            <a class="page-link" th:href="@{/admin/questions(page=${qPage.number + 1}, keyword=${keyword}, courseId=${courseId}, quizId=${quizId}, levelId=${levelId})}">Sau</a>
-                        </li>
+                        <li class="page-item" th:classappend="${qPage.first ? 'disabled' : ''}"><a class="page-link" th:href="@{/admin/questions(page=${qPage.number - 1}, keyword=${keyword}, courseId=${courseId}, quizId=${quizId}, levelId=${levelId}, status=${status})}">Trước</a></li>
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, qPage.totalPages - 1)}" th:if="${i >= qPage.number - 2 and i <= qPage.number + 2}" th:classappend="${i == qPage.number ? 'active' : ''}"><a class="page-link" th:href="@{/admin/questions(page=${i}, keyword=${keyword}, courseId=${courseId}, quizId=${quizId}, levelId=${levelId}, status=${status})}" th:text="${i + 1}">1</a></li>
+                        <li class="page-item" th:classappend="${qPage.last ? 'disabled' : ''}"><a class="page-link" th:href="@{/admin/questions(page=${qPage.number + 1}, keyword=${keyword}, courseId=${courseId}, quizId=${quizId}, levelId=${levelId}, status=${status})}">Sau</a></li>
                     </ul>
                 </nav>
             </div>
@@ -158,161 +161,173 @@
     </div>
 </div>
 
-<div class="modal fade" id="questionModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg">
+<div class="modal fade" id="questionModal" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <form th:action="@{/admin/questions/save}" method="post" class="modal-content border-0 shadow" id="questionForm">
             <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title fw-bold" id="modalTitle"><i class="fas fa-layer-group me-2"></i>Quản lý Câu Hỏi</h5>
+                <h5 class="modal-title fw-bold" id="modalTitle">Chi tiết Câu hỏi</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body p-0">
-                <ul class="nav nav-tabs nav-fill bg-light" role="tablist">
-                    <li class="nav-item"><button class="nav-link active rounded-0 py-3 fw-bold" data-bs-toggle="tab" data-bs-target="#manual-pane"><i class="fas fa-pen me-2"></i>Thủ Công</button></li>
-                    <li class="nav-item"><button class="nav-link rounded-0 py-3 fw-bold" data-bs-toggle="tab" data-bs-target="#import-pane"><i class="fas fa-file-excel me-2"></i>Import Excel</button></li>
-                    <li class="nav-item"><button class="nav-link rounded-0 py-3 fw-bold" data-bs-toggle="tab" data-bs-target="#ai-pane"><i class="fas fa-robot me-2 text-warning"></i>AI Tạo</button></li>
-                </ul>
-
-                <div class="tab-content p-4">
-
-                    <div class="tab-pane fade show active" id="manual-pane">
-                        <form th:action="@{/admin/questions/save}" method="post" id="manualForm">
-                            <input type="hidden" name="id" id="questionId">
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label class="form-label fw-bold">1. Chọn Môn học</label>
-                                    <select class="form-select bg-light" name="courseId" id="manualCourseId" onchange="loadQuizzes(this.value, 'manualQuizId')" required>
-                                        <option value="">-- Chọn Môn --</option>
-                                        <option th:each="c:${courses}" th:value="${c.id}" th:text="${c.name}"></option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label fw-bold text-primary">2. Thêm vào Quiz (Tự động)</label>
-                                    <select class="form-select border-primary" name="quizId" id="manualQuizId">
-                                        <option value="">-- Vui lòng chọn Môn trước --</option>
-                                    </select>
-                                </div>
-
-                                <div class="col-md-12">
-                                    <label class="form-label fw-bold">Độ khó</label>
-                                    <select class="form-select w-auto" name="levelId" id="levelId">
-                                        <option th:each="l:${levels}" th:value="${l.id}" th:text="${l.name}"></option>
-                                    </select>
-                                </div>
-
-                                <div class="col-12">
-                                    <label class="form-label fw-bold">Nội dung câu hỏi</label>
-                                    <textarea class="form-control" name="content" id="content" rows="3" placeholder="Nhập câu hỏi..." required></textarea>
-                                </div>
-
-                                <div class="col-12 bg-light p-3 rounded border">
-                                    <label class="fw-bold text-success mb-2"><i class="fas fa-check-square me-1"></i> ĐÁP ÁN (Tích vào câu đúng)</label>
-                                    <div class="input-group mb-2" th:each="i:${#numbers.sequence(0,3)}">
-                                        <div class="input-group-text bg-white">
-                                            <input class="form-check-input mt-0" type="radio" name="correctIndex" th:value="${i}" required style="cursor: pointer;">
-                                        </div>
-                                        <input type="text" class="form-control" th:name="|answers[${i}].content|" th:id="|ans_${i}|" placeholder="Nhập đáp án..." required>
-                                        <input type="hidden" th:name="|answers[${i}].isCorrect|" value="false" class="is-correct-hidden">
-                                    </div>
-                                </div>
-
-                                <div class="col-12">
-                                    <label class="form-label fw-bold text-muted">Giải thích (Optional)</label>
-                                    <textarea class="form-control" name="explanation" id="explanation" rows="2"></textarea>
-                                </div>
-
-                                <div class="col-12 text-end border-top pt-3">
-                                    <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Đóng</button>
-                                    <button type="submit" class="btn btn-primary px-4 fw-bold">Lưu Dữ Liệu</button>
-                                </div>
-                            </div>
-                        </form>
+            <div class="modal-body p-4 bg-light">
+                <input type="hidden" id="qId" name="id">
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">Khóa học</label>
+                        <select name="course.id" id="modalCourse" class="form-select" onchange="onCourseChange(this.value)" required>
+                            <option value="">-- Chọn Khóa học --</option>
+                            <option th:each="c : ${courses}" th:value="${c.id}" th:text="${c.name}"></option>
+                        </select>
                     </div>
-
-                    <div class="tab-pane fade" id="import-pane">
-                        <form th:action="@{/admin/questions/import}" method="post" enctype="multipart/form-data" class="text-center py-3">
-                            <div class="alert alert-info d-inline-block mb-4">
-                                <i class="fas fa-info-circle me-1"></i> Vui lòng tải file mẫu để nhập liệu chính xác.
-                                <a th:href="@{/admin/questions/download-template}" class="fw-bold ms-2 text-decoration-none"><i class="fas fa-download"></i> Tải Mẫu</a>
-                            </div>
-
-                            <div class="row text-start justify-content-center">
-                                <div class="col-md-8 mb-3">
-                                    <label class="form-label fw-bold">Bước 1: Chọn Môn học (Lọc)</label>
-                                    <select class="form-select bg-light" id="importCourseId" onchange="loadQuizzes(this.value, 'importQuizId')">
-                                        <option value="">-- Chọn Môn --</option>
-                                        <option th:each="c:${courses}" th:value="${c.id}" th:text="${c.name}"></option>
-                                    </select>
-                                </div>
-
-                                <div class="col-md-8 mb-3">
-                                    <label class="form-label fw-bold text-danger">Bước 2: Chọn Quiz (Bắt buộc)</label>
-                                    <select class="form-select border-danger" name="quizId" id="importQuizId" required>
-                                        <option value="">-- Chọn Môn trước --</option>
-                                    </select>
-                                    <div class="form-text text-danger small">* Câu hỏi sẽ được thêm trực tiếp vào Quiz này.</div>
-                                </div>
-
-                                <div class="col-md-8 mb-4">
-                                    <label class="form-label fw-bold">Bước 3: Chọn File (.xlsx)</label>
-                                    <input type="file" class="form-control" name="file" accept=".xlsx" required>
-                                </div>
-                            </div>
-
-                            <button type="submit" class="btn btn-success px-5 py-2 fw-bold shadow-sm">
-                                <i class="fas fa-file-import me-2"></i> Tiến hành Import
-                            </button>
-                        </form>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">Bài kiểm tra (Quiz)</label>
+                        <select name="quizId" id="modalQuiz" class="form-select">
+                            <option value="">-- Chọn Quiz --</option>
+                        </select>
                     </div>
-
-                    <div class="tab-pane fade" id="ai-pane">
-                        <form th:action="@{/admin/questions/generate-ai}" method="post" id="aiForm">
-                            <div class="row g-3">
-                                <div class="col-12">
-                                    <div class="alert alert-warning border-0 bg-warning-subtle text-dark small">
-                                        <i class="fas fa-robot me-2"></i> AI sẽ tự động sinh câu hỏi, đáp án đúng/sai và thêm thẳng vào Quiz bạn chọn.
-                                    </div>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <label class="form-label fw-bold">1. Chọn Môn học</label>
-                                    <select class="form-select" name="courseId" id="aiCourseId" onchange="loadQuizzes(this.value, 'aiQuizId')" required>
-                                        <option value="">-- Chọn Môn --</option>
-                                        <option th:each="c:${courses}" th:value="${c.id}" th:text="${c.name}"></option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label fw-bold text-primary">2. Thêm vào Quiz</label>
-                                    <select class="form-select border-primary" name="quizId" id="aiQuizId">
-                                        <option value="">-- Chọn Môn trước --</option>
-                                    </select>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <label class="form-label fw-bold">Độ khó</label>
-                                    <select class="form-select" name="levelId">
-                                        <option th:each="l:${levels}" th:value="${l.id}" th:text="${l.name}"></option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label fw-bold">Số lượng câu</label>
-                                    <input type="number" class="form-control" name="numQuestions" value="5" min="1" max="10">
-                                </div>
-
-                                <div class="col-12">
-                                    <label class="form-label fw-bold">Chủ đề / Yêu cầu cho AI</label>
-                                    <textarea class="form-control" name="topic" rows="3" placeholder="VD: Hãy tạo câu hỏi về vòng lặp For và While trong Java..." required></textarea>
-                                </div>
-
-                                <div class="col-12 text-end border-top pt-3">
-                                    <button type="submit" class="btn btn-warning fw-bold px-4 text-dark shadow-sm">
-                                        <i class="fas fa-magic me-2"></i> AI Tạo Ngay
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">Bài học (Topic)</label>
+                        <select name="lesson.id" id="modalLesson" class="form-select">
+                            <option value="">-- Chọn Bài học --</option>
+                        </select>
                     </div>
-
+                    <div class="col-md-12">
+                        <label class="form-label small fw-bold">Mức độ</label>
+                        <div class="d-flex gap-3">
+                            <div class="form-check" th:each="l : ${levels}">
+                                <input class="form-check-input" type="radio" name="questionLevel" th:id="${'level'+l.id}" th:value="${l.id}" required>
+                                <label class="form-check-label" th:for="${'level'+l.id}" th:text="${l.name}"></label>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Nội dung câu hỏi <span class="text-danger">*</span></label>
+                    <textarea name="content" id="qContent" class="form-control" rows="3" required></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Giải thích (Optional)</label>
+                    <textarea name="explanation" id="qExplanation" class="form-control" rows="2"></textarea>
+                </div>
+                <hr>
+                <label class="form-label small fw-bold mb-2">Các phương án trả lời</label>
+                <div class="vstack gap-2" id="answersContainer">
+                    <div class="input-group answer-group" th:each="i : ${#numbers.sequence(0, 3)}">
+                        <div class="input-group-text"><input class="form-check-input mt-0" type="radio" name="correctIndex" th:value="${i}" th:checked="${i == 0}" required></div>
+                        <span class="input-group-text fw-bold text-muted" th:text="${T(java.lang.Character).toString(65 + i)}">A</span>
+                        <input type="text" class="form-control" th:name="|answerOptions[${i}].content|" th:id="|ans${i}|" required placeholder="Nhập nội dung đáp án...">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-white border-top-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="submit" class="btn btn-primary fw-bold"><i class="fas fa-save me-1"></i> Lưu Câu Hỏi</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="importModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form id="importForm" class="modal-content border-0 shadow">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title fw-bold">Import từ Excel</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Chọn File Excel (.xlsx) <span class="text-danger">*</span></label>
+                    <input type="file" id="importFile" name="file" class="form-control" accept=".xlsx" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Nhập vào Khóa học nào? <span class="text-danger">*</span></label>
+                    <select name="courseId" id="importCourse" class="form-select" onchange="onImportCourseChange(this.value)" required>
+                        <option value="">-- Chọn Khóa học --</option>
+                        <option th:each="c : ${courses}" th:value="${c.id}" th:text="${c.name}"></option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Gán vào Quiz (Tùy chọn)</label>
+                    <select name="quizId" id="importQuiz" class="form-select">
+                        <option value="">-- Không gán --</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Gán vào Bài học (Tùy chọn)</label>
+                    <select name="lessonId" id="importLesson" class="form-select">
+                        <option value="">-- Không gán --</option>
+                    </select>
+                </div>
+
+                <div class="alert alert-info small mb-0">
+                    <i class="fas fa-info-circle me-1"></i> File mẫu: <a th:href="@{/admin/questions/download-template}" class="fw-bold text-decoration-none">Tải Template chuẩn</a>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-success fw-bold" onclick="uploadExcel()">
+                    <i class="fas fa-upload me-1"></i> Tiến hành Import
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="resultModal" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold text-dark"><i class="fas fa-file-excel text-success me-2"></i>Kết quả Import chi tiết</h5>
+                <button type="button" class="btn-close" onclick="location.reload()"></button>
+            </div>
+
+            <div class="modal-body p-0 d-flex flex-column">
+                <div class="p-3 border-bottom bg-white shadow-sm">
+                    <div class="row text-center">
+                        <div class="col-md-4 border-end">
+                            <span class="text-muted small text-uppercase fw-bold">Tổng số dòng</span>
+                            <h3 class="fw-bold text-primary mb-0" id="resTotal">0</h3>
+                        </div>
+                        <div class="col-md-4 border-end">
+                            <span class="text-muted small text-uppercase fw-bold">Thành công</span>
+                            <h3 class="fw-bold text-success mb-0" id="resSuccess">0</h3>
+                        </div>
+                        <div class="col-md-4">
+                            <span class="text-muted small text-uppercase fw-bold">Lỗi / Trùng lặp</span>
+                            <h3 class="fw-bold text-danger mb-0" id="resError">0</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-responsive flex-grow-1 bg-light p-3">
+                    <table class="table table-bordered table-striped table-hover bg-white shadow-sm mb-0 small" style="white-space: nowrap;">
+                        <thead class="bg-primary text-white sticky-top top-0">
+                        <tr>
+                            <th class="text-center bg-primary text-white" style="width: 50px;">#</th>
+                            <th class="bg-primary text-white" style="min-width: 150px;">Trạng thái</th>
+                            <th class="bg-primary text-white" style="min-width: 250px;">Lỗi / Ghi chú</th>
+                            <th class="bg-primary text-white">Khóa học</th>
+                            <th class="bg-primary text-white">Bài học</th>
+                            <th class="bg-primary text-white">Mức độ</th>
+                            <th class="bg-primary text-white" style="min-width: 300px;">Nội dung câu hỏi</th>
+                            <th class="bg-primary text-white" style="min-width: 200px;">Giải thích</th>
+                            <th class="bg-primary text-white">Media</th>
+                            <th class="bg-primary text-white">Đáp án A</th>
+                            <th class="bg-primary text-white">Đáp án B</th>
+                            <th class="bg-primary text-white">Đáp án C</th>
+                            <th class="bg-primary text-white">Đáp án D</th>
+                            <th class="bg-primary text-white text-center">Đúng</th>
+                        </tr>
+                        </thead>
+                        <tbody id="resultTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer bg-white">
+                <button type="button" class="btn btn-primary px-4" onclick="location.reload()"><i class="fas fa-check me-2"></i>Hoàn tất</button>
             </div>
         </div>
     </div>
@@ -320,133 +335,284 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // 1. TOGGLE SIDEBAR
+    // --- UTILS ---
     function toggleSidebar() {
-        document.getElementById('sidebar').classList.toggle('collapsed');
-        document.getElementById('mainContent').classList.toggle('expanded');
+        const sidebar = document.getElementById('sidebar');
+        const main = document.getElementById('mainContent');
+        if(sidebar && main) { sidebar.classList.toggle('collapsed'); main.classList.toggle('expanded'); }
     }
 
-    // 2. LOGIC CASCADING DROPDOWN (Load Quiz theo Course)
-    function loadQuizzes(courseId, targetSelectId) {
-        const targetSelect = document.getElementById(targetSelectId);
+    // Lấy CSRF Token an toàn
+    function getCsrfData() {
+        const tokenMeta = document.querySelector('meta[name="_csrf"]');
+        const headerMeta = document.querySelector('meta[name="_csrf_header"]');
+        return {
+            token: tokenMeta ? tokenMeta.getAttribute('content') : '',
+            header: headerMeta ? headerMeta.getAttribute('content') : 'X-CSRF-TOKEN'
+        };
+    }
 
-        // Reset dropdown
-        targetSelect.innerHTML = '<option value="">Đang tải dữ liệu...</option>';
-        targetSelect.disabled = true;
+    // --- 1. TOGGLE STATUS (AJAX) ---
+    function toggleQuestionStatus(id, btnElement) {
+        const icon = btnElement.querySelector('i');
+        const originalClass = icon.className;
+        icon.className = 'fas fa-spinner fa-spin'; // Loading icon
 
-        if (!courseId) {
-            targetSelect.innerHTML = '<option value="">-- Vui lòng chọn Môn trước --</option>';
-            targetSelect.disabled = true;
-            return;
-        }
+        const csrf = getCsrfData();
 
-        // Gọi API
-        fetch('/admin/questions/api/quizzes-by-course?courseId=' + courseId)
-            .then(response => response.json())
+        // Chú ý: URL phải khớp với Controller (/admin/questions/toggle/{id})
+        fetch(`/admin/questions/toggle/${id}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                [csrf.header]: csrf.token
+            }
+        })
+            .then(response => {
+                if (response.status === 403) throw new Error("Lỗi bảo mật (403): Vui lòng tải lại trang.");
+                return response.json();
+            })
             .then(data => {
-                targetSelect.disabled = false;
-                if (data.length === 0) {
-                    targetSelect.innerHTML = '<option value="">Không có Quiz nào trong môn này</option>';
+                if (data.success) {
+                    // Update UI: Xóa hết class cũ
+                    btnElement.classList.remove('btn-outline-warning', 'btn-outline-success');
+                    icon.className = '';
+
+                    if (data.status === 'active' || data.status === 'ACTIVE') {
+                        btnElement.classList.add('btn-outline-warning');
+                        icon.classList.add('fas', 'fa-eye-slash');
+                        btnElement.setAttribute('title', 'Ẩn');
+                    } else {
+                        btnElement.classList.add('btn-outline-success');
+                        icon.classList.add('fas', 'fa-eye');
+                        btnElement.setAttribute('title', 'Hiện');
+                    }
                 } else {
-                    targetSelect.innerHTML = '<option value="">-- Chọn Quiz (Hoặc bỏ trống) --</option>';
-                    data.forEach(quiz => {
-                        const option = document.createElement('option');
-                        option.value = quiz.id;
-                        option.text = quiz.name;
-                        targetSelect.appendChild(option);
-                    });
+                    alert("Lỗi: " + data.message);
+                    icon.className = originalClass; // Hoàn tác
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                targetSelect.innerHTML = '<option value="">Lỗi tải dữ liệu</option>';
+                alert("Lỗi kết nối: " + error.message);
+                icon.className = originalClass;
             });
     }
 
-    // 3. LOGIC MODAL
-    const qModal = new bootstrap.Modal(document.getElementById('questionModal'));
+    // --- 2. LOAD DATA CHO DROPDOWNS ---
+    function onCourseChange(courseId) {
+        loadQuizzesByCourse(courseId, 'modalQuiz');
+        loadLessonsByCourse(courseId, 'modalLesson');
+    }
+
+    function onImportCourseChange(courseId) {
+        loadQuizzesByCourse(courseId, 'importQuiz');
+        loadLessonsByCourse(courseId, 'importLesson');
+    }
+
+    function loadQuizzesByCourse(courseId, targetSelectId, selectedQuizId = null) {
+        const targetSelect = document.getElementById(targetSelectId);
+        targetSelect.innerHTML = '<option value="">Đang tải...</option>';
+        if (!courseId) { targetSelect.innerHTML = '<option value="">-- Chọn Quiz --</option>'; return; }
+
+        fetch(`/admin/questions/api/quizzes-by-course?courseId=${courseId}`)
+            .then(res => res.json())
+            .then(data => {
+                let html = '<option value="">-- Chọn Quiz --</option>';
+                data.forEach(q => {
+                    const isSelected = (selectedQuizId && q.id == selectedQuizId) ? 'selected' : '';
+                    html += `<option value="${q.id}" ${isSelected}>${q.name}</option>`;
+                });
+                targetSelect.innerHTML = html;
+            })
+            .catch(err => targetSelect.innerHTML = '<option value="">Lỗi tải dữ liệu</option>');
+    }
+
+    function loadLessonsByCourse(courseId, targetSelectId, selectedLessonId = null) {
+        const targetSelect = document.getElementById(targetSelectId);
+        targetSelect.innerHTML = '<option value="">Đang tải...</option>';
+        if (!courseId) { targetSelect.innerHTML = '<option value="">-- Chọn Bài học --</option>'; return; }
+
+        fetch(`/admin/questions/api/lessons-by-course?courseId=${courseId}`)
+            .then(res => res.json())
+            .then(data => {
+                let html = '<option value="">-- Chọn Bài học --</option>';
+                data.forEach(l => {
+                    const isSelected = (selectedLessonId && l.id == selectedLessonId) ? 'selected' : '';
+                    html += `<option value="${l.id}" ${isSelected}>${l.name}</option>`;
+                });
+                targetSelect.innerHTML = html;
+            })
+            .catch(err => targetSelect.innerHTML = '<option value="">Lỗi tải dữ liệu</option>');
+    }
+
+    // --- 3. MODALS ---
+    const questionModal = new bootstrap.Modal(document.getElementById('questionModal'));
+    const importModal = new bootstrap.Modal(document.getElementById('importModal'));
 
     function openModalAdd() {
-        // Reset form
-        document.getElementById('manualForm').reset();
-        document.getElementById('questionId').value = '';
-        document.getElementById('manualQuizId').innerHTML = '<option value="">-- Vui lòng chọn Môn trước --</option>';
-        document.getElementById('manualQuizId').disabled = true;
-        document.getElementById('modalTitle').innerHTML = '<i class="fas fa-plus-circle me-2"></i>Thêm Câu Hỏi Mới';
-
-        // Reset Radio buttons
-        document.querySelectorAll('input[name="correctIndex"]').forEach(r => r.checked = false);
-        document.querySelectorAll('.is-correct-hidden').forEach(i => i.value = 'false');
-
-        qModal.show();
+        document.getElementById('modalTitle').innerText = 'Thêm Câu Hỏi Mới';
+        document.getElementById('questionForm').reset();
+        document.getElementById('qId').value = "";
+        document.getElementById('modalQuiz').innerHTML = '<option value="">-- Chọn Khóa học trước --</option>';
+        document.getElementById('modalLesson').innerHTML = '<option value="">-- Chọn Khóa học trước --</option>';
+        questionModal.show();
     }
 
-    function editQuestion(id) {
-        document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit me-2"></i>Sửa Câu Hỏi #' + id;
+    function openImportModal() {
+        document.getElementById('importForm').reset(); // Reset form import
+        importModal.show();
+    }
 
-        // Gọi API lấy chi tiết
-        fetch('/admin/questions/api/' + id)
-            .then(r => r.json())
-            .then(data => {
-                // Fill thông tin cơ bản
-                document.getElementById('questionId').value = data.id;
-                document.getElementById('content').value = data.content;
-                document.getElementById('explanation').value = data.explanation;
-                document.getElementById('levelId').value = data.levelId;
+    function openModalEdit(id) {
+        document.getElementById('modalTitle').innerText = 'Cập nhật Câu Hỏi';
+        fetch(`/admin/questions/api/${id}`).then(res => res.json()).then(data => {
+            document.getElementById('qId').value = data.id;
+            document.getElementById('qContent').value = data.content;
+            document.getElementById('qExplanation').value = data.explanation || "";
 
-                // Fill Course
-                const courseSelect = document.getElementById('manualCourseId');
-                courseSelect.value = data.courseId;
+            if (data.levelId) {
+                const radio = document.querySelector(`input[name="questionLevel"][value="${data.levelId}"]`);
+                if(radio) radio.checked = true;
+            }
+            document.getElementById('modalCourse').value = data.courseId;
+            loadQuizzesByCourse(data.courseId, 'modalQuiz', data.quizId);
+            loadLessonsByCourse(data.courseId, 'modalLesson', data.lessonId);
 
-                // Trigger load Quiz và chọn đúng Quiz sau khi load xong
-                loadQuizzes(data.courseId, 'manualQuizId');
-
-                // Set timeout để chờ load xong thì mới set value cho Quiz
-                setTimeout(() => {
-                    if (data.quizId) {
-                        document.getElementById('manualQuizId').value = data.quizId;
+            if (data.answers) {
+                for (let i = 0; i < 4; i++) {
+                    const input = document.getElementById(`ans${i}`);
+                    const radio = document.querySelector(`input[name="correctIndex"][value="${i}"]`);
+                    if (data.answers[i]) {
+                        input.value = data.answers[i].content;
+                        if (data.answers[i].correct) radio.checked = true;
+                    } else {
+                        input.value = "";
                     }
-                }, 400); // 400ms delay
+                }
+            }
+            questionModal.show();
+        });
+    }
 
-                // Fill Đáp án
-                data.answers.forEach((ans, idx) => {
-                    if (idx < 4) {
-                        document.getElementById('ans_' + idx).value = ans.content;
-                        if (ans.correct) {
-                            document.querySelector(`input[name="correctIndex"][value="${idx}"]`).checked = true;
-                            // Update hidden input
-                            document.querySelector(`input[name="answers[${idx}].isCorrect"]`).value = 'true';
-                        } else {
-                            document.querySelector(`input[name="answers[${idx}].isCorrect"]`).value = 'false';
-                        }
-                    }
-                });
+    // --- 4. IMPORT LOGIC (FIXED) ---
+    function uploadExcel() {
+        const fileInput = document.getElementById('importFile');
+        const courseId = document.getElementById('importCourse').value;
+        const quizId = document.getElementById('importQuiz').value;
+        const lessonId = document.getElementById('importLesson').value;
 
-                qModal.show();
+        if (!fileInput.files[0]) { alert("Vui lòng chọn file Excel!"); return; }
+        if (!courseId) { alert("Vui lòng chọn Khóa học!"); return; }
+
+        const formData = new FormData();
+        formData.append("file", fileInput.files[0]);
+        formData.append("courseId", courseId);
+        if (quizId) formData.append("quizId", quizId);
+        if (lessonId) formData.append("lessonId", lessonId);
+
+        const csrf = getCsrfData();
+        const btn = document.querySelector('button[onclick="uploadExcel()"]');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
+        btn.disabled = true;
+
+        fetch('/admin/questions/import', {
+            method: 'POST',
+            headers: {
+                // Không set Content-Type
+                [csrf.header]: csrf.token
+            },
+            body: formData
+        })
+            .then(response => {
+                if (response.status === 403) throw new Error("Lỗi bảo mật (403): Token không hợp lệ. F5 lại trang.");
+                if (!response.ok) throw new Error(`Lỗi Server (${response.status})`);
+                return response.json();
             })
-            .catch(err => alert('Lỗi tải dữ liệu: ' + err));
+            .then(data => {
+                const importModalEl = document.getElementById('importModal');
+                const modalInstance = bootstrap.Modal.getInstance(importModalEl);
+                if(modalInstance) modalInstance.hide();
+
+                if (data.error && !data.details) {
+                    alert(data.error);
+                } else {
+                    showResultModal(data);
+                }
+            })
+            .catch(error => {
+                console.error('Upload error:', error);
+                alert("Đã xảy ra lỗi: " + error.message);
+            })
+            .finally(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            });
     }
 
-    // 4. LOGIC RADIO BUTTON (Cập nhật hidden input isCorrect)
-    document.querySelectorAll('input[name="correctIndex"]').forEach(radio => {
-        radio.addEventListener('change', function() {
-            // Reset tất cả về false
-            document.querySelectorAll('.is-correct-hidden').forEach(i => i.value = 'false');
-            // Set cái được chọn thành true
-            document.querySelector(`input[name="answers[${this.value}].isCorrect"]`).value = 'true';
-        });
-    });
+    function showResultModal(data) {
+        document.getElementById('resTotal').innerText = data.total || 0;
+        document.getElementById('resSuccess').innerText = data.success || 0;
+        document.getElementById('resError').innerText = data.error || 0;
 
-    // 5. LOADING OVERLAY CHO AI
-    const aiForm = document.getElementById('aiForm');
-    const loadingOverlay = document.getElementById('loadingOverlay');
+        const tbody = document.getElementById('resultTableBody');
+        tbody.innerHTML = '';
 
-    if (aiForm) {
-        aiForm.addEventListener('submit', function() {
-            qModal.hide(); // Ẩn modal nhập liệu
-            loadingOverlay.style.display = 'flex'; // Hiện overlay loading
-        });
+        if (data.details && data.details.length > 0) {
+            data.details.forEach(item => {
+                const row = document.createElement('tr');
+
+                // Cấu hình hiển thị trạng thái
+                let statusBadge = '<span class="badge bg-success"><i class="fas fa-check me-1"></i>OK</span>';
+                let messageText = item.message;
+                let messageClass = 'text-muted';
+
+                if (item.status === 'error') {
+                    statusBadge = '<span class="badge bg-danger"><i class="fas fa-times me-1"></i>Lỗi</span>';
+                    row.classList.add('table-danger'); // Tô hồng dòng lỗi
+                    messageClass = 'text-danger fw-bold';
+                }
+
+                // Hàm rút gọn text nếu quá dài (để bảng đỡ vỡ)
+                const truncate = (str, len = 50) => {
+                    if (!str) return '';
+                    return str.length > len ? str.substring(0, len) + '...' : str;
+                };
+
+                row.innerHTML = `
+                    <td class="text-center fw-bold">${item.row}</td>
+                    <td>${statusBadge}</td>
+                    <td class="${messageClass}">${messageText}</td>
+
+                    <td>${item.course || ''}</td>
+                    <td>${item.lesson || ''}</td>
+                    <td>${item.level || ''}</td>
+
+                    <td title="${item.content || ''}" class="fw-bold text-dark">
+                        ${truncate(item.content, 80)}
+                    </td>
+
+                    <td title="${item.explanation || ''}">${truncate(item.explanation, 40)}</td>
+
+                    <td>${item.media ? '<a href="'+item.media+'" target="_blank">Link</a>' : ''}</td>
+
+                    <td>${item.a || ''}</td>
+                    <td>${item.b || ''}</td>
+                    <td>${item.c || ''}</td>
+                    <td>${item.d || ''}</td>
+                    <td class="text-center fw-bold text-primary">${item.correct || ''}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        } else {
+            tbody.innerHTML = '<tr><td colspan="14" class="text-center py-5">Không có dữ liệu chi tiết.</td></tr>';
+        }
+
+        const resultModal = new bootstrap.Modal(document.getElementById('resultModal'));
+        resultModal.show();
     }
 </script>
+
 </body>
 </html>

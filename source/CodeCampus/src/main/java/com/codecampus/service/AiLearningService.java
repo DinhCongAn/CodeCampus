@@ -324,35 +324,35 @@ public class AiLearningService { // <-- Đổi tên thành AiLearningService
         }
     }
 
-    /**
-     * Prompt để sinh câu hỏi trắc nghiệm tự động
-     */
-    public String generateQuestionsPrompt(String courseName, String topic, String level, int count) {
-        return String.format("""
-        Đóng vai trò chuyên gia giáo dục môn "%s". Tạo %d câu hỏi trắc nghiệm chủ đề "%s", độ khó %s.
-        
-        QUAN TRỌNG:
-        1. Trả về JSON thuần (Raw JSON), KHÔNG dùng Markdown (```json).
-        2. Bắt buộc phải có đúng 1 đáp án đúng ("isCorrect": true).
-        3. Các đáp án sai phải là ("isCorrect": false).
-        
-        Cấu trúc JSON bắt buộc:
-        {
-          "questions": [
-            {
-              "content": "Nội dung câu hỏi?",
-              "explanation": "Giải thích...",
-              "answers": [
-                { "content": "Đáp án A", "isCorrect": false },
-                { "content": "Đáp án B (Đúng)", "isCorrect": true },
-                { "content": "Đáp án C", "isCorrect": false },
-                { "content": "Đáp án D", "isCorrect": false }
-              ]
-            }
-          ]
-        }
-        """, courseName, count, topic, level);
-    }
+//    /**
+//     * Prompt để sinh câu hỏi trắc nghiệm tự động
+//     */
+//    public String generateQuestionsPrompt(String courseName, String topic, String level, int count) {
+//        return String.format("""
+//        Đóng vai trò chuyên gia giáo dục môn "%s". Tạo %d câu hỏi trắc nghiệm chủ đề "%s", độ khó %s.
+//
+//        QUAN TRỌNG:
+//        1. Trả về JSON thuần (Raw JSON), KHÔNG dùng Markdown (```json).
+//        2. Bắt buộc phải có đúng 1 đáp án đúng ("isCorrect": true).
+//        3. Các đáp án sai phải là ("isCorrect": false).
+//
+//        Cấu trúc JSON bắt buộc:
+//        {
+//          "questions": [
+//            {
+//              "content": "Nội dung câu hỏi?",
+//              "explanation": "Giải thích...",
+//              "answers": [
+//                { "content": "Đáp án A", "isCorrect": false },
+//                { "content": "Đáp án B (Đúng)", "isCorrect": true },
+//                { "content": "Đáp án C", "isCorrect": false },
+//                { "content": "Đáp án D", "isCorrect": false }
+//              ]
+//            }
+//          ]
+//        }
+//        """, courseName, count, topic, level);
+//    }
 
     /**
      * Phương thức gọi AI để sinh câu hỏi và trả về chuỗi JSON thô
@@ -415,27 +415,70 @@ public class AiLearningService { // <-- Đổi tên thành AiLearningService
     }
 
     /** Helper gọi Gemini API đơn giản (Sửa đổi để linh hoạt hơn) */
+    /** Helper gọi Gemini API với retry + backoff để tránh lỗi quota 429 */
     public String callGeminiApi(String prompt, String methodName) {
         if (this.geminiClient == null) {
-            logger.warn("AIService ({}): Client chưa khởi tạo. Trả về lỗi.", methodName);
+            logger.warn("AIService ({}): Client chưa khởi tạo.", methodName);
             return "Lỗi: Dịch vụ AI chưa sẵn sàng.";
         }
-        try {
-            GenerateContentResponse response = this.geminiClient.models
-                    .generateContent("gemini-2.5-flash", prompt, null);
-            String aiText = response.text();
-            if (aiText == null) {
-                throw new RuntimeException("AI không trả về nội dung.");
+
+        int maxRetries = 3;
+        int retry = 0;
+
+        while (retry < maxRetries) {
+            try {
+                GenerateContentResponse response = this.geminiClient.models
+                        .generateContent("gemini-2.5-flash", prompt, null);
+
+                String aiText = response.text();
+                if (aiText == null || aiText.isBlank()) {
+                    throw new RuntimeException("AI không trả về nội dung.");
+                }
+
+                aiText = aiText.replace("*", "").replace("`", "").trim();
+
+                logger.info("AI ({}): {}", methodName,
+                        aiText.substring(0, Math.min(aiText.length(), 70)) + "...");
+
+                return aiText;
+            } catch (Exception e) {
+
+                String msg = e.getMessage() != null ? e.getMessage() : "";
+
+                // Nếu là lỗi quota / rate limit / 429
+                if (msg.contains("429") || msg.contains("quota") || msg.contains("Rate Limit")) {
+                    retry++;
+                    long backoff = (long) (1500 * Math.pow(1.6, retry)); // exponential backoff
+
+                    logger.warn("⚠️ API 429/quota ({}). Retry {}/{} sau {}ms",
+                            methodName, retry, maxRetries, backoff);
+
+                    try {
+                        Thread.sleep(backoff);
+                    } catch (InterruptedException ignored) {
+                    }
+                    continue;
+                }
+
+                // Nếu lỗi mạng (timeout, connection)
+                if (msg.contains("timeout") || msg.contains("connect") || msg.contains("network")) {
+                    retry++;
+                    logger.warn("⚠️ Lỗi mạng ({}). Retry {}/{}", methodName, retry, maxRetries);
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException ignored) {}
+                    continue;
+                }
+
+                // Lỗi khác → stop
+                logger.error("❌ Lỗi khi gọi API Gemini ({}): {}", methodName, msg, e);
+                return "Lỗi: Không thể kết nối tới AI.";
             }
-            // Làm sạch các ký tự markdown phổ biến
-            aiText = aiText.replace("*", "").replace("`", "").trim();
-            logger.info("AI ({}) trả về: {}", methodName, aiText.substring(0, Math.min(aiText.length(), 70)) + "...");
-            return aiText;
-        } catch (Exception e) {
-            logger.error("❌ Lỗi khi gọi API Gemini ({}): {}", methodName, e.getMessage(), e);
-            return "Lỗi: Không thể kết nối tới AI.";
         }
+
+        return "Lỗi: Hệ thống đang quá tải, vui lòng thử lại sau.";
     }
+
 
     /** Helper mới: Làm sạch HTML */
     private String stripHtml(String html) {
