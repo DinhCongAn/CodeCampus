@@ -1,7 +1,10 @@
 package com.codecampus.service;
 
+import com.codecampus.dto.GeneratedQuestionDTO;
 import com.codecampus.entity.*;
 import com.codecampus.repository.*;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -36,6 +39,9 @@ public class QuestionService {
 
     @Autowired
     private QuestionLevelRepository questionLevelRepository;
+
+    @Autowired
+    private AiLearningService aiLearningService;
 
     // --- 1. LẤY DỮ LIỆU HIỂN THỊ ---
 
@@ -380,18 +386,6 @@ public class QuestionService {
             // Mẫu 1: Câu hỏi cơ bản
             sampleData.add(new String[]{"", "", "Dễ", "Java là ngôn ngữ lập trình kiểu gì?", "Java là ngôn ngữ định kiểu tĩnh (Statically Typed).", "", "Kiểu động", "Kiểu tĩnh", "Không có kiểu", "Cả A và B", "B"});
 
-            // Mẫu 2: Câu hỏi có Media (Ảnh)
-            sampleData.add(new String[]{"", "", "Trung bình", "Biểu tượng trong hình ảnh đại diện cho framework nào?", "", "https://upload.wikimedia.org/wikipedia/commons/4/44/Spring_Framework_Logo_2018.svg", "Spring Boot", "Hibernate", "Struts", "JSF", "A"});
-
-            // Mẫu 3: Câu hỏi Toán/Logic (Có giải thích)
-            sampleData.add(new String[]{"", "", "Khó", "Kết quả của biểu thức: 10 + 20 * 2 là bao nhiêu?", "Nhân chia trước, cộng trừ sau: 20*2 = 40, sau đó 10+40 = 50.", "", "60", "50", "30", "100", "B"});
-
-            // Mẫu 4: Câu hỏi chỉ có 2 đáp án (Đúng/Sai) - Bỏ trống C và D
-            sampleData.add(new String[]{"", "", "Dễ", "HTML là ngôn ngữ lập trình, đúng hay sai?", "HTML là ngôn ngữ đánh dấu (Markup Language).", "", "Đúng", "Sai", "", "", "B"});
-
-            // Mẫu 5: Câu hỏi dài
-            sampleData.add(new String[]{"", "", "Trung bình", "Đâu là quy tắc đặt tên biến ĐÚNG trong Java?", "", "", "1variable (Bắt đầu bằng số)", "my-variable (Dùng gạch ngang)", "my_variable (Dùng gạch dưới)", "class (Trùng từ khóa)", "C"});
-
             int rowNum = 1;
             for (String[] data : sampleData) {
                 Row row = sheet.createRow(rowNum++);
@@ -421,5 +415,130 @@ public class QuestionService {
         o.setIsCorrect(correct);
         o.setOrderNumber(order);
         return o;
+    }
+
+    // 1. Hàm sinh câu hỏi (Chỉ trả về data, KHÔNG lưu DB)
+    public List<GeneratedQuestionDTO> generateQuestionsWithAi(Integer courseId, Integer quizId, Integer lessonId, Integer levelId, String description, int numberOfQuestions) {
+
+        // Lấy tên các thực thể để đưa vào Prompt cho chính xác
+        String courseName = courseRepository.findById(Long.valueOf(courseId)).map(Course::getName).orElse("Lập trình");
+        String levelName = (levelId != null) ? questionLevelRepository.findById(levelId).map(QuestionLevel::getName).orElse("Trung bình") : "Trung bình";
+        String lessonContext = (lessonId != null) ? lessonRepository.findById(Long.valueOf(lessonId)).map(Lesson::getName).orElse("") : "";
+
+        // Xây dựng Prompt (Kỹ thuật Prompt Engineering)
+        String prompt = String.format("""
+        Bạn là một giảng viên chuyên nghiệp về chủ đề: %s.
+        Hãy soạn thảo %d câu hỏi trắc nghiệm (Multiple Choice).
+        
+        Bối cảnh:
+        - Môn học: %s
+        - Mức độ: %s
+        %s
+        - Yêu cầu thêm: %s
+        
+        Yêu cầu Output định dạng JSON Array thuần túy (không bọc trong markdown code block), với cấu trúc object như sau:
+        [
+          {
+            "content": "Nội dung câu hỏi?",
+            "explanation": "Giải thích ngắn gọn vì sao đúng",
+            "answerA": "Đáp án A",
+            "answerB": "Đáp án B",
+            "answerC": "Đáp án C",
+            "answerD": "Đáp án D",
+            "correctChar": "A" (hoặc B, C, D - chỉ lấy 1 ký tự in hoa)
+          }
+        ]
+        Đảm bảo JSON hợp lệ, không thừa dấu phẩy.
+        """,
+                courseName, numberOfQuestions, courseName, levelName,
+                (!lessonContext.isEmpty() ? "- Bài học cụ thể: " + lessonContext : ""),
+                description);
+
+        // Gọi AI (Giả sử aiLearningService trả về String JSON raw)
+        String jsonResponse = aiLearningService.callGeminiApi(prompt, "generate_quiz");
+
+        // Parse JSON String sang List<GeneratedQuestionDTO>
+        // (Bạn có thể dùng Jackson ObjectMapper hoặc Gson tại đây)
+        return parseJsonToDtoList(jsonResponse, courseId, quizId, lessonId, levelId);
+    }
+
+    // Hàm phụ trợ parse JSON (Ví dụ dùng Jackson)
+    private List<GeneratedQuestionDTO> parseJsonToDtoList(String json, Integer cId, Integer qId, Integer lId, Integer levId) {
+        try {
+            if (json == null || json.trim().isEmpty()) {
+                throw new RuntimeException("AI không trả về dữ liệu nào.");
+            }
+
+            // Kiểm tra lỗi quota/server từ AI
+            if (json.trim().startsWith("Lỗi")) {
+                throw new RuntimeException(json);
+            }
+
+            ObjectMapper mapper = new ObjectMapper();
+
+            // --- 🔥 SỬA ĐOẠN LÀM SẠCH JSON TẠI ĐÂY (Mạnh hơn) ---
+            // Tìm vị trí dấu mở ngoặc vuông đầu tiên và dấu đóng ngoặc vuông cuối cùng
+            int firstBracket = json.indexOf("[");
+            int lastBracket = json.lastIndexOf("]");
+
+            if (firstBracket != -1 && lastBracket != -1 && firstBracket < lastBracket) {
+                // Cắt lấy đúng đoạn JSON Array, vứt bỏ mọi thứ rác ở đầu/cuối (như ```json, json, text...)
+                json = json.substring(firstBracket, lastBracket + 1);
+            } else {
+                throw new RuntimeException("AI trả về định dạng không đúng (Không tìm thấy dấu [ ]).");
+            }
+            // --- 🟢 HẾT ĐOẠN SỬA ---
+
+            List<GeneratedQuestionDTO> list = mapper.readValue(json, new TypeReference<List<GeneratedQuestionDTO>>(){});
+
+            // Gán lại ID
+            list.forEach(dto -> {
+                dto.setCourseId(cId);
+                dto.setQuizId(qId);
+                dto.setLessonId(lId);
+                dto.setLevelId(levId);
+            });
+            return list;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Lỗi xử lý dữ liệu AI: " + e.getMessage());
+        }
+    }
+
+    // 2. Hàm lưu hàng loạt (Batch Save) - Sau khi user bấm "Lưu"
+    @Transactional
+    public void saveGeneratedQuestions(List<GeneratedQuestionDTO> dtos) {
+        for (GeneratedQuestionDTO dto : dtos) {
+            // Tái sử dụng hàm import logic hoặc map thủ công
+            Question q = new Question();
+            q.setContent(dto.getContent());
+            q.setExplanation(dto.getExplanation());
+            q.setStatus("active");
+
+            // Map Foreign Keys
+            if(dto.getCourseId() != null) q.setCourse(courseRepository.findById(Long.valueOf(dto.getCourseId())).orElse(null));
+            if(dto.getLessonId() != null) q.setLesson(lessonRepository.findById(Long.valueOf(dto.getLessonId())).orElse(null));
+            if(dto.getLevelId() != null) q.setQuestionLevel(questionLevelRepository.findById(dto.getLevelId()).orElse(null));
+
+            // Map Answers
+            List<AnswerOption> options = new ArrayList<>();
+            options.add(createAnswerOption(q, dto.getAnswerA(), "A".equalsIgnoreCase(dto.getCorrectChar()), 1));
+            options.add(createAnswerOption(q, dto.getAnswerB(), "B".equalsIgnoreCase(dto.getCorrectChar()), 2));
+            options.add(createAnswerOption(q, dto.getAnswerC(), "C".equalsIgnoreCase(dto.getCorrectChar()), 3));
+            options.add(createAnswerOption(q, dto.getAnswerD(), "D".equalsIgnoreCase(dto.getCorrectChar()), 4));
+            q.setAnswerOptions(options);
+
+            Question savedQ = questionRepository.save(q);
+
+            // Map Quiz (Many-to-Many)
+            if (dto.getQuizId() != null) {
+                Quiz quiz = quizRepository.findById(dto.getQuizId()).orElse(null);
+                if (quiz != null) {
+                    quiz.getQuestions().add(savedQ);
+                    quizRepository.save(quiz);
+                }
+            }
+        }
     }
 }

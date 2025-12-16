@@ -12,6 +12,21 @@
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 </head>
+
+<style>
+    /* Hiệu ứng Gradient màu tím/xanh đặc trưng của AI */
+    .btn-gradient-ai {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+    .btn-gradient-ai:hover {
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        transform: translateY(-2px); /* Nhảy nhẹ lên khi hover */
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+</style>
 <body>
 
 <div th:replace="~{fragments/sidebar-menu-admin :: sidebar('questions')}"></div>
@@ -78,10 +93,18 @@
 
                         <div class="col-md-2 d-flex gap-1 justify-content-end">
                             <button type="submit" class="btn btn-primary" title="Lọc"><i class="fas fa-filter"></i></button>
+
                             <a th:href="@{/admin/questions}" class="btn btn-light border" title="Reset"><i class="fas fa-sync"></i></a>
-                            <button type="button" class="btn btn-warning text-white" onclick="openImportModal()" title="Import"><i class="fas fa-file-import"></i></button>
+
+                            <button type="button" class="btn btn-gradient-ai text-white" onclick="openAiModal()" title="Sinh câu hỏi bằng AI">
+                                <i class="fas fa-robot"></i>
+                            </button>
+
+                            <button type="button" class="btn btn-warning text-white" onclick="openImportModal()" title="Import Excel"><i class="fas fa-file-import"></i></button>
+
                             <button type="button" class="btn btn-success" onclick="openModalAdd()" title="Thêm mới"><i class="fas fa-plus"></i></button>
                         </div>
+
                     </div>
                 </form>
             </div>
@@ -332,7 +355,93 @@
         </div>
     </div>
 </div>
+<div class="modal fade" id="aiModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable"> <div class="modal-content">
+        <div class="modal-header bg-gradient-primary text-white" style="background: linear-gradient(45deg, #4e73df, #224abe);">
+            <h5 class="modal-title"><i class="fas fa-robot me-2"></i>AI Question Generator</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
 
+        <div class="modal-body">
+            <div id="aiInputSection">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Khóa học <span class="text-danger">*</span></label>
+                        <select id="aiCourse" class="form-select" onchange="loadQuizzesByCourse(this.value, 'aiQuiz'); loadLessonsByCourse(this.value, 'aiLesson')">
+                            <option value="">-- Chọn Khóa học --</option>
+                            <option th:each="c : ${courses}" th:value="${c.id}" th:text="${c.name}"></option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Gán Quiz (Optional)</label>
+                        <select id="aiQuiz" class="form-select"><option value="">-- Không gán --</option></select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Mức độ</label>
+                        <select id="aiLevel" class="form-select">
+                            <option th:each="l : ${levels}" th:value="${l.id}" th:text="${l.name}"></option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Bài học / Topic (Context)</label>
+                        <select id="aiLesson" class="form-select"><option value="">-- Toàn bộ khóa học --</option></select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Số lượng</label>
+                        <input type="number" id="aiCount" class="form-control" value="5" min="1" max="10">
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold">Mô tả thêm (Prompt chi tiết)</label>
+                        <textarea id="aiDesc" class="form-control" rows="2" placeholder="VD: Tập trung vào tính đa hình trong Java, các câu hỏi dạng tình huống code..."></textarea>
+                    </div>
+                </div>
+                <div class="text-center mt-4">
+                    <button class="btn btn-primary btn-lg px-5" onclick="runAiGenerate()">
+                        <i class="fas fa-magic me-2"></i>Bắt đầu sinh câu hỏi
+                    </button>
+                </div>
+
+                <div id="aiLoading" class="text-center mt-5 d-none">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2 text-muted animate-pulse">AI đang suy nghĩ... (Việc này mất khoảng 10-20s)</p>
+                </div>
+            </div>
+
+            <div id="aiPreviewSection" class="d-none">
+                <div class="alert alert-info small">
+                    <i class="fas fa-info-circle me-1"></i> Kiểm tra kỹ nội dung trước khi lưu. Bạn có thể chỉnh sửa trực tiếp vào các ô bên dưới.
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm small align-middle">
+                        <thead class="table-light text-center">
+                        <tr>
+                            <th width="3%">#</th>
+                            <th width="30%">Câu hỏi</th>
+                            <th width="12%">Đáp án A</th>
+                            <th width="12%">Đáp án B</th>
+                            <th width="12%">Đáp án C</th>
+                            <th width="12%">Đáp án D</th>
+                            <th width="5%">Đúng</th>
+                            <th>Giải thích</th>
+                            <th width="5%">Xóa</th>
+                        </tr>
+                        </thead>
+                        <tbody id="aiResultTable">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer bg-light">
+            <button type="button" class="btn btn-secondary" onclick="resetAiModal()">Quay lại / Hủy</button>
+            <button type="button" class="btn btn-success fw-bold d-none" id="btnSaveAi" onclick="saveAiData()">
+                <i class="fas fa-save me-2"></i>Xác nhận & Lưu vào DB
+            </button>
+        </div>
+    </div>
+    </div>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     // --- UTILS ---
@@ -611,6 +720,138 @@
 
         const resultModal = new bootstrap.Modal(document.getElementById('resultModal'));
         resultModal.show();
+    }
+
+    // --- AI MODULE ---
+
+    let generatedData = []; // Biến toàn cục lưu data tạm
+
+    function openAiModal() {
+        new bootstrap.Modal(document.getElementById('aiModal')).show();
+    }
+
+    function runAiGenerate() {
+        const courseId = document.getElementById('aiCourse').value;
+        if (!courseId) { alert("Vui lòng chọn khóa học!"); return; }
+
+        // UI Feedback
+        document.getElementById('aiLoading').classList.remove('d-none');
+        document.querySelector('button[onclick="runAiGenerate()"]').disabled = true;
+
+        // Build Form Data
+        const formData = new FormData();
+        formData.append('courseId', courseId);
+        formData.append('quizId', document.getElementById('aiQuiz').value);
+        formData.append('lessonId', document.getElementById('aiLesson').value);
+        formData.append('levelId', document.getElementById('aiLevel').value);
+        formData.append('count', document.getElementById('aiCount').value);
+        formData.append('description', document.getElementById('aiDesc').value);
+
+        const csrf = getCsrfData();
+
+        // Call API
+        fetch('/admin/questions/api/ai-generate', {
+            method: 'POST',
+            headers: { [csrf.header]: csrf.token }, // Content-Type để tự động là multipart form
+            body: formData
+        })
+            .then(res => res.json())
+            .then(data => {
+                if(Array.isArray(data)) {
+                    generatedData = data; // Lưu vào biến tạm
+                    renderPreviewTable(data);
+
+                    // Chuyển view
+                    document.getElementById('aiInputSection').classList.add('d-none');
+                    document.getElementById('aiPreviewSection').classList.remove('d-none');
+                    document.getElementById('btnSaveAi').classList.remove('d-none');
+                } else {
+                    alert("Lỗi format từ AI: " + JSON.stringify(data));
+                }
+            })
+            .catch(err => alert("Lỗi kết nối: " + err))
+            .finally(() => {
+                document.getElementById('aiLoading').classList.add('d-none');
+                document.querySelector('button[onclick="runAiGenerate()"]').disabled = false;
+            });
+    }
+
+    function renderPreviewTable(list) {
+        const tbody = document.getElementById('aiResultTable');
+        tbody.innerHTML = '';
+
+        list.forEach((item, index) => {
+            const row = `
+            <tr id="ai-row-${index}">
+                <td class="text-center">${index + 1}</td>
+                <td><textarea class="form-control form-control-sm" rows="3" onchange="updateData(${index}, 'content', this.value)">${item.content}</textarea></td>
+                <td><input type="text" class="form-control form-control-sm" value="${item.answerA}" onchange="updateData(${index}, 'answerA', this.value)"></td>
+                <td><input type="text" class="form-control form-control-sm" value="${item.answerB}" onchange="updateData(${index}, 'answerB', this.value)"></td>
+                <td><input type="text" class="form-control form-control-sm" value="${item.answerC || ''}" onchange="updateData(${index}, 'answerC', this.value)"></td>
+                <td><input type="text" class="form-control form-control-sm" value="${item.answerD || ''}" onchange="updateData(${index}, 'answerD', this.value)"></td>
+                <td>
+                    <select class="form-select form-select-sm fw-bold text-primary" onchange="updateData(${index}, 'correctChar', this.value)">
+                        <option value="A" ${item.correctChar === 'A' ? 'selected' : ''}>A</option>
+                        <option value="B" ${item.correctChar === 'B' ? 'selected' : ''}>B</option>
+                        <option value="C" ${item.correctChar === 'C' ? 'selected' : ''}>C</option>
+                        <option value="D" ${item.correctChar === 'D' ? 'selected' : ''}>D</option>
+                    </select>
+                </td>
+                <td><textarea class="form-control form-control-sm" rows="2" onchange="updateData(${index}, 'explanation', this.value)">${item.explanation || ''}</textarea></td>
+                <td class="text-center"><button class="btn btn-sm btn-outline-danger" onclick="removeAiRow(${index})"><i class="fas fa-trash"></i></button></td>
+            </tr>
+        `;
+            tbody.innerHTML += row;
+        });
+    }
+
+    // Cập nhật data tạm khi người dùng sửa trên bảng preview
+    function updateData(index, field, value) {
+        if (generatedData[index]) {
+            generatedData[index][field] = value;
+        }
+    }
+
+    function removeAiRow(index) {
+        if (confirm('Xóa câu này khỏi danh sách lưu?')) {
+            generatedData.splice(index, 1);
+            renderPreviewTable(generatedData); // Re-render
+        }
+    }
+
+    function saveAiData() {
+        if (generatedData.length === 0) { alert("Không có dữ liệu để lưu!"); return; }
+
+        const csrf = getCsrfData();
+        const btn = document.getElementById('btnSaveAi');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang lưu...';
+        btn.disabled = true;
+
+        fetch('/admin/questions/api/ai-save-batch', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                [csrf.header]: csrf.token
+            },
+            body: JSON.stringify(generatedData)
+        })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message);
+                location.reload(); // Reload trang để hiện data mới
+            })
+            .catch(err => {
+                alert("Lỗi lưu DB: " + err);
+                btn.innerHTML = '<i class="fas fa-save me-2"></i>Xác nhận & Lưu vào DB';
+                btn.disabled = false;
+            });
+    }
+
+    function resetAiModal() {
+        document.getElementById('aiInputSection').classList.remove('d-none');
+        document.getElementById('aiPreviewSection').classList.add('d-none');
+        document.getElementById('btnSaveAi').classList.add('d-none');
+        generatedData = [];
     }
 </script>
 

@@ -1,5 +1,6 @@
 package com.codecampus.controller.admin;
 
+import com.codecampus.dto.GeneratedQuestionDTO;
 import com.codecampus.entity.Lesson;
 import com.codecampus.entity.Question;
 import com.codecampus.repository.LessonRepository;
@@ -198,5 +199,36 @@ public class AdminQuestionController {
         // Mẹo: Redirect về đúng trang người dùng đang đứng (để đỡ bị nhảy về trang chủ)
         String referer = request.getHeader("Referer");
         return "redirect:" + (referer != null ? referer : "/admin/questions");
+    }
+
+    // API 1: Trigger AI sinh câu hỏi (Preview)
+    @PostMapping("/api/ai-generate")
+    @ResponseBody
+    public ResponseEntity<?> generateQuestions(
+            @RequestParam Integer courseId,
+            @RequestParam(required = false) Integer quizId,
+            @RequestParam(required = false) Integer lessonId,
+            @RequestParam(required = false) Integer levelId,
+            @RequestParam(defaultValue = "5") int count,
+            @RequestParam(required = false) String description
+    ) {
+        try {
+            List<GeneratedQuestionDTO> previewList = questionService.generateQuestionsWithAi(courseId, quizId, lessonId, levelId, description, count);
+            return ResponseEntity.ok(previewList);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Lỗi sinh AI: " + e.getMessage());
+        }
+    }
+
+    // API 2: Lưu danh sách câu hỏi đã duyệt
+    @PostMapping("/api/ai-save-batch")
+    @ResponseBody
+    public ResponseEntity<?> saveBatchQuestions(@RequestBody List<GeneratedQuestionDTO> questions) {
+        try {
+            questionService.saveGeneratedQuestions(questions);
+            return ResponseEntity.ok(Map.of("message", "Đã lưu thành công " + questions.size() + " câu hỏi!"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Lỗi lưu dữ liệu: " + e.getMessage());
+        }
     }
 }
