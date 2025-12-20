@@ -56,25 +56,37 @@
 
         <!-- Search Bar: Thêm Form & Session Value -->
         <div class="flex-1 max-w-2xl mx-8 hidden md:block">
-            <form th:action="@{/courses}" method="get" class="relative group">
+            <form th:action="@{/search}" method="get" class="relative group">
+                <!-- Icon search -->
                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <!-- Icon kính lúp (Dùng SVG hoặc FontAwesome đều được, ở đây dùng SVG gốc của bạn nhưng đổi màu) -->
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-400 group-focus-within:text-brand-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         class="h-5 w-5 text-slate-400 group-focus-within:text-brand-600 transition-colors"
+                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                     </svg>
                 </div>
-                <!--
-                    - Thêm name="keyword" để gửi tham số lên URL
-                    - Thêm th:value="${keyword}" để giữ lại giá trị đã nhập (Session visual)
-                    - Đổi màu border/ring sang tông brand/indigo
-                -->
-                <input type="text"
+
+                <!-- Input -->
+                <input id="searchInput"
+                       type="text"
                        name="keyword"
                        th:value="${keyword}"
                        placeholder="Tìm kiếm khóa học, bài viết, video..."
-                       class="w-full pl-11 pr-4 py-2.5 bg-slate-100 text-slate-900 placeholder-slate-500 rounded-full border border-transparent focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all duration-300 shadow-inner sm:text-sm"/>
+                       class="w-full pl-11 pr-10 py-2.5 bg-slate-100 text-slate-900 placeholder-slate-500
+                      rounded-full border border-transparent focus:bg-white focus:outline-none
+                      focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500
+                      transition-all duration-300 shadow-inner sm:text-sm"/>
+
+                <!-- Nút xoá -->
+                <button type="button"
+                        id="clearSearchBtn"
+                        class="absolute inset-y-0 right-3 hidden items-center text-slate-400 hover:text-slate-600 transition">
+                    ✕
+                </button>
             </form>
         </div>
+
 
         <div class="flex items-center space-x-4">
 
@@ -231,6 +243,28 @@
             }
         });
     });</script>
+
+    <script>
+        const input = document.getElementById('searchInput');
+        const clearBtn = document.getElementById('clearSearchBtn');
+
+        function toggleClearBtn() {
+            clearBtn.classList.toggle('hidden', !input.value);
+            clearBtn.classList.toggle('flex', !!input.value);
+        }
+
+        input.addEventListener('input', toggleClearBtn);
+
+        clearBtn.addEventListener('click', () => {
+            input.value = '';
+            input.focus();
+            toggleClearBtn();
+        });
+
+        // Load page có sẵn keyword thì hiện nút xoá
+        toggleClearBtn();
+    </script>
+
 </header>
 
 </body>

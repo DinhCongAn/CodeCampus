@@ -43,4 +43,5 @@ public interface BlogRepository extends JpaRepository<Blog, Long> {
                            @Param("status") String status,
                            Pageable pageable);
 
+    Page<Blog> findByTitleContainingIgnoreCaseAndStatus(String title, String status, Pageable pageable);
 }

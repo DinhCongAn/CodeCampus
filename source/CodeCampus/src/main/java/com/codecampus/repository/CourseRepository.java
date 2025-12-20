@@ -57,6 +57,7 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
 
     Optional<Course> findByName(String name);
 
-    List<Course> findByStatus(String status);
+    Page<Course> findByNameContainingIgnoreCaseAndStatus(String name, String status, Pageable pageable);
+
 }
 

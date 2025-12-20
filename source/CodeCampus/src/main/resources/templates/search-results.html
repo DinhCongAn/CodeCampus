@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kết quả tìm kiếm: [[${keyword}]] | CodeCampus</title>
+
+    <!-- FONTS & ICONS -->
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <!-- TAILWIND CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Manrope', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                        }
+                    },
+                    boxShadow: {
+                        'soft': '0 10px 40px -10px rgba(0,0,0,0.08)',
+                        'glow': '0 0 20px rgba(79, 70, 229, 0.15)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #f8fafc;
+            /* Background gradient đồng bộ trang chủ */
+            background-image:
+                    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.05) 0px, transparent 50%),
+                    radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.05) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+        .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+        /* Animation cho Chat Widget */
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+        .animate-float { animation: float 5s ease-in-out infinite; }
+        .message-enter { animation: slideIn 0.3s ease-out forwards; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="antialiased font-sans text-slate-800 flex flex-col min-h-screen">
+
+<!-- HEADER -->
+<div th:replace="~{fragments/header :: header}"></div>
+
+<!-- MAIN CONTENT -->
+<main class="flex-grow w-full max-w-[1450px] mx-auto px-4 sm:px-6 py-12 relative">
+
+    <!-- Decor Background -->
+    <div class="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+        <div class="absolute top-[10%] left-[5%] w-64 h-64 bg-brand-500/5 rounded-full blur-[80px]"></div>
+    </div>
+
+    <!-- Search Header -->
+    <div class="mb-10 text-center md:text-left">
+        <p class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">Kết quả tìm kiếm</p>
+        <h1 class="text-3xl md:text-4xl font-black text-slate-900 mb-2">
+            Từ khóa: <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-violet-600">"[[${keyword}]]"</span>
+        </h1>
+        <p class="text-slate-500 font-medium">
+            Tìm thấy tổng cộng <span class="inline-flex items-center justify-center px-2 py-0.5 rounded bg-brand-100 text-brand-700 font-bold text-sm" th:text="${totalResults}">0</span> kết quả phù hợp.
+        </p>
+    </div>
+
+    <!-- CASE 1: KHÔNG CÓ KẾT QUẢ -->
+    <div th:if="${totalResults == 0}" class="flex flex-col items-center justify-center py-20 bg-white/60 backdrop-blur-md rounded-3xl border border-dashed border-slate-300">
+        <div class="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mb-6 shadow-sm">
+            <i class="fa-solid fa-magnifying-glass text-4xl text-slate-300"></i>
+        </div>
+        <h3 class="text-xl font-bold text-slate-700">Rất tiếc, không tìm thấy kết quả nào</h3>
+        <p class="text-slate-500 mt-2 max-w-md text-center">Chúng tôi không tìm thấy nội dung phù hợp với từ khóa "[[${keyword}]]". Hãy thử từ khóa khác hoặc kiểm tra chính tả.</p>
+        <div class="mt-6 flex flex-col sm:flex-row gap-4">
+            <a href="/courses"
+               class="px-6 py-2.5 bg-brand-600 text-white font-bold rounded-xl shadow-lg shadow-brand-500/30 hover:bg-brand-700 hover:-translate-y-0.5 transition-all text-center">
+                Xem tất cả khóa học
+            </a>
+            <a href="/blog"
+               class="px-6 py-2.5 bg-brand-600 text-white font-bold rounded-xl shadow-lg shadow-brand-500/30 hover:bg-brand-700 hover:-translate-y-0.5 transition-all text-center">
+                Xem tất cả bài viết
+            </a>
+        </div>
+    </div>
+
+    <!-- CASE 2: CÓ KẾT QUẢ -->
+    <div th:if="${totalResults > 0}" class="space-y-16">
+
+        <!-- A. KHÓA HỌC (GRID LAYOUT) -->
+        <div th:if="${!coursePage.empty}" class="animate-fade-in-up">
+            <div class="flex items-center gap-3 mb-6 pb-2 border-b border-slate-200/60">
+                <div class="p-2 bg-brand-100 text-brand-600 rounded-lg">
+                    <i class="fa-solid fa-graduation-cap text-xl"></i>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-800">Khóa học</h2>
+                    <p class="text-xs text-slate-500" th:text="'Trang ' + (${currentPage + 1}) + '/' + ${coursePage.totalPages}"></p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div th:each="course : ${coursePage.content}" class="group bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-soft hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col h-full">
+                    <!-- Image -->
+                    <a th:href="@{/courses/{id}(id=${course.id})}" class="block relative aspect-video overflow-hidden">
+                        <img th:src="${course.thumbnailUrl}" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700">
+                        <div class="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors"></div>
+                    </a>
+                    <!-- Content -->
+                    <div class="p-5 flex-1 flex flex-col">
+                        <h3 class="font-bold text-lg text-slate-800 mb-2 line-clamp-2 leading-snug group-hover:text-brand-600 transition-colors">
+                            <a th:href="@{/courses/{id}(id=${course.id})}" th:text="${course.name}">Tên khóa học</a>
+                        </h3>
+                        <p class="text-sm text-slate-500 line-clamp-2 mb-4" th:text="${course.description}">Mô tả ngắn...</p>
+
+                        <div class="mt-auto pt-4 border-t border-slate-50 flex items-center justify-between">
+                             <span class="flex items-center gap-1.5 text-xs font-bold text-slate-500">
+                                <i class="fa-solid fa-users"></i>
+                                <span th:text="${course.studentCount} + ' Học viên'"></span>
+                            </span>
+                            <a th:href="@{/courses/{id}(id=${course.id})}" class="text-brand-600 bg-brand-50 hover:bg-brand-600 hover:text-white px-3 py-1.5 rounded-lg text-xs font-extrabold uppercase transition-all">
+                                Xem ngay
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- B. BÀI VIẾT (HORIZONTAL LIST LAYOUT) -->
+        <div th:if="${!blogPage.empty}" class="animate-fade-in-up" style="animation-delay: 0.1s;">
+            <div class="flex items-center gap-3 mb-6 pb-2 border-b border-slate-200/60">
+                <div class="p-2 bg-emerald-100 text-emerald-600 rounded-lg">
+                    <i class="fa-solid fa-newspaper text-xl"></i>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-800">Bài viết</h2>
+                    <p class="text-xs text-slate-500" th:text="'Trang ' + (${currentPage + 1}) + '/' + ${blogPage.totalPages}"></p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div th:each="blog : ${blogPage.content}" class="group flex bg-white p-4 rounded-2xl border border-slate-100 shadow-sm hover:shadow-soft hover:border-brand-100 transition-all duration-300">
+                    <!-- Thumb -->
+                    <a th:href="@{/blog/{id}(id=${blog.id})}" class="w-32 h-24 sm:w-40 sm:h-28 flex-shrink-0 rounded-xl overflow-hidden relative">
+                        <img th:src="${blog.thumbnailUrl}" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
+                    </a>
+
+                    <!-- Info -->
+                    <div class="flex-1 ml-4 flex flex-col justify-center">
+                        <div class="flex items-center gap-2 text-[10px] text-slate-400 font-bold uppercase mb-1">
+                            <i class="fa-regular fa-calendar"></i>
+                            <span th:text="${#temporals.format(blog.createdAt, 'dd MMM, yyyy')}">Date</span>
+                        </div>
+                        <h3 class="font-bold text-base sm:text-lg text-slate-800 mb-2 leading-tight">
+                            <a th:href="@{/blog/{id}(id=${blog.id})}" class="hover:text-brand-600 transition-colors line-clamp-2" th:text="${blog.title}">Tiêu đề bài viết</a>
+                        </h3>
+                        <p class="text-slate-500 text-xs sm:text-sm line-clamp-2 hidden sm:block" th:text="${blog.content}">Nội dung tóm tắt...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- C. PAGINATION -->
+        <div th:if="${totalPages > 1}" class="flex justify-center mt-16 pb-8">
+            <nav class="inline-flex bg-white p-1 rounded-xl shadow-sm border border-slate-200">
+                <!-- Prev -->
+                <a th:if="${currentPage > 0}"
+                   th:href="@{/search(keyword=${keyword}, page=${currentPage - 1})}"
+                   class="px-4 py-2 text-slate-500 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors font-medium text-sm flex items-center">
+                    <i class="fas fa-chevron-left mr-1"></i> Trước
+                </a>
+
+                <!-- Numbers -->
+                <div class="flex px-2 space-x-1">
+                    <th:block th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+                        <a th:if="${i >= currentPage - 2 and i <= currentPage + 2}"
+                           th:href="@{/search(keyword=${keyword}, page=${i})}"
+                           th:text="${i + 1}"
+                           th:class="${i == currentPage}
+                               ? 'w-9 h-9 flex items-center justify-center bg-brand-600 text-white rounded-lg font-bold shadow-md text-sm'
+                               : 'w-9 h-9 flex items-center justify-center text-slate-600 hover:bg-brand-50 hover:text-brand-600 rounded-lg font-medium text-sm transition-colors'">
+                        </a>
+                    </th:block>
+                </div>
+
+                <!-- Next -->
+                <a th:if="${currentPage < totalPages - 1}"
+                   th:href="@{/search(keyword=${keyword}, page=${currentPage + 1})}"
+                   class="px-4 py-2 text-slate-500 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors font-medium text-sm flex items-center">
+                    Sau <i class="fas fa-chevron-right ml-1"></i>
+                </a>
+            </nav>
+        </div>
+
+    </div>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<!-- ================= AI CHAT WIDGET (COPY FROM HOME) ================= -->
+<div class="fixed bottom-6 right-6 z-50 flex flex-col items-end pointer-events-none">
+
+    <!-- Chat Window -->
+    <div id="ai-chat-window" class="pointer-events-auto bg-white w-[360px] h-[550px] rounded-2xl shadow-2xl border border-slate-100 mb-4 transform transition-all duration-300 translate-y-10 opacity-0 invisible flex flex-col overflow-hidden ring-1 ring-slate-900/5 font-sans origin-bottom-right">
+
+        <!-- Chat Header -->
+        <div class="bg-gradient-to-r from-brand-600 to-brand-700 px-5 py-4 flex items-center justify-between cursor-pointer shadow-md" id="header-chat">
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-lg backdrop-blur-sm border border-white/20">
+                    🤖
+                </div>
+                <div>
+                    <h4 class="font-bold text-sm text-white">Trợ lý CodeCampus</h4>
+                    <div class="flex items-center space-x-1.5">
+                        <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse shadow-sm"></span>
+                        <span class="text-[10px] text-white/90 font-medium">Sẵn sàng hỗ trợ</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center space-x-1">
+                <button id="clear-chat" class="text-white/70 hover:text-white hover:bg-white/10 p-1.5 rounded transition-colors" title="Xóa lịch sử">
+                    <i class="fa-solid fa-trash-can text-xs"></i>
+                </button>
+                <button id="close-chat" class="text-white/70 hover:text-white hover:bg-white/10 p-1.5 rounded transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Messages Area -->
+        <div id="chat-messages" class="flex-1 bg-slate-50 p-4 overflow-y-auto space-y-4 scroll-smooth"></div>
+
+        <!-- Input Area -->
+        <div class="p-3 bg-white border-t border-slate-100 shrink-0">
+            <form id="chat-form" class="relative flex items-center gap-2">
+                <input type="text" id="chat-input" placeholder="Hỏi gì đó về lập trình..." required
+                       class="w-full bg-slate-100 text-slate-800 text-sm rounded-xl py-3 pl-4 pr-3 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:bg-white transition-all placeholder-slate-400">
+                <button type="submit" class="p-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl transition-all shadow-md hover:shadow-lg flex-shrink-0">
+                    <i class="fa-solid fa-paper-plane text-xs"></i>
+                </button>
+            </form>
+            <p class="text-[10px] text-center text-slate-400 mt-2">AI có thể đưa ra thông tin chưa chính xác.</p>
+        </div>
+    </div>
+
+    <!-- Floating Toggle Button -->
+    <button id="toggle-chat" class="pointer-events-auto group relative flex items-center justify-center w-14 h-14 bg-brand-600 text-white rounded-full shadow-[0_8px_30px_rgb(79,70,229,0.4)] hover:shadow-brand-500/60 transition-all duration-300 animate-float hover:scale-110 border-2 border-white">
+        <i class="fa-solid fa-comment-dots text-2xl"></i>
+        <span class="absolute top-0 right-0 flex h-3.5 w-3.5">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-red-500 border-2 border-white"></span>
+        </span>
+    </button>
+</div>
+
+<!-- AI CHAT LOGIC SCRIPT -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const toggleBtn = document.getElementById('toggle-chat');
+        const chatWindow = document.getElementById('ai-chat-window');
+        const closeChatBtn = document.getElementById('close-chat');
+        const clearChatBtn = document.getElementById('clear-chat');
+        const headerChat = document.getElementById('header-chat');
+        const chatForm = document.getElementById('chat-form');
+        const chatInput = document.getElementById('chat-input');
+        const messagesContainer = document.getElementById('chat-messages');
+        const STORAGE_KEY = 'codecampus_ai_chat_history';
+
+        // Welcome Message
+        const INTRO_MSG = `
+            <div class="flex items-start gap-3 message-enter" id="intro-msg">
+                <div class="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-xs shrink-0 text-slate-700 shadow-sm mt-1">🤖</div>
+                <div class="flex flex-col space-y-1 max-w-[85%]">
+                    <div class="bg-white text-slate-700 px-4 py-3 rounded-2xl rounded-tl-none text-[13px] shadow-sm border border-slate-100 leading-relaxed break-words">
+                        <b>Chào bạn! 👋</b><br>
+                        Mình là trợ lý ảo AI. Bạn cần tìm khóa học nào hoặc giải đáp thắc mắc gì không?
+                    </div>
+                </div>
+            </div>`;
+
+        function formatMessageContent(text) {
+            let safeText = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            safeText = safeText.replace(urlRegex, url => `<a href="${url}" target="_blank" class="text-brand-600 hover:underline font-semibold">${url}</a>`);
+            safeText = safeText.replace(/\n/g, '<br>');
+            return safeText;
+        }
+
+        function loadChatHistory() {
+            const history = localStorage.getItem(STORAGE_KEY);
+            if (history) {
+                try {
+                    const messages = JSON.parse(history);
+                    if(messages.length === 0) messagesContainer.innerHTML = INTRO_MSG;
+                    else messages.forEach(msg => { appendMessage(msg.text, msg.isUser, false); });
+                } catch (e) { messagesContainer.innerHTML = INTRO_MSG; }
+            } else {
+                messagesContainer.innerHTML = INTRO_MSG;
+            }
+        }
+
+        function saveMessageToStorage(text, isUser) {
+            let messages = [];
+            const history = localStorage.getItem(STORAGE_KEY);
+            if (history) { try { messages = JSON.parse(history); } catch (e) { messages = []; } }
+            messages.push({ text: text, isUser: isUser, timestamp: new Date().getTime() });
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+        }
+
+        function toggleChat() {
+            const isInvisible = chatWindow.classList.contains('invisible');
+            if (isInvisible) {
+                chatWindow.classList.remove('invisible', 'opacity-0', 'translate-y-10');
+                toggleBtn.classList.add('opacity-0', 'scale-0');
+                setTimeout(() => chatInput.focus(), 300);
+            } else {
+                chatWindow.classList.add('opacity-0', 'translate-y-10');
+                toggleBtn.classList.remove('opacity-0', 'scale-0');
+                setTimeout(() => chatWindow.classList.add('invisible'), 300);
+            }
+        }
+
+        toggleBtn.addEventListener('click', toggleChat);
+        closeChatBtn.addEventListener('click', toggleChat);
+        headerChat.addEventListener('click', (e) => {
+            if (e.target.closest('button')) return;
+            toggleChat();
+        });
+
+        if (clearChatBtn) {
+            clearChatBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if(confirm("Xóa lịch sử chat?")) {
+                    localStorage.removeItem(STORAGE_KEY);
+                    messagesContainer.innerHTML = INTRO_MSG;
+                }
+            });
+        }
+
+        function appendMessage(text, isUser, saveToStorage = true) {
+            if (saveToStorage) saveMessageToStorage(text, isUser);
+
+            const div = document.createElement('div');
+            div.className = `flex items-start gap-3 message-enter ${isUser ? 'flex-row-reverse' : ''}`;
+
+            const avatar = isUser ? '' : `<div class="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-xs shrink-0 text-slate-700 shadow-sm mt-1">🤖</div>`;
+            const bubbleClass = isUser
+                ? 'bg-brand-600 text-white rounded-2xl rounded-tr-none shadow-md shadow-brand-500/20'
+                : 'bg-white text-slate-700 rounded-2xl rounded-tl-none shadow-sm border border-slate-200/60';
+
+            const formattedContent = formatMessageContent(text);
+
+            div.innerHTML = `
+                ${avatar}
+                <div class="flex flex-col space-y-1 max-w-[85%] ${isUser ? 'items-end' : 'items-start'}">
+                    <div class="${bubbleClass} px-4 py-2.5 text-[13px] leading-relaxed break-words">
+                        ${formattedContent}
+                    </div>
+                </div>
+            `;
+            messagesContainer.appendChild(div);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function appendLoading() {
+            const div = document.createElement('div');
+            div.id = 'ai-loading';
+            div.className = 'flex items-start gap-3 message-enter';
+            div.innerHTML = `
+                <div class="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-xs shrink-0 text-slate-700 shadow-sm mt-1">🤖</div>
+                <div class="bg-white p-3 rounded-2xl rounded-tl-none shadow-sm border border-slate-200 flex space-x-1 items-center h-10">
+                    <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"></span>
+                    <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></span>
+                    <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></span>
+                </div>
+            `;
+            messagesContainer.appendChild(div);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        chatForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const message = chatInput.value.trim();
+            if (!message) return;
+
+            appendMessage(message, true);
+            chatInput.value = '';
+            appendLoading();
+
+            try {
+                // Thay thế URL này bằng Endpoint thực tế của bạn
+                const response = await fetch('/api/ai/consult', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: message })
+                });
+
+                const loadingEl = document.getElementById('ai-loading');
+                if (loadingEl) loadingEl.remove();
+
+                if (!response.ok) throw new Error(`Status: ${response.status}`);
+                const data = await response.json();
+
+                if (data && data.reply) appendMessage(data.reply, false);
+                else appendMessage("Xin lỗi, mình đang gặp chút trục trặc.", false);
+
+            } catch (error) {
+                const loadingEl = document.getElementById('ai-loading');
+                if (loadingEl) loadingEl.remove();
+                appendMessage("Mất kết nối server. Vui lòng thử lại sau.", false, false);
+            }
+        });
+
+        loadChatHistory();
+    });
+</script>
+
+</body>
+</html>
