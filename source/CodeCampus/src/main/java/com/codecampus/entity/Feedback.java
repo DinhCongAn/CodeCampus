@@ -1,15 +1,27 @@
 package com.codecampus.entity;
 
 import jakarta.persistence.*;
-import org.hibernate.annotations.ColumnDefault;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.*; // Import Lombok
 import org.hibernate.annotations.Nationalized;
 
-import java.time.Instant;
+import java.time.LocalDateTime; // Dùng LocalDateTime để khớp với SQL Server DATETIME
 
 @Entity
-@Table(name = "feedbacks")
+@Table(name = "feedbacks", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"user_id", "course_id"}) // 1 User - 1 Review per Course
+})
+@Data // Tự sinh Getter, Setter, toString, equals, hashCode
+@NoArgsConstructor // Constructor không tham số (bắt buộc cho JPA)
+@AllArgsConstructor // Constructor full tham số
+@Builder // Pattern Builder giúp tạo object dễ dàng
 public class Feedback {
+
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Integer id;
 
@@ -22,75 +34,32 @@ public class Feedback {
     private User user;
 
     @Column(name = "rating", nullable = false)
+    @Min(value = 1, message = "Đánh giá thấp nhất là 1 sao")
+    @Max(value = 5, message = "Đánh giá cao nhất là 5 sao")
     private Integer rating;
 
     @Nationalized
     @Lob
     @Column(name = "comment")
+    @NotBlank(message = "Nội dung không được để trống")
+    @Size(min = 10, message = "Nội dung phải có ít nhất 10 ký tự")
     private String comment;
 
-    @ColumnDefault("getdate()")
     @Column(name = "created_at")
-    private Instant createdAt;
+    private LocalDateTime createdAt;
 
-    @ColumnDefault("getdate()")
     @Column(name = "updated_at")
-    private Instant updatedAt;
+    private LocalDateTime updatedAt;
 
-    public Integer getId() {
-        return id;
+    // Lombok không thay thế được Lifecycle hooks, nên vẫn giữ nguyên
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
-    public void setId(Integer id) {
-        this.id = id;
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
-
-    public Course getCourse() {
-        return course;
-    }
-
-    public void setCourse(Course course) {
-        this.course = course;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public Integer getRating() {
-        return rating;
-    }
-
-    public void setRating(Integer rating) {
-        this.rating = rating;
-    }
-
-    public String getComment() {
-        return comment;
-    }
-
-    public void setComment(String comment) {
-        this.comment = comment;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Instant updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
 }

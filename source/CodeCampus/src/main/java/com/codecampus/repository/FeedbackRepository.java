@@ -1,12 +1,15 @@
 package com.codecampus.repository;
 
 import com.codecampus.entity.Feedback;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface FeedbackRepository extends JpaRepository<Feedback, Integer> {
@@ -19,4 +22,18 @@ public interface FeedbackRepository extends JpaRepository<Feedback, Integer> {
             "WHERE f.rating >= 4 " +
             "ORDER BY f.createdAt DESC")
     List<Feedback> findTopFeedbacks(Pageable pageable);
+
+
+    // Tìm feedback của user cụ thể trong 1 khóa học (để check đã review chưa)
+    Optional<Feedback> findByUserIdAndCourseId(Integer userId, Integer courseId);
+
+    // Lấy danh sách feedback của course (để hiển thị)
+    Page<Feedback> findByCourseIdOrderByCreatedAtDesc(Integer courseId, Pageable pageable);
+
+    // Tính điểm trung bình và tổng số review
+    // Trả về Object[] gồm [Double avg, Long count]
+    @Query("SELECT COALESCE(AVG(CAST(f.rating AS double)), 0.0), COUNT(f) " +
+            "FROM Feedback f WHERE f.course.id = :courseId")
+    List<Object[]> findAverageRatingAndCountByCourseId(@Param("courseId") Integer courseId);
+
 }

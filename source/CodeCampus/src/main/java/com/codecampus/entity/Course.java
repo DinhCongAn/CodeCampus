@@ -60,4 +60,11 @@ public class Course {
         this.studentCount = studentCount;
     }
 
+
+    @Column(name = "average_rating")
+    private Double averageRating = 0.0;
+
+    @Column(name = "review_count")
+    private Integer reviewCount = 0;
+
 }

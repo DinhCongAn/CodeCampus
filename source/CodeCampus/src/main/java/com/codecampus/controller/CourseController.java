@@ -1,14 +1,14 @@
 package com.codecampus.controller;
 
-import com.codecampus.entity.Course;
-import com.codecampus.entity.CourseCategory;
-import com.codecampus.entity.PricePackage; // BỔ SUNG
-import com.codecampus.entity.User;
+import com.codecampus.entity.*;
+import com.codecampus.repository.FeedbackRepository;
 import com.codecampus.repository.PricePackageRepository;
 import com.codecampus.repository.UserRepository;
 import com.codecampus.service.CourseService;
 import com.codecampus.service.RegistrationService;
 import com.codecampus.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication; // <-- THÊM DÒNG NÀY
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
@@ -18,10 +18,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
+import java.util.Optional;
 
 @Controller
 public class CourseController {
 
+    @Autowired
+    private FeedbackRepository feedbackRepository;
     private final CourseService courseService;
     private final PricePackageRepository pricePackageRepository; // THAY ĐỔI
     private final UserService userService;
@@ -81,51 +84,69 @@ public class CourseController {
     /**
      * Màn hình 11: Hiển thị CHI TIẾT KHÓA HỌC (Details)
      */
+
     @GetMapping("/courses/{id}")
     public String showCourseDetails(@PathVariable("id") Integer id,
-                                    // [MỚI] Thêm tham số để bắt tín hiệu từ PayOS trả về
+                                    // Tham số bắt tín hiệu PayOS
                                     @RequestParam(value = "payment", required = false) String payment,
                                     @RequestParam(value = "orderCode", required = false) String orderCode,
                                     Model model,
                                     Authentication authentication) {
         try {
+            // 1. Load dữ liệu chung (Sidebar, Course Info, Giá)
             loadSidebarData(model);
             Course course = courseService.getPublishedCourseById(id);
-            model.addAttribute("course", course);
+            model.addAttribute("course", course); // Lưu ý: Course này đã có field averageRating và reviewCount
             model.addAttribute("lowestPriceOpt", courseService.getLowestPrice(id));
 
-            // (Pop-up cần danh sách gói giá)
+            // 2. Load danh sách gói giá (cho Modal đăng ký)
             List<PricePackage> packages = pricePackageRepository.findByCourseId(id);
             model.addAttribute("pricePackages", packages);
 
-            // ===== Logic kiểm tra đăng ký =====
+            // ======================================================
+            // [MỚI] 3. LOAD DANH SÁCH FEEDBACK (Lấy 5 cái mới nhất)
+            // ======================================================
+            Page<Feedback> feedbackPage = feedbackRepository.findByCourseIdOrderByCreatedAtDesc(id, PageRequest.of(0, 5));
+            model.addAttribute("feedbacks", feedbackPage.getContent());
+
+            // 4. Logic liên quan đến User đăng nhập
             User currentUser = getCurrentUser(authentication);
             boolean isRegistered = false;
 
             if (currentUser != null) {
                 model.addAttribute("loggedInUser", currentUser);
+
+                // Kiểm tra đã mua khóa học chưa
                 isRegistered = registrationService.hasUserRegistered(currentUser.getId(), id);
+
+                // ======================================================
+                // [MỚI] 5. KIỂM TRA USER ĐÃ ĐÁNH GIÁ KHÓA NÀY CHƯA
+                // ======================================================
+                // Để hiển thị form "Sửa đánh giá" hoặc "Viết đánh giá"
+                Optional<Feedback> myFeedback = feedbackRepository.findByUserIdAndCourseId(currentUser.getId(), id);
+                model.addAttribute("myFeedback", myFeedback.orElse(null));
             }
             model.addAttribute("isRegistered", isRegistered);
 
-            // ===== XỬ LÝ TRẠNG THÁI THANH TOÁN =====
+            // 6. XỬ LÝ TRẠNG THÁI THANH TOÁN (PayOS Return)
             if (payment != null && currentUser != null) {
                 if ("cancel".equals(payment)) {
-                    // 1. NẾU HỦY -> GỌI SERVICE XÓA ĐƠN HÀNG NGAY LẬP TỨC
+                    // Nếu hủy -> Xóa đơn hàng pending
                     if (orderCode != null) {
                         registrationService.deletePendingOrder(orderCode, currentUser.getId());
                     }
-
                     model.addAttribute("errorMessage", "Rất tiếc! Giao dịch của bạn chưa hoàn tất. Hãy thử lại để đăng ký ngay nhé.");
                 } else if ("success".equals(payment)) {
                     model.addAttribute("successMessage", "Đăng ký thành công! Bạn có thể vào học ngay.");
-                    model.addAttribute("isRegistered", true);
+                    model.addAttribute("isRegistered", true); // Cập nhật trạng thái ngay lập tức trên UI
                 }
             }
-            // ============================================
 
             return "course-details";
+
         } catch (RuntimeException e) {
+            // Log lỗi nếu cần thiết
+            e.printStackTrace();
             return "redirect:/courses?error=notFound";
         }
     }

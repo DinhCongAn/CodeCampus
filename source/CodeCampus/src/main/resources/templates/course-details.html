@@ -180,6 +180,117 @@
                 <span class="flex items-center"><svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Hỗ trợ 24/7</span>
             </div>
         </div>
+        <!-- END REGISTER BOX -->
+
+
+        <div class="mt-16 pt-10 border-t border-slate-200">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Đánh giá từ học viên</h2>
+
+                <div class="flex items-center gap-3 bg-indigo-50 px-4 py-2 rounded-2xl border border-indigo-100">
+                    <span class="text-3xl font-black text-indigo-600"
+                          th:text="${course.averageRating > 0 ? course.averageRating : '0.0'}">4.8</span>
+                    <div class="flex flex-col">
+                        <div class="flex text-yellow-400 text-sm">
+                            <th:block th:each="i : ${#numbers.sequence(1, 5)}">
+                                <span class="material-icons text-lg"
+                                      th:text="${i <= course.averageRating ? 'star' : (i - 0.5 <= course.averageRating ? 'star_half' : 'star_border')}">
+                                </span>
+                            </th:block>
+                        </div>
+                        <span class="text-xs font-bold text-slate-500 uppercase tracking-wide">
+                            <span th:text="${course.reviewCount}">120</span> nhận xét
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div th:if="${isRegistered}" class="bg-white p-6 md:p-8 rounded-3xl shadow-soft-xl border border-slate-100 mb-10 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-bl-full pointer-events-none"></div>
+
+                <h3 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <span class="material-icons text-indigo-500">rate_review</span>
+                    <span th:text="${myFeedback != null ? 'Cập nhật đánh giá của bạn' : 'Viết đánh giá của bạn'}">Viết đánh giá</span>
+                </h3>
+
+                <form th:action="@{/feedback/submit}" method="post">
+                    <input type="hidden" name="courseId" th:value="${course.id}">
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-semibold text-slate-600 mb-2">Bạn chấm khóa học này mấy điểm?</label>
+                        <div class="flex flex-row-reverse justify-end gap-1 group">
+                            <th:block th:each="i : ${#numbers.sequence(5, 1, -1)}">
+                                <input type="radio" th:id="'star' + ${i}" name="rating" th:value="${i}"
+                                       class="peer hidden" required
+                                       th:checked="${myFeedback != null && myFeedback.rating == i}">
+                                <label th:for="'star' + ${i}"
+                                       class="cursor-pointer text-slate-200 peer-checked:text-yellow-400 peer-hover:text-yellow-400 hover:text-yellow-400 transition-colors text-3xl">
+                                    ★
+                                </label>
+                            </th:block>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-semibold text-slate-600 mb-2">Cảm nhận của bạn</label>
+                        <textarea name="comment" rows="4"
+                                  class="w-full rounded-xl border-slate-200 bg-slate-50 p-4 text-slate-700 focus:border-indigo-500 focus:ring-indigo-500 transition-shadow outline-none resize-none placeholder-slate-400"
+                                  placeholder="Chia sẻ điều bạn thích hoặc chưa thích về khóa học này..."
+                                  th:text="${myFeedback != null ? myFeedback.comment : ''}" required minlength="10"></textarea>
+                    </div>
+
+                    <button type="submit"
+                            class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-bold rounded-xl text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all shadow-lg shadow-indigo-200">
+                        Gửi đánh giá
+                        <span class="material-icons ml-2 text-sm">send</span>
+                    </button>
+                </form>
+            </div>
+            <div th:unless="${isRegistered}" class="bg-slate-50 rounded-2xl p-6 text-center border border-slate-200 border-dashed mb-10">
+                <p class="text-slate-500 font-medium">Bạn cần đăng ký khóa học để gửi đánh giá.</p>
+            </div>
+
+            <div class="space-y-6">
+                <div th:if="${#lists.isEmpty(feedbacks)}" class="text-center py-10">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 mb-3">
+                        <span class="material-icons text-slate-400 text-3xl">chat_bubble_outline</span>
+                    </div>
+                    <p class="text-slate-500">Chưa có đánh giá nào. Hãy là người đầu tiên!</p>
+                </div>
+
+                <div th:each="fb : ${feedbacks}" class="flex gap-4 md:gap-6 p-6 bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                    <div class="flex-shrink-0">
+                        <img th:src="${fb.user.avatarUrl != null ? fb.user.avatarUrl : '/images/default-avatar.png'}"
+                             alt="Avatar"
+                             class="w-12 h-12 md:w-14 md:h-14 rounded-full object-cover border-2 border-indigo-50">
+                    </div>
+
+                    <div class="flex-1">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
+                            <div>
+                                <h4 class="font-bold text-slate-900 text-lg" th:text="${fb.user.fullName}">Nguyễn Văn A</h4>
+                                <div class="flex text-yellow-400 text-sm mt-0.5">
+                                    <th:block th:each="i : ${#numbers.sequence(1, 5)}">
+                                        <span class="material-icons text-base"
+                                              th:text="${i <= fb.rating ? 'star' : 'star_border'}"
+                                              style="font-size: 16px;">
+                                        </span>
+                                    </th:block>
+                                </div>
+                            </div>
+                            <span class="text-sm text-slate-400 font-mono mt-1 sm:mt-0"
+                                  th:text="${#temporals.format(fb.createdAt, 'dd/MM/yyyy')}">12/12/2024</span>
+                        </div>
+
+                        <p class="text-slate-600 leading-relaxed bg-slate-50/50 p-3 rounded-xl inline-block w-full"
+                           th:text="${fb.comment}">
+                            Khóa học rất hay...
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </main>
 
     <!-- SIDEBAR (Right Column) -->

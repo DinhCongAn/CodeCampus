@@ -1,87 +1,57 @@
 package com.codecampus.entity;
 
 import jakarta.persistence.*;
-import org.hibernate.annotations.ColumnDefault;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.*;
 import org.hibernate.annotations.Nationalized;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "feedback_attachments")
+@Data // Tự sinh Getter, Setter, toString, equals, hashCode
+@NoArgsConstructor // Constructor rỗng cho JPA
+@AllArgsConstructor // Constructor full tham số
+@Builder // Pattern Builder để tạo object dễ dàng
 public class FeedbackAttachment {
+
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // ID tự tăng (Bắt buộc với SQL Server)
     @Column(name = "id", nullable = false)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @OnDelete(action = OnDeleteAction.CASCADE)
+    @OnDelete(action = OnDeleteAction.CASCADE) // Xóa Feedback thì xóa luôn file đính kèm
     @JoinColumn(name = "feedback_id", nullable = false)
     private Feedback feedback;
 
-    @Nationalized
+    @Nationalized // Hỗ trợ tên file tiếng Việt
     @Column(name = "file_name", nullable = false)
+    @NotBlank(message = "Tên file không được để trống")
+    @Size(max = 255, message = "Tên file quá dài")
     private String fileName;
 
     @Nationalized
     @Column(name = "file_url", nullable = false, length = 512)
+    @NotBlank(message = "Đường dẫn file không được để trống")
+    @Size(max = 512, message = "URL quá dài")
     private String fileUrl;
 
     @Nationalized
     @Column(name = "file_type", nullable = false, length = 50)
+    @NotBlank(message = "Loại file không được để trống")
     private String fileType;
 
-    @ColumnDefault("getdate()")
     @Column(name = "created_at")
-    private Instant createdAt;
+    private LocalDateTime createdAt;
 
-    public Integer getId() {
-        return id;
+    // --- Lifecycle Hooks ---
+    // Tự động set thời gian khi lưu vào DB
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
     }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public Feedback getFeedback() {
-        return feedback;
-    }
-
-    public void setFeedback(Feedback feedback) {
-        this.feedback = feedback;
-    }
-
-    public String getFileName() {
-        return fileName;
-    }
-
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
-
-    public String getFileUrl() {
-        return fileUrl;
-    }
-
-    public void setFileUrl(String fileUrl) {
-        this.fileUrl = fileUrl;
-    }
-
-    public String getFileType() {
-        return fileType;
-    }
-
-    public void setFileType(String fileType) {
-        this.fileType = fileType;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
-    }
-
 }

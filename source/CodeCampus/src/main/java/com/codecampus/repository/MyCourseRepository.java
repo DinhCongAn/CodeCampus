@@ -12,6 +12,7 @@ import java.util.List;
 @Repository
 public interface MyCourseRepository extends JpaRepository<MyCourse, Integer> {
 
+    boolean existsByUserIdAndCourseId(Integer userId, Integer courseId);
     // Tìm thông tin tiến độ tổng quan của User trong 1 Course
     MyCourse findByUserIdAndCourseId(Integer userId, Integer courseId);
     List<MyCourse> findByUserId(Integer userId);
