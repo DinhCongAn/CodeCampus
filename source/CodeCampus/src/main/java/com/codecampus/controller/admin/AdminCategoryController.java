@@ -2,6 +2,7 @@ package com.codecampus.controller.admin;
 
 import com.codecampus.entity.CourseCategory;
 import com.codecampus.service.CategoryService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -82,13 +83,15 @@ public class AdminCategoryController {
 
     // 4. Toggle Status
     @PostMapping("/categories/toggle/{id}")
-    public String toggleStatus(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
+    public String toggleStatus(@PathVariable Integer id, RedirectAttributes redirectAttributes,
+                               HttpServletRequest request) {
         try {
             categoryService.toggleStatus(id);
             redirectAttributes.addFlashAttribute("successMessage", "Cập nhật trạng thái thành công.");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Lỗi: " + e.getMessage());
         }
-        return "redirect:/admin/categories";
+        String referer = request.getHeader("Referer");
+        return "redirect:" + (referer != null ? referer : "/admin/categories");
     }
 }

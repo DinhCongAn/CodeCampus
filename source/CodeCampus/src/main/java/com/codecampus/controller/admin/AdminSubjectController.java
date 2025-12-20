@@ -5,6 +5,7 @@ import com.codecampus.entity.User;
 import com.codecampus.repository.CourseCategoryRepository;
 import com.codecampus.repository.UserRepository;
 import com.codecampus.service.CourseService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -140,13 +141,15 @@ public class AdminSubjectController {
      * 4. ĐỔI TRẠNG THÁI NHANH (Ẩn / Hiện)
      */
     @PostMapping("/subjects/toggle/{id}")
-    public String toggleStatus(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    public String toggleStatus(@PathVariable Long id, RedirectAttributes redirectAttributes,
+                               HttpServletRequest request) {
         try {
             courseService.toggleCourseStatus(id);
             redirectAttributes.addFlashAttribute("successMessage", "Đã cập nhật trạng thái hiển thị.");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Không thể cập nhật: " + e.getMessage());
         }
-        return "redirect:/admin/subjects";
+        String referer = request.getHeader("Referer");
+        return "redirect:" + (referer != null ? referer : "/admin/subjects");
     }
 }
