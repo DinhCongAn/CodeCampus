@@ -180,15 +180,4 @@ public class FeedbackService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đánh giá với ID: " + id));
     }
 
-    @Transactional
-    public void deleteFeedbackAsAdmin(Integer feedbackId) {
-        Feedback feedback = findById(feedbackId);
-        // Lưu lại courseId trước khi xóa để update điểm
-        Integer courseId = feedback.getCourse().getId();
-
-        feedbackRepository.delete(feedback);
-
-        // Tính lại điểm trung bình
-        updateCourseRatingStats(courseId);
-    }
 }
