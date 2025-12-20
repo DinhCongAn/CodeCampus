@@ -48,4 +48,16 @@ public class Course {
     protected void onCreate() { createdAt = LocalDateTime.now(); updatedAt = LocalDateTime.now(); }
     @PreUpdate
     protected void onUpdate() { updatedAt = LocalDateTime.now(); }
+
+    @Transient
+    private Long studentCount;
+
+    public Long getStudentCount() {
+        return studentCount;
+    }
+
+    public void setStudentCount(Long studentCount) {
+        this.studentCount = studentCount;
+    }
+
 }
