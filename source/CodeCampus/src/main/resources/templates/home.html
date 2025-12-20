@@ -1,14 +1,23 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
 <head>
-    <title>CodeCampus | Trang chủ</title>
+    <!-- ================= META & TITLE ================= -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Giữ nguyên tham số tiêu đề trang -->
     <title th:text="${pageTitle}">CodeCampus - Pro Coder Platform</title>
-    <!-- Font Manrope & JetBrains Mono -->
+
+    <!-- ================= FONTS & ICONS ================= -->
+    <!-- Sử dụng Manrope cho hiện đại và JetBrains Mono cho chất "Code" -->
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome cho icon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- ================= TAILWIND CSS ================= -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="icon" href="/images/logo.png" />
+
+    <!-- ================= CONFIG & CUSTOM CSS ================= -->
     <script>
         tailwind.config = {
             theme: {
@@ -18,169 +27,222 @@
                         mono: ['JetBrains Mono', 'monospace'],
                     },
                     colors: {
-                        light: {
-                            bg: '#f8fafc',
-                            card: '#ffffff',
-                            text: '#0f172a',
-                            muted: '#64748b',
-                        },
+                        // Định nghĩa bảng màu thương hiệu chuẩn
                         brand: {
-                            primary: '#4f46e5',
-                            secondary: '#7c3aed',
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1', // Indigo
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81',
                         }
                     },
                     boxShadow: {
-                        'soft-xl': '0 20px 40px -10px rgba(0, 0, 0, 0.08), 0 10px 20px -10px rgba(79, 70, 229, 0.05)',
-                        'glow-light': '0 0 20px rgba(79, 70, 229, 0.15)',
-                        'float': '0 10px 30px -5px rgba(0, 0, 0, 0.1)',
+                        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
+                        'glow': '0 0 20px rgba(79, 70, 229, 0.3)',
                     }
                 }
             }
         }
     </script>
+
     <style>
+        /* --- GLOBAL STYLES --- */
         body {
             background-color: #f8fafc;
+            /* Nền gradient nhẹ nhàng, hiện đại hơn */
             background-image:
-                    radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.05), transparent 40%),
-                    radial-gradient(circle at 90% 60%, rgba(139, 92, 246, 0.05), transparent 40%);
-            color: #0f172a;
+                    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.1) 0px, transparent 50%),
+                    radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.1) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: #1e293b;
+            scroll-behavior: smooth;
         }
 
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
-        }
-
+        /* --- GLASSMORPHISM CARD (Đồng bộ) --- */
         .glass-card {
-            background: #ffffff;
-            border: 1px solid rgba(226, 232, 240, 0.8);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Hiệu ứng nảy nhẹ khi hover */
         }
 
         .glass-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-            border-color: rgba(99, 102, 241, 0.3);
+            background: rgba(255, 255, 255, 0.95);
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px -5px rgba(0, 0, 0, 0.1);
+            border-color: rgba(99, 102, 241, 0.4);
         }
 
-        ::-webkit-scrollbar { width: 6px; }
+        /* --- SCROLLBAR --- */
+        ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-        /* Animations */
-        @keyframes floating { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-8px); } }
-        .animate-float { animation: floating 4s ease-in-out infinite; }
+        /* --- UTILITIES --- */
         .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .text-gradient { background: linear-gradient(to right, #4f46e5, #9333ea); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .text-gradient { background: linear-gradient(135deg, #4f46e5 0%, #9333ea 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
-        /* Chat Specific Styles */
-        .chat-link { color: #2563eb; text-decoration: underline; font-weight: 500; word-break: break-all; }
-        .chat-link:hover { color: #1d4ed8; }
-        .chat-content ul { list-style-type: disc; margin-left: 1.5rem; margin-bottom: 0.5rem; }
-        .chat-content ol { list-style-type: decimal; margin-left: 1.5rem; margin-bottom: 0.5rem; }
-        .chat-content p { margin-bottom: 0.5rem; }
-        .chat-content p:last-child { margin-bottom: 0; }
+        /* --- CHAT STYLES --- */
+        .chat-content a { color: #4f46e5; text-decoration: underline; font-weight: 600; }
+        .message-enter { animation: slideIn 0.3s ease-out forwards; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- ANIMATIONS --- */
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .animate-float-slow { animation: float 6s ease-in-out infinite; }
     </style>
 </head>
 
-<body class="antialiased font-sans selection:bg-indigo-100 selection:text-indigo-900">
+<body class="antialiased font-sans selection:bg-brand-100 selection:text-brand-900">
 
-<!-- Header -->
+<!-- ================= HEADER (Fragment) ================= -->
 <div class="sticky top-0 z-50 glass-panel border-b border-slate-200/60 shadow-sm">
     <div class="text-slate-900">
         <div th:replace="~{fragments/header :: header}"></div>
     </div>
 </div>
 
-<div class="flex max-w-[1450px] mx-auto pt-8 px-4 sm:px-6 gap-8 relative">
+<div class="flex max-w-[1450px] mx-auto pt-6 px-4 sm:px-6 gap-8 relative pb-20">
 
-    <!-- Background Decor -->
-    <div class="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
-        <div class="absolute top-[5%] left-[2%] w-64 h-64 bg-blue-400/10 rounded-full blur-[80px]"></div>
-        <div class="absolute top-[20%] right-[5%] w-80 h-80 bg-purple-400/10 rounded-full blur-[80px]"></div>
+    <!-- ================= DECOR BACKGROUND ================= -->
+    <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+        <div class="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-400/20 rounded-full blur-[100px] opacity-50 mix-blend-multiply"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-400/20 rounded-full blur-[100px] opacity-50 mix-blend-multiply"></div>
     </div>
 
-    <!-- Sidebar -->
-    <aside class="hidden md:flex w-20 flex-col items-center pt-4 sticky top-28 h-fit z-20">
-        <div class="flex flex-col space-y-4 w-full bg-white/80 backdrop-blur-md rounded-2xl py-6 px-2 shadow-soft-xl border border-white/50 ring-1 ring-slate-900/5">
-            <a href="/home" class="group flex flex-col items-center justify-center w-full py-2 relative">
-                <div class="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 text-slate-400 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300 shadow-sm group-hover:shadow-lg group-hover:shadow-indigo-500/30">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-                </div>
+    <!-- ================= SIDEBAR NAVIGATION (Floating Dock Style) ================= -->
+    <aside class="hidden md:flex flex-col items-center sticky top-24 h-fit z-30">
+        <div class="flex flex-col space-y-3 bg-white/90 backdrop-blur-md rounded-2xl p-2 shadow-glass border border-white/40 ring-1 ring-slate-900/5">
+            <!-- Tooltips được thêm vào title để UX tốt hơn -->
+
+            <!-- Home Link -->
+            <a href="/home" class="group relative w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-300 hover:bg-gradient-to-br hover:from-brand-500 hover:to-brand-600 hover:text-white text-slate-400">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                <span class="absolute left-full ml-3 px-2 py-1 bg-slate-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">Trang chủ</span>
             </a>
-            <a href="/lotrinh" class="group flex flex-col items-center justify-center w-full py-2 relative">
-                <div class="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 text-slate-400 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300 shadow-sm group-hover:shadow-lg group-hover:shadow-emerald-500/30">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 7m0 13V7"></path></svg>
-                </div>
+
+            <!-- Courses Link -->
+            <a href="/courses" class="group relative w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-300 hover:bg-gradient-to-br hover:from-emerald-500 hover:to-emerald-600 hover:text-white text-slate-400">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                <span class="absolute left-full ml-3 px-2 py-1 bg-slate-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">Khóa học</span>
             </a>
-            <a href="/blog" class="group flex flex-col items-center justify-center w-full py-2 relative">
-                <div class="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 text-slate-400 group-hover:bg-orange-500 group-hover:text-white transition-all duration-300 shadow-sm group-hover:shadow-lg group-hover:shadow-orange-500/30">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
-                </div>
+
+            <!-- Blog Link -->
+            <a href="/blog" class="group relative w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-300 hover:bg-gradient-to-br hover:from-orange-500 hover:to-orange-600 hover:text-white text-slate-400">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
+                <span class="absolute left-full ml-3 px-2 py-1 bg-slate-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">Bài viết</span>
             </a>
         </div>
     </aside>
 
-    <!-- Main Content -->
-    <main class="flex-1 w-full min-w-0 space-y-12 pb-20">
-        <!-- Hero Slider -->
-        <section class="relative rounded-3xl overflow-hidden shadow-2xl group ring-1 ring-black/5">
-            <div class="flex transition-transform duration-700 ease-out" id="slider-wrapper">
+    <!-- ================= MAIN CONTENT ================= -->
+    <main class="flex-1 w-full min-w-0 space-y-16">
+
+        <!-- ================= HERO SLIDER SECTION ================= -->
+        <section class="relative rounded-3xl overflow-hidden shadow-2xl group border border-slate-200/50">
+            <div class="flex transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)]" id="slider-wrapper">
+                <!-- Vòng lặp Slider Thymeleaf giữ nguyên -->
                 <div th:each="slider : ${sliders}" class="min-w-full relative shrink-0">
-                    <div class="w-full relative bg-slate-100" style="aspect-ratio: 21/7;">
-                        <div class="absolute inset-0 bg-cover bg-center" th:style="'background-image: url(' + ${slider.imageUrl} + ');'"></div>
-                        <div class="absolute inset-0 bg-gradient-to-r from-slate-900/90 via-slate-900/40 to-transparent"></div>
-                        <div class="absolute inset-0 flex flex-col justify-center px-10 md:px-20 max-w-4xl z-10">
-                            <span class="inline-flex items-center px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-white border border-white/30 text-[11px] font-bold tracking-wider mb-5 w-fit uppercase">
-                                <span class="w-1.5 h-1.5 bg-green-400 rounded-full mr-2 animate-pulse"></span> Featured
+                    <div class="w-full relative bg-slate-100" style="aspect-ratio: 21/8;"> <!-- Tỉ lệ ảnh rộng hơn -->
+                        <!-- Ảnh nền -->
+                        <div class="absolute inset-0 bg-cover bg-center transition-transform duration-[10s] hover:scale-105"
+                             th:style="'background-image: url(' + ${slider.imageUrl} + ');'"></div>
+
+                        <!-- Lớp phủ Gradient tối ưu đọc text -->
+                        <div class="absolute inset-0 bg-gradient-to-r from-slate-900/90 via-slate-900/50 to-transparent"></div>
+
+                        <!-- Nội dung Slider -->
+                        <div class="absolute inset-0 flex flex-col justify-center px-10 md:px-20 max-w-5xl z-10">
+                            <!-- Badge -->
+                            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-white border border-white/20 text-[11px] font-bold tracking-wider mb-6 w-fit uppercase">
+                                <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse shadow-[0_0_10px_rgba(52,211,153,0.5)]"></span> Featured Update
                             </span>
-                            <h2 class="text-3xl md:text-5xl lg:text-6xl font-black text-white leading-tight mb-4 drop-shadow-xl tracking-tight" th:text="${slider.title}">Slider Title</h2>
-                            <p class="text-base md:text-lg text-slate-100/90 font-medium mb-8 line-clamp-2 max-w-2xl leading-relaxed" th:text="${slider.notes}">Description</p>
+
+                            <!-- Tiêu đề -->
+                            <h2 class="text-3xl md:text-5xl lg:text-6xl font-black text-white leading-tight mb-4 drop-shadow-lg tracking-tight"
+                                th:text="${slider.title}">Slider Title</h2>
+
+                            <!-- Mô tả -->
+                            <p class="text-base md:text-lg text-slate-200 font-medium mb-8 line-clamp-2 max-w-2xl leading-relaxed opacity-90"
+                               th:text="${slider.notes}">Description</p>
+
+                            <!-- Nút hành động -->
                             <div>
-                                <a th:href="${slider.backlink}" class="group/btn relative inline-flex items-center px-8 py-3 bg-white text-slate-900 font-bold rounded-xl transition-all duration-300 hover:bg-indigo-50 hover:scale-105 shadow-lg">
-                                    <span class="relative z-10">Khám phá ngay</span>
+                                <a th:href="${slider.backlink}" class="group/btn relative inline-flex items-center px-8 py-3.5 bg-white text-brand-900 font-bold rounded-xl transition-all duration-300 hover:bg-brand-50 hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] hover:-translate-y-1">
+                                    <span>Khám phá ngay</span>
+                                    <svg class="w-4 h-4 ml-2 transition-transform duration-300 group-hover/btn:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                                 </a>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="absolute bottom-6 right-10 flex space-x-2 z-20" id="slider-dots"></div>
+            <!-- Dots Navigation -->
+            <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex space-x-2 z-20" id="slider-dots"></div>
         </section>
 
-        <!-- Courses Section -->
+        <!-- ================= COURSES SECTION ================= -->
         <section>
-            <div class="flex items-center justify-between mb-8">
-                <h3 class="text-3xl font-extrabold text-slate-800 tracking-tight">
-                    Khóa học <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600">PRO</span>
-                </h3>
-                <a href="/courses" class="text-sm font-bold text-slate-500 hover:text-indigo-600 transition-colors flex items-center group bg-white px-4 py-2 rounded-full shadow-sm border border-slate-100 hover:shadow-md">
-                    Xem lộ trình
+            <!-- Section Header -->
+            <div class="flex items-end justify-between mb-8 pb-4 border-b border-slate-200/60">
+                <div>
+                    <span class="text-brand-600 font-bold tracking-wider uppercase text-xs">Lộ trình bài bản</span>
+                    <h3 class="text-3xl font-extrabold text-slate-800 mt-1">
+                        Khóa học <span class="text-gradient">PRO</span>
+                    </h3>
+                </div>
+                <a href="/courses" class="hidden sm:flex text-sm font-bold text-slate-500 hover:text-brand-600 transition-colors items-center group bg-white px-5 py-2.5 rounded-full shadow-sm border border-slate-200 hover:shadow-md hover:border-brand-200">
+                    Xem tất cả
+                    <svg class="w-4 h-4 ml-1 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                 </a>
             </div>
+
+            <!-- Grid Courses: Giữ nguyên biến ${featuredCourses} -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                <div th:each="course : ${featuredCourses}" class="glass-card group rounded-2xl flex flex-col h-full shadow-soft-xl hover:shadow-2xl">
-                    <a th:href="@{'/courses/' + ${course.id}}" class="block relative aspect-video overflow-hidden border-b border-slate-100">
-                        <img th:src="${course.thumbnailUrl}" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"/>
+                <div th:each="course : ${featuredCourses}" class="glass-card group rounded-2xl flex flex-col h-full overflow-hidden">
+                    <!-- Thumbnail Container -->
+                    <a th:href="@{'/courses/' + ${course.id}}" class="block relative aspect-video overflow-hidden">
+                        <img th:src="${course.thumbnailUrl}" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 ease-in-out"/>
+                        <div class="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors"></div>
+                        <!-- Badge -->
                         <div class="absolute top-3 left-3">
-                            <span class="bg-white/90 backdrop-blur text-indigo-700 text-[10px] font-black px-2.5 py-1 rounded-lg uppercase shadow-lg border border-indigo-100 flex items-center gap-1">PRO</span>
+                            <span class="bg-white/95 backdrop-blur text-brand-700 text-[10px] font-black px-2.5 py-1 rounded-md uppercase shadow-sm border border-brand-100 flex items-center gap-1">
+                                <i class="fa-solid fa-bolt text-yellow-500"></i> PRO
+                            </span>
                         </div>
                     </a>
-                    <div class="p-5 flex flex-col flex-1 bg-white">
-                        <h4 class="font-bold text-lg text-slate-800 group-hover:text-indigo-600 transition-colors mb-2 line-clamp-2 leading-snug" th:text="${course.name}">Tên khóa học</h4>
-                        <div class="mt-auto pt-4 border-t border-slate-50 flex items-center justify-between">
-                            <div class="flex items-center space-x-2 text-xs text-slate-500 font-medium">
-                                <span th:text="${course.studentCount} + ' Học Viên'">1200+ HV</span>
+
+                    <!-- Content Info -->
+                    <div class="p-5 flex flex-col flex-1">
+                        <h4 class="font-bold text-lg text-slate-800 group-hover:text-brand-600 transition-colors mb-2 line-clamp-2 leading-snug h-[3.2rem]"
+                            th:text="${course.name}">Tên khóa học</h4>
+
+                        <!-- Meta Info -->
+                        <div class="flex items-center space-x-4 text-xs text-slate-500 font-medium mt-1 mb-4">
+                             <span class="flex items-center gap-1.5 bg-slate-100 px-2 py-1 rounded">
+                                <i class="fa-solid fa-users text-slate-400"></i>
+                                <span th:text="${course.studentCount} + ' Học Viên'"></span>
+                            </span>
+                            <span class="flex items-center gap-1.5">
+                                <i class="fa-solid fa-star text-yellow-400"></i> 4.9
+                            </span>
+                        </div>
+
+                        <!-- Footer Card -->
+                        <div class="mt-auto pt-4 border-t border-dashed border-slate-200 flex items-center justify-between">
+                            <div class="flex -space-x-2">
+                                <!-- Fake Avatars for social proof -->
+                                <div class="w-6 h-6 rounded-full border-2 border-white bg-slate-200"></div>
+                                <div class="w-6 h-6 rounded-full border-2 border-white bg-slate-300"></div>
+                                <div class="w-6 h-6 rounded-full border-2 border-white bg-slate-400 flex items-center justify-center text-[8px] text-white font-bold">+9</div>
                             </div>
 
-                            <a th:href="@{'/courses/' + ${course.id}}" class="text-indigo-600 text-[11px] font-extrabold uppercase tracking-wide bg-indigo-50 px-2 py-1 rounded hover:bg-indigo-100 transition-colors">Đăng ký</a>
+                            <a th:href="@{'/courses/' + ${course.id}}" class="text-brand-600 text-[11px] font-extrabold uppercase tracking-wide bg-brand-50 px-3 py-1.5 rounded-lg hover:bg-brand-600 hover:text-white transition-all duration-300">
+                                Đăng ký
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -188,256 +250,232 @@
         </section>
 
         <!-- ================= BLOG SECTION ================= -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
-            <!-- ===== BÀI VIẾT NỔI BẬT ===== -->
-            <div class="lg:col-span-2 space-y-6">
-                <h3 class="text-2xl font-bold text-slate-800 flex items-center">
-                    <span class="text-gradient">Bài viết nổi bật</span>
-                </h3>
+            <!-- ===== MAIN COLUMN (8/12) ===== -->
+            <div class="lg:col-span-8 space-y-6">
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="w-8 h-1 bg-gradient-to-r from-orange-500 to-red-500 rounded-full"></span>
+                    <h3 class="text-2xl font-extrabold text-slate-800">Bài viết nổi bật</h3>
+                </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div th:each="post : ${hotPosts}"
-                         class="glass-card group rounded-2xl flex flex-col h-full shadow-soft-xl border border-slate-100 overflow-hidden">
-
+                    <!-- Giữ nguyên biến ${hotPosts} -->
+                    <div th:each="post : ${hotPosts}" class="glass-card group rounded-2xl flex flex-col h-full overflow-hidden">
                         <!-- Thumbnail -->
-                        <a th:href="@{'/blog/' + ${post.id}}"
-                           class="relative overflow-hidden aspect-[16/9]">
-                            <img th:src="${post.thumbnailUrl}"
-                                 class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"/>
-                            <span class="absolute top-3 left-3 bg-orange-500 text-white text-[10px] font-bold px-2.5 py-1 rounded shadow-md">
-                        HOT
-                    </span>
+                        <a th:href="@{'/blog/' + ${post.id}}" class="relative overflow-hidden aspect-[16/10]">
+                            <img th:src="${post.thumbnailUrl}" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"/>
+                            <!-- Date overlay -->
+                            <div class="absolute bottom-3 left-3 bg-black/60 backdrop-blur-sm text-white text-[10px] px-2 py-1 rounded border border-white/20">
+                                <i class="fa-regular fa-calendar mr-1"></i>
+                                <span th:text="${#temporals.format(post.publishedAt ?: post.updatedAt, 'dd/MM/yyyy')}">Date</span>
+                            </div>
                         </a>
 
                         <!-- Content -->
-                        <div class="p-5 flex-1 flex flex-col bg-white">
-                            <h4 class="text-lg font-bold text-slate-800 group-hover:text-indigo-600 transition-colors mb-3 line-clamp-2 leading-tight">
-                                <a th:href="@{'/blog/' + ${post.id}}"
-                                   th:text="${post.title}">
-                                    Tiêu đề bài viết
-                                </a>
+                        <div class="p-6 flex-1 flex flex-col">
+                            <h4 class="text-lg font-bold text-slate-800 group-hover:text-orange-600 transition-colors mb-3 line-clamp-2 leading-tight">
+                                <a th:href="@{'/blog/' + ${post.id}}" th:text="${post.title}">Tiêu đề</a>
                             </h4>
 
-                            <!-- Author + Date -->
-                            <div class="flex items-center justify-between text-xs text-slate-500 mt-auto pt-3 border-t border-slate-100">
-                        <span class="flex items-center gap-1">
-                            <i class="fa-regular fa-user"></i>
-                            <span th:text="${post.author != null ? post.author.fullName : 'Admin'}">
-                                Tác giả
-                            </span>
-                        </span>
-
-                                <span class="flex items-center gap-1">
-                            <i class="fa-regular fa-calendar"></i>
-                            <span th:text="${#temporals.format(post.publishedAt ?: post.updatedAt, 'dd/MM/yyyy')}">
-                                01/01/2025
-                            </span>
-                        </span>
+                            <div class="mt-auto flex items-center justify-between pt-4 border-t border-slate-100">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-xs text-slate-500">
+                                        <i class="fa-solid fa-user"></i>
+                                    </div>
+                                    <span class="text-xs text-slate-500 font-medium" th:text="${post.author != null ? post.author.fullName : 'Admin'}">Author</span>
+                                </div>
+                                <span class="text-orange-500 text-xs font-bold hover:underline cursor-pointer">Đọc tiếp &rarr;</span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- ===== SIDEBAR: MỚI XUẤT BẢN ===== -->
-            <div class="lg:col-span-1">
-                <div class="bg-white rounded-2xl p-6 sticky top-28 shadow-soft-xl border border-slate-100 ring-1 ring-slate-900/5">
-                    <h3 class="text-lg font-bold text-slate-800 mb-6 border-b border-slate-100 pb-4">
-                        Mới xuất bản
+            <!-- ===== SIDEBAR COLUMN (4/12) ===== -->
+            <div class="lg:col-span-4">
+                <div class="bg-white/60 backdrop-blur-md rounded-2xl p-6 sticky top-28 border border-white/50 shadow-sm">
+                    <h3 class="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2 pb-3 border-b border-slate-200">
+                        <i class="fa-solid fa-newspaper text-brand-500"></i> Mới xuất bản
                     </h3>
 
-                    <div class="space-y-6">
-                        <div th:each="post : ${latestPostsForSidebar}"
-                             class="group flex items-start gap-4">
-
-                            <!-- Thumb -->
-                            <a th:href="@{'/blog/' + ${post.id}}"
-                               class="shrink-0 overflow-hidden rounded-xl w-20 h-20 bg-slate-100 border border-slate-100 shadow-sm group-hover:shadow-md transition-all">
-                                <img th:src="${post.thumbnailUrl}"
-                                     class="w-full h-full object-cover"/>
+                    <!-- List mới nhất: Giữ nguyên ${latestPostsForSidebar} -->
+                    <div class="space-y-5">
+                        <div th:each="post : ${latestPostsForSidebar}" class="group flex items-start gap-4">
+                            <!-- Thumb nhỏ -->
+                            <a th:href="@{'/blog/' + ${post.id}}" class="shrink-0 overflow-hidden rounded-lg w-20 h-20 shadow-sm group-hover:shadow-md transition-all">
+                                <img th:src="${post.thumbnailUrl}" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"/>
                             </a>
 
                             <!-- Info -->
-                            <div class="flex-1 min-w-0 pt-1">
+                            <div class="flex-1 min-w-0 py-1">
                                 <a th:href="@{'/blog/' + ${post.id}}"
-                                   class="block text-sm font-bold text-slate-700 line-clamp-2 mb-1.5 group-hover:text-indigo-600 transition-colors"
-                                   th:text="${post.title}">
-                                    Title
-                                </a>
-
-                                <p class="text-xs text-slate-500 flex items-center gap-2">
-                            <span th:text="${post.author != null ? post.author.fullName : 'Admin'}">
-                                Tác giả
-                            </span>
-                                    <span>•</span>
-                                    <span th:text="${#temporals.format(post.publishedAt ?: post.updatedAt, 'dd/MM')}">
-                                01/01
-                            </span>
-                                </p>
+                                   class="block text-sm font-bold text-slate-700 line-clamp-2 mb-2 group-hover:text-brand-600 transition-colors"
+                                   th:text="${post.title}">Title</a>
+                                <p class="text-[10px] text-slate-400 uppercase font-semibold tracking-wider"
+                                   th:text="${#temporals.format(post.publishedAt ?: post.updatedAt, 'dd MMM, yyyy')}">Date</p>
                             </div>
+                        </div>
+                    </div>
+
+                    <a href="/blog" class="block mt-6 text-center text-xs font-bold text-slate-500 hover:text-brand-600 border border-dashed border-slate-300 rounded-lg py-2 hover:border-brand-300 transition-all">
+                        Xem tất cả bài viết
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= STATS SECTION ================= -->
+        <section id="system-stats" class="relative overflow-hidden rounded-3xl bg-white shadow-xl border border-slate-100 my-16">
+            <!-- Background pattern nhẹ -->
+            <div class="absolute inset-0 opacity-[0.03]" style="background-image: radial-gradient(#4f46e5 1px, transparent 1px); background-size: 20px 20px;"></div>
+
+            <div class="relative z-10 px-6 py-16 text-center">
+                <!-- Grid Stats -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
+
+                    <!-- Stat 1: Total Students -->
+                    <div class="p-4 group">
+                        <div class="text-4xl md:text-5xl font-black text-brand-600 mb-2 tracking-tight">
+                            <span id="totalStudents" th:data-target="${totalStudents}" class="counter">0</span>+
+                        </div>
+                        <div class="text-sm font-bold text-slate-600 uppercase tracking-wide">Học viên toàn hệ thống</div>
+                    </div>
+
+                    <!-- Stat 2: Today Students -->
+                    <div class="p-4 group">
+                        <div class="text-4xl md:text-5xl font-black text-emerald-500 mb-2 tracking-tight">
+                            <span id="todayStudents" th:data-target="${todayStudents}" class="counter">0</span>
+                        </div>
+                        <div class="text-sm font-bold text-slate-600 uppercase tracking-wide">Hoạt động hôm nay</div>
+                    </div>
+
+                    <!-- Stat 3: Enrollments -->
+                    <div class="p-4 group">
+                        <div class="text-4xl md:text-5xl font-black text-orange-500 mb-2 tracking-tight">
+                            <span id="topCourseEnroll" th:data-target="${topCourseEnroll}" class="counter">0</span>+
+                        </div>
+                        <div class="text-sm font-bold text-slate-600 uppercase tracking-wide">Đăng ký khóa PRO</div>
+                    </div>
+
+                    <!-- Stat 4: Completion Rate -->
+                    <div class="p-4 group">
+                        <div class="text-4xl md:text-5xl font-black text-purple-500 mb-2 tracking-tight">
+                            <span id="completionRate" th:data-target="${completionRate}" class="counter">0</span>%
+                        </div>
+                        <div class="text-sm font-bold text-slate-600 uppercase tracking-wide">Tỷ lệ hoàn thành</div>
+                    </div>
+                </div>
+
+                <!-- Trust Badge -->
+                <div class="mt-12 flex justify-center">
+                    <div class="inline-flex items-center gap-3 px-5 py-2 bg-slate-50 rounded-full border border-slate-200 text-sm text-slate-600">
+                        <i class="fa-solid fa-shield-heart text-brand-500"></i>
+                        <span>Nền tảng lập trình được tin dùng bởi <strong>[[${totalStudents}]]</strong> developer</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= FEEDBACK SECTION ================= -->
+        <section id="feedback" class="py-10 relative">
+            <div class="text-center mb-12">
+                <span class="text-brand-600 font-bold tracking-wider uppercase text-xs bg-brand-50 px-3 py-1 rounded-full border border-brand-100">
+                    Review
+                </span>
+                <h2 class="text-3xl md:text-4xl font-black text-slate-800 mt-4">Học viên nói gì?</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Giữ nguyên biến ${feedbacks} -->
+                <div th:each="fb : ${feedbacks}" class="bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-slate-100 relative">
+                    <!-- Icon quote -->
+                    <div class="text-slate-100 absolute top-4 right-6 text-6xl font-serif leading-none select-none">”</div>
+
+                    <!-- Stars -->
+                    <div class="flex items-center mb-4 text-yellow-400 text-sm">
+                        <th:block th:each="i : ${#numbers.sequence(1, 5)}">
+                            <i th:class="${i <= fb.rating} ? 'fa-solid fa-star' : 'fa-regular fa-star text-slate-300'"></i>
+                        </th:block>
+                    </div>
+
+                    <!-- Comment -->
+                    <p class="text-slate-600 mb-6 relative z-10 italic leading-relaxed" th:text="${fb.comment}">Comment content</p>
+
+                    <!-- User Info -->
+                    <div class="flex items-center mt-auto pt-4 border-t border-slate-50 gap-3">
+                        <img class="w-10 h-10 rounded-full object-cover ring-2 ring-white shadow-sm"
+                             th:src="${fb.user.avatarUrl != null ? fb.user.avatarUrl : '/images/default-avatar.png'}"
+                             alt="User Avatar">
+                        <div>
+                            <h4 class="text-sm font-bold text-slate-800" th:text="${fb.user.fullName}">Name</h4>
+                            <p class="text-[10px] text-brand-600 font-bold uppercase truncate max-w-[140px]" th:text="${fb.course.name}">Course</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-        </div>
-        <!-- ================= END BLOG SECTION ================= -->
-
-
-        <section id="system-stats" class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-50 via-white to-violet-50 shadow-2xl border border-white/30 ring-1 ring-slate-200/50 mt-16">
-            <div class="relative z-10 px-6 py-16 md:py-20 text-center">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-10 max-w-6xl mx-auto">
-
-                    <div class="glass-card group relative rounded-3xl p-8 shadow-float hover:shadow-2xl transition-all duration-500 border border-white/60">
-                        <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                        <div class="relative">
-                            <div class="text-6xl md:text-7xl font-black text-indigo-600 mb-3 tracking-tight">
-                                <span id="totalStudents" th:data-target="${totalStudents}" class="counter">0</span>+
-                            </div>
-                            <p class="text-xl font-semibold text-slate-800">Học viên toàn hệ thống</p>
-                            <p class="text-sm text-slate-500 mt-2">Đang tăng liên tục mỗi ngày</p>
-                        </div>
-                    </div>
-
-                    <div class="glass-card group relative rounded-3xl p-8 shadow-float hover:shadow-2xl transition-all duration-500 border border-white/60">
-                        <div class="absolute inset-0 bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                        <div class="relative">
-                            <div class="text-6xl md:text-7xl font-black text-green-600 mb-3 tracking-tight">
-                                <span id="todayStudents" th:data-target="${todayStudents}" class="counter">0</span>
-                            </div>
-                            <p class="text-xl font-semibold text-slate-800">Học viên hoạt động hôm nay</p>
-                            <p class="text-sm text-slate-500 mt-2">Cập nhật realtime</p>
-                        </div>
-                    </div>
-
-                    <div class="glass-card group relative rounded-3xl p-8 shadow-float hover:shadow-2xl transition-all duration-500 border border-white/60">
-                        <div class="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-amber-500/10 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                        <div class="relative">
-                            <div class="text-6xl md:text-7xl font-black text-orange-600 mb-3 tracking-tight">
-                                <span id="topCourseEnroll" th:data-target="${topCourseEnroll}" class="counter">0</span>+
-                            </div>
-                            <p class="text-xl font-semibold text-slate-800">Đăng ký khóa <span class="text-gradient">PRO</span></p>
-                            <p class="text-sm text-slate-500 mt-2">Học viên đã tham gia</p>
-                        </div>
-                    </div>
-
-                    <div class="glass-card group relative rounded-3xl p-8 shadow-float hover:shadow-2xl transition-all duration-500 border border-white/60">
-                        <div class="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                        <div class="relative">
-                            <div class="text-6xl md:text-7xl font-black text-purple-600 mb-3 tracking-tight">
-
-                                <span id="completionRate" th:data-target="${completionRate}" class="counter">0</span>%
-
-                            </div>
-                            <p class="text-xl font-semibold text-slate-800">Tỷ lệ hoàn thành</p>
-                            <p class="text-sm text-slate-500 mt-2">Cao nhất thị trường</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mt-14 flex justify-center">
-                    <div class="group inline-flex items-center gap-3 px-6 py-3
-                         bg-white/90 backdrop-blur-md
-                         rounded-full shadow-lg
-                         border border-indigo-200/60
-                         hover:shadow-indigo-200/50
-                         hover:scale-[1.03]
-                         transition-all duration-300">
-
-                        <!-- Icon -->
-                        <div class="flex items-center justify-center w-9 h-9 rounded-full
-                                    bg-indigo-100 text-indigo-600">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M10 2a8 8 0 100 16 8 8 0 000-16zM7 9a1 1 0 012 0v2a1 1 0 01-2 0V9zm4 0a1 1 0 012 0v2a1 1 0 01-2 0V9z"/>
-                            </svg>
-                        </div>
-
-                        <!-- Text -->
-                        <p class="text-sm md:text-base font-semibold text-slate-700">
-                            Đã có
-                            <span class="mx-1 text-lg font-black text-transparent bg-clip-text
-                         bg-gradient-to-r from-indigo-600 to-violet-600"
-                                  th:text="${totalStudents}"></span>học viên chọn
-                            <span class="font-bold text-indigo-600">CodeCampus</span></p>
-
-                        <!-- Badge -->
-                        <span class="hidden sm:inline-flex px-3 py-1 text-xs font-bold
-                     text-white bg-gradient-to-r from-indigo-600 to-violet-600
-                     rounded-full shadow-md">TRUSTED ✨</span>
-                    </div>
-                </div>
-
+            <div class="text-center mt-10">
+                <a href="/courses" class="text-sm font-bold text-slate-500 hover:text-slate-800 underline decoration-slate-300 underline-offset-4">Xem thêm đánh giá</a>
             </div>
         </section>
 
     </main>
 </div>
 
-<!-- ================= AI CHAT WIDGET (ChatGPT Style) ================= -->
+<!-- ================= AI CHAT WIDGET (Modern Float) ================= -->
 <div class="fixed bottom-6 right-6 z-50 flex flex-col items-end pointer-events-none">
 
     <!-- Chat Window -->
-    <div id="ai-chat-window" class="pointer-events-auto bg-white w-[380px] h-[600px] rounded-2xl shadow-2xl border border-slate-200 mb-4 transform transition-all duration-300 translate-y-10 opacity-0 invisible flex flex-col overflow-hidden ring-1 ring-black/5 font-sans">
-        <!-- Header -->
-        <div class="bg-white px-5 py-4 flex items-center justify-between border-b border-slate-100 cursor-pointer" id="header-chat">
+    <div id="ai-chat-window" class="pointer-events-auto bg-white w-[360px] h-[550px] rounded-2xl shadow-2xl border border-slate-100 mb-4 transform transition-all duration-300 translate-y-10 opacity-0 invisible flex flex-col overflow-hidden ring-1 ring-slate-900/5 font-sans origin-bottom-right">
+
+        <!-- Chat Header -->
+        <div class="bg-gradient-to-r from-brand-600 to-brand-700 px-5 py-4 flex items-center justify-between cursor-pointer shadow-md" id="header-chat">
             <div class="flex items-center space-x-3">
-                <div class="w-9 h-9 rounded-full bg-emerald-100 flex items-center justify-center border border-emerald-200 text-lg shadow-sm">
+                <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-lg backdrop-blur-sm border border-white/20">
                     🤖
                 </div>
                 <div>
-                    <h4 class="font-bold text-sm text-slate-800">Trợ lý học tập AI</h4>
+                    <h4 class="font-bold text-sm text-white">Trợ lý CodeCampus</h4>
                     <div class="flex items-center space-x-1.5">
-                        <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                        <span class="text-[11px] text-slate-500 font-medium">Online</span>
+                        <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse shadow-sm"></span>
+                        <span class="text-[10px] text-white/90 font-medium">Sẵn sàng hỗ trợ</span>
                     </div>
                 </div>
             </div>
+            <!-- Chat Actions -->
             <div class="flex items-center space-x-1">
-                <button id="clear-chat" class="text-slate-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors" title="Xóa lịch sử">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                <button id="clear-chat" class="text-white/70 hover:text-white hover:bg-white/10 p-1.5 rounded transition-colors" title="Xóa lịch sử">
+                    <i class="fa-solid fa-trash-can text-xs"></i>
                 </button>
-                <button id="close-chat" class="text-slate-400 hover:text-slate-700 hover:bg-slate-100 p-2 rounded-lg transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                <button id="close-chat" class="text-white/70 hover:text-white hover:bg-white/10 p-1.5 rounded transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
         </div>
 
         <!-- Messages Area -->
-        <div id="chat-messages" class="flex-1 bg-white p-4 overflow-y-auto chat-scroll space-y-5 scroll-smooth">
-            <!-- Tin nhắn chào mừng mặc định -->
-            <div class="flex items-start gap-3 message-enter" id="intro-msg">
-                <div class="w-8 h-8 rounded-full bg-emerald-100 border border-emerald-200 flex items-center justify-center text-xs shrink-0 text-emerald-700">🤖</div>
-                <div class="flex flex-col space-y-1 max-w-[90%]">
-                    <div class="bg-slate-100 text-slate-800 px-4 py-3 rounded-2xl rounded-tl-none text-[14px] shadow-sm leading-relaxed chat-content">
-                        Xin chào! 👋 Mình là trợ lý học tập ảo của CodeCampus.<br>
-                        Cần gợi ý lộ trình, tìm khóa học phù hợp hay hỏi nhanh về bài giảng? <br>
-                        Cứ nhắn mình — mình tư vấn chuẩn chỉnh và cá nhân hóa 100% nha! 🚀
-                    </div>
-                </div>
-            </div>
+        <div id="chat-messages" class="flex-1 bg-slate-50 p-4 overflow-y-auto space-y-4 scroll-smooth">
+            <!-- Tin nhắn mặc định sẽ được JS load -->
         </div>
 
         <!-- Input Area -->
-        <div class="p-4 bg-white border-t border-slate-100 shrink-0">
-            <form id="chat-form" class="relative flex items-end gap-2">
-                <div class="relative w-full">
-                    <input type="text" id="chat-input" placeholder="Nhập câu hỏi của bạn..."
-                           class="w-full bg-slate-50 text-slate-800 text-sm rounded-xl py-3.5 pl-4 pr-10 focus:outline-none focus:ring-1 focus:ring-slate-300 focus:bg-white transition-all placeholder-slate-400 border border-slate-200 shadow-inner">
-                </div>
-                <button type="submit" class="p-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
-                    <svg class="w-4 h-4 transform rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+        <div class="p-3 bg-white border-t border-slate-100 shrink-0">
+            <form id="chat-form" class="relative flex items-center gap-2">
+                <input type="text" id="chat-input" placeholder="Hỏi gì đó về lập trình..." required
+                       class="w-full bg-slate-100 text-slate-800 text-sm rounded-xl py-3 pl-4 pr-3 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:bg-white transition-all placeholder-slate-400">
+                <button type="submit" class="p-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl transition-all shadow-md hover:shadow-lg flex-shrink-0">
+                    <i class="fa-solid fa-paper-plane text-xs"></i>
                 </button>
             </form>
-            <div class="text-center mt-2">
-                <span class="text-[10px] text-slate-400">CodeCampus AI có thể mắc lỗi. Hãy kiểm tra lại thông tin quan trọng.</span>
-            </div>
+            <p class="text-[10px] text-center text-slate-400 mt-2">AI có thể đưa ra thông tin chưa chính xác.</p>
         </div>
     </div>
 
-    <!-- Floating Button -->
-    <button id="toggle-chat" class="pointer-events-auto group relative flex items-center justify-center w-14 h-14 bg-indigo-600 text-white rounded-full shadow-2xl hover:shadow-indigo-500/40 transition-all duration-300 animate-float border border-white/20 hover:scale-110">
-        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+    <!-- Floating Toggle Button -->
+    <button id="toggle-chat" class="pointer-events-auto group relative flex items-center justify-center w-14 h-14 bg-brand-600 text-white rounded-full shadow-[0_8px_30px_rgb(79,70,229,0.4)] hover:shadow-brand-500/60 transition-all duration-300 animate-float-slow hover:scale-110 border-2 border-white">
+        <i class="fa-solid fa-comment-dots text-2xl"></i>
+        <!-- Notification Dot -->
         <span class="absolute top-0 right-0 flex h-3.5 w-3.5">
           <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
           <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-red-500 border-2 border-white"></span>
@@ -445,40 +483,60 @@
     </button>
 </div>
 
+<!-- Fragment Footer giữ nguyên -->
 <div th:replace="~{fragments/footer :: footer}"></div>
 
+<!-- ================= JAVASCRIPT LOGIC ================= -->
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // --- Slider Logic (Giữ nguyên) ---
+
+        // --- 1. HERO SLIDER LOGIC ---
+        // Giữ nguyên logic cũ nhưng viết gọn lại
         const sliderWrapper = document.getElementById('slider-wrapper');
         const sliderDotsContainer = document.getElementById('slider-dots');
+
         if (sliderWrapper && sliderWrapper.children.length > 0) {
             const slides = sliderWrapper.children;
             const totalSlides = slides.length;
             let currentSlide = 0;
             let slideInterval;
+
+            // Tạo dots
             for (let i = 0; i < totalSlides; i++) {
                 const dot = document.createElement('div');
-                dot.className = `h-1.5 rounded-full cursor-pointer transition-all duration-300 backdrop-blur-sm ${i === 0 ? 'w-8 bg-indigo-600' : 'w-4 bg-white/50 hover:bg-white'}`;
+                dot.className = `h-1.5 rounded-full cursor-pointer transition-all duration-300 backdrop-blur-md shadow-lg border border-white/20 ${i === 0 ? 'w-8 bg-white' : 'w-2 bg-white/40 hover:bg-white/80'}`;
                 dot.addEventListener('click', () => { goToSlide(i); resetInterval(); });
                 sliderDotsContainer.appendChild(dot);
             }
             const dots = sliderDotsContainer.children;
+
             function updateDots() {
-                for (let i = 0; i < dots.length; i++) { dots[i].className = 'h-1.5 w-4 bg-white/50 hover:bg-white rounded-full transition-all duration-300'; }
-                dots[currentSlide].className = 'h-1.5 w-8 bg-indigo-600 shadow-lg transition-all duration-300';
+                for (let i = 0; i < dots.length; i++) {
+                    dots[i].className = 'h-1.5 w-2 bg-white/40 hover:bg-white/80 rounded-full transition-all duration-300 shadow-sm border border-white/20';
+                }
+                dots[currentSlide].className = 'h-1.5 w-8 bg-white rounded-full transition-all duration-300 shadow-lg';
             }
+
             function goToSlide(slideIndex) {
                 currentSlide = slideIndex;
                 sliderWrapper.style.transform = `translateX(-${currentSlide * 100}%)`;
                 updateDots();
             }
-            function nextSlide() { let next = (currentSlide + 1) % totalSlides; goToSlide(next); }
-            function resetInterval() { clearInterval(slideInterval); slideInterval = setInterval(nextSlide, 5000); }
-            slideInterval = setInterval(nextSlide, 5000);
+
+            function nextSlide() {
+                let next = (currentSlide + 1) % totalSlides;
+                goToSlide(next);
+            }
+
+            function resetInterval() {
+                clearInterval(slideInterval);
+                slideInterval = setInterval(nextSlide, 6000); // Tăng thời gian lên 6s cho dễ đọc
+            }
+
+            slideInterval = setInterval(nextSlide, 6000);
         }
 
-        // --- IMPROVED AI CHAT LOGIC (ChatGPT Style + Clickable Links) ---
+        // --- 2. AI CHAT LOGIC (IMPROVED) ---
         const toggleBtn = document.getElementById('toggle-chat');
         const chatWindow = document.getElementById('ai-chat-window');
         const closeChatBtn = document.getElementById('close-chat');
@@ -489,23 +547,23 @@
         const messagesContainer = document.getElementById('chat-messages');
         const STORAGE_KEY = 'codecampus_ai_chat_history';
 
-        // 1. Hàm định dạng text (Xử lý Link & Xuống dòng)
+        // Tin nhắn chào mừng chuẩn
+        const INTRO_MSG = `
+            <div class="flex items-start gap-3 message-enter" id="intro-msg">
+                <div class="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-xs shrink-0 text-slate-700 shadow-sm">🤖</div>
+                <div class="flex flex-col space-y-1 max-w-[85%]">
+                    <div class="bg-white text-slate-700 px-4 py-3 rounded-2xl rounded-tl-none text-[13px] shadow-sm border border-slate-100 leading-relaxed chat-content">
+                        <b>Chào bạn! 👋</b><br>
+                        Mình là trợ lý ảo CodeCampus. Bạn cần tìm khóa học nào hôm nay?
+                    </div>
+                </div>
+            </div>`;
+
         function formatMessageContent(text) {
-            // Escape HTML cơ bản để tránh XSS
-            let safeText = text.replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;");
-
-            // Regex nhận diện URL (http/https/localhost)
-            // Biến URL thành thẻ <a> có class chat-link
+            let safeText = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
             const urlRegex = /(https?:\/\/[^\s]+)/g;
-            safeText = safeText.replace(urlRegex, function(url) {
-                return `<a href="${url}" target="_blank" class="chat-link">${url}</a>`;
-            });
-
-            // Chuyển đổi \n thành <br>
+            safeText = safeText.replace(urlRegex, url => `<a href="${url}" target="_blank">${url}</a>`);
             safeText = safeText.replace(/\n/g, '<br>');
-
             return safeText;
         }
 
@@ -514,8 +572,11 @@
             if (history) {
                 try {
                     const messages = JSON.parse(history);
-                    messages.forEach(msg => { appendMessage(msg.text, msg.isUser, false); });
-                } catch (e) { console.error("History Error", e); }
+                    if(messages.length === 0) messagesContainer.innerHTML = INTRO_MSG;
+                    else messages.forEach(msg => { appendMessage(msg.text, msg.isUser, false); });
+                } catch (e) { messagesContainer.innerHTML = INTRO_MSG; }
+            } else {
+                messagesContainer.innerHTML = INTRO_MSG;
             }
         }
 
@@ -528,7 +589,8 @@
         }
 
         function toggleChat() {
-            if (chatWindow.classList.contains('invisible')) {
+            const isInvisible = chatWindow.classList.contains('invisible');
+            if (isInvisible) {
                 chatWindow.classList.remove('invisible', 'opacity-0', 'translate-y-10');
                 toggleBtn.classList.add('opacity-0', 'scale-0');
                 setTimeout(() => chatInput.focus(), 300);
@@ -539,33 +601,20 @@
             }
         }
 
+        // Event Listeners cho Chat
         toggleBtn.addEventListener('click', toggleChat);
         closeChatBtn.addEventListener('click', toggleChat);
         headerChat.addEventListener('click', (e) => {
-            if (e.target === headerChat || e.target.closest('#header-chat')) {
-                if (!chatWindow.classList.contains('invisible')) toggleChat();
-            }
+            if (e.target.closest('button')) return; // Không toggle nếu click nút đóng/xóa
+            toggleChat();
         });
 
         if (clearChatBtn) {
             clearChatBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                if(confirm("Xóa toàn bộ hội thoại?")) {
+                if(confirm("Xóa toàn bộ cuộc trò chuyện?")) {
                     localStorage.removeItem(STORAGE_KEY);
-                    messagesContainer.innerHTML = '';
-                    // Thêm lại tin nhắn chào mừng mặc định
-                    const introHTML = `
-                        <div class="flex items-start gap-3 message-enter" id="intro-msg">
-                            <div class="w-8 h-8 rounded-full bg-emerald-100 border border-emerald-200 flex items-center justify-center text-xs shrink-0 text-emerald-700">🤖</div>
-                            <div class="flex flex-col space-y-1 max-w-[90%]">
-                                <div class="bg-slate-100 text-slate-800 px-4 py-3 rounded-2xl rounded-tl-none text-[14px] shadow-sm leading-relaxed chat-content">
-                                    Xin chào! 👋 Mình là trợ lý học tập ảo của CodeCampus.<br>
-                                    Cần gợi ý lộ trình, tìm khóa học phù hợp hay hỏi nhanh về bài giảng?
-                                    Cứ nhắn mình — mình tư vấn chuẩn chỉnh và cá nhân hóa 100% nha! 🚀
-                                </div>
-                            </div>
-                        </div>`;
-                    messagesContainer.innerHTML = introHTML;
+                    messagesContainer.innerHTML = INTRO_MSG;
                 }
             });
         }
@@ -576,25 +625,19 @@
             const div = document.createElement('div');
             div.className = `flex items-start gap-3 message-enter ${isUser ? 'flex-row-reverse' : ''}`;
 
-            // Avatar & Styles
-            const avatar = isUser
-                ? '' // User không cần avatar trong style này
-                : `<div class="w-8 h-8 rounded-full bg-emerald-100 border border-emerald-200 flex items-center justify-center text-xs shrink-0 text-emerald-700 mt-1">🤖</div>`;
+            const avatar = isUser ? '' : `<div class="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-xs shrink-0 text-slate-700 shadow-sm mt-1">🤖</div>`;
 
-            // Màu sắc ChatGPT Style
-            // User: Màu xanh Indigo/Blue, chữ trắng
-            // AI: Màu xám nhạt (Slate 100), chữ đen
+            // Màu sắc bubble: User (Brand Color), Bot (White)
             const bubbleClass = isUser
-                ? 'bg-indigo-600 text-white rounded-2xl rounded-tr-sm shadow-md'
-                : 'bg-slate-100 text-slate-800 rounded-2xl rounded-tl-sm shadow-sm border border-slate-200/50';
+                ? 'bg-brand-600 text-white rounded-2xl rounded-tr-none shadow-md shadow-brand-500/20'
+                : 'bg-white text-slate-700 rounded-2xl rounded-tl-none shadow-sm border border-slate-200/60';
 
-            // Xử lý nội dung (Linkify)
             const formattedContent = formatMessageContent(text);
 
             div.innerHTML = `
                 ${avatar}
-                <div class="flex flex-col space-y-1 max-w-[90%] ${isUser ? 'items-end' : 'items-start'}">
-                    <div class="${bubbleClass} px-4 py-3 text-[14px] leading-relaxed chat-content break-words">
+                <div class="flex flex-col space-y-1 max-w-[85%] ${isUser ? 'items-end' : 'items-start'}">
+                    <div class="${bubbleClass} px-4 py-2.5 text-[13px] leading-relaxed chat-content break-words">
                         ${formattedContent}
                     </div>
                 </div>
@@ -608,8 +651,8 @@
             div.id = 'ai-loading';
             div.className = 'flex items-start gap-3 message-enter';
             div.innerHTML = `
-                <div class="w-8 h-8 rounded-full bg-emerald-100 border border-emerald-200 flex items-center justify-center text-xs shrink-0 text-emerald-700 mt-1">🤖</div>
-                <div class="bg-slate-100 p-3 rounded-2xl rounded-tl-sm shadow-sm border border-slate-200/50 flex space-x-1 items-center h-10">
+                <div class="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-xs shrink-0 text-slate-700 shadow-sm mt-1">🤖</div>
+                <div class="bg-white p-3 rounded-2xl rounded-tl-none shadow-sm border border-slate-200 flex space-x-1 items-center h-10">
                     <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"></span>
                     <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></span>
                     <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></span>
@@ -619,6 +662,7 @@
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
+        // Chat Submit Logic
         chatForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             const message = chatInput.value.trim();
@@ -629,66 +673,61 @@
             appendLoading();
 
             try {
+                // Call API (Giả lập endpoint)
                 const response = await fetch('/api/ai/consult', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ message: message })
                 });
 
-                if (!response.ok) throw new Error(`Status: ${response.status}`);
-                const data = await response.json();
-
                 const loadingEl = document.getElementById('ai-loading');
                 if (loadingEl) loadingEl.remove();
 
+                if (!response.ok) throw new Error(`Status: ${response.status}`);
+                const data = await response.json();
+
                 if (data && data.reply) appendMessage(data.reply, false);
-                else appendMessage("Lỗi phản hồi máy chủ.", false);
+                else appendMessage("Xin lỗi, mình đang gặp chút trục trặc.", false);
 
             } catch (error) {
                 const loadingEl = document.getElementById('ai-loading');
                 if (loadingEl) loadingEl.remove();
-                appendMessage("Mất kết nối. Vui lòng thử lại sau.", false, false);
+                appendMessage("Mất kết nối server. Vui lòng thử lại sau.", false, false);
             }
         });
 
         loadChatHistory();
     });
-</script>
-<!-- Counter Animation (đã nâng cấp mượt hơn) -->
-<script>
+
+    // --- 3. COUNTER ANIMATION LOGIC (Intersection Observer) ---
     document.addEventListener("DOMContentLoaded", () => {
         const counters = document.querySelectorAll('.counter');
-        const speed = 200; // Tốc độ chạy số (càng nhỏ càng nhanh)
+        const speed = 100; // Tốc độ nhanh hơn chút
 
         const animateCounters = () => {
             counters.forEach(counter => {
                 const updateCount = () => {
-                    // Lấy giá trị đích từ data-target
                     const target = +counter.getAttribute('data-target');
                     const count = +counter.innerText;
-
-                    // Tính bước nhảy
-                    const inc = target / speed;
+                    const inc = Math.ceil(target / speed); // Tính step nhảy
 
                     if (count < target) {
-                        // Làm tròn lên và hiển thị
-                        counter.innerText = Math.ceil(count + inc);
-                        setTimeout(updateCount, 20); // Delay 20ms
+                        counter.innerText = count + inc > target ? target : count + inc;
+                        setTimeout(updateCount, 15);
                     } else {
-                        counter.innerText = target; // Đảm bảo số cuối cùng chính xác
+                        counter.innerText = target;
                     }
                 };
                 updateCount();
             });
         };
 
-        // Sử dụng IntersectionObserver để chỉ chạy khi cuộn tới phần Stats
         const observer = new IntersectionObserver((entries) => {
             if (entries[0].isIntersecting) {
                 animateCounters();
-                observer.disconnect(); // Chỉ chạy 1 lần
+                observer.disconnect();
             }
-        }, { threshold: 0.5 }); // Khi hiển thị 50% section thì chạy
+        }, { threshold: 0.5 });
 
         const statsSection = document.getElementById('system-stats');
         if (statsSection) {

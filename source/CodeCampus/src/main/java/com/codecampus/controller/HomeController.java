@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import com.codecampus.repository.FeedbackRepository; // <--- Import mới
+import org.springframework.data.domain.PageRequest;  // <--- Import mới
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -21,6 +23,7 @@ public class HomeController {
     @Autowired private BlogRepository blogRepository;
     @Autowired private CourseRepository courseRepository;
     @Autowired private MyCourseRepository myCourseRepository;
+    @Autowired private FeedbackRepository feedbackRepository; // <--- Inject thêm
 
     @GetMapping("/home")
     public String showHomePage(Model model) {
@@ -69,11 +72,13 @@ public class HomeController {
             completionRate = (int) (((double) completedCourses / totalEnrollments) * 100);
         }
 
-        // Logic Marketing (Tùy chọn): Nếu tỉ lệ thật quá thấp (vd: 5%),
-        // bạn có thể muốn lấy "Tiến độ trung bình" thay vì "Tỉ lệ hoàn thành" để số đẹp hơn.
-        // Nếu muốn số đẹp, có thể dùng công thức khác, nhưng ở đây tôi để logic thật.
-
         model.addAttribute("completionRate", completionRate);
+
+        // Lấy 3 feedback tốt nhất để hiển thị
+        model.addAttribute("feedbacks",
+                feedbackRepository.findTopFeedbacks(PageRequest.of(0, 6)));
+
+        model.addAttribute("pageTitle", "Trang chủ | CodeCampus");
 
         return "home"; // Trả về file home.html
     }
