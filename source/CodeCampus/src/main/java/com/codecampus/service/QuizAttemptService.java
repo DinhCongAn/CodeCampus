@@ -94,131 +94,134 @@ public class QuizAttemptService {
 
     @Transactional
     public QuizAttempt submitAndGradeQuiz(Integer attemptId, Integer userId) {
+
         QuizAttempt attempt = getLiveAttempt(attemptId, userId);
         Quiz quiz = attempt.getQuiz();
-        List<QuizAttemptAnswer> userAnswers = getSavedAnswers(attemptId);
 
-        Set<Integer> correctAnswers = answerOptionRepository
-                .findCorrectAnswerIdsByQuizId(quiz.getId());
+        // === LẤY DANH SÁCH CÂU HỎI ACTIVE TẠI THỜI ĐIỂM CHẤM ===
+        List<Question> activeQuestions =
+                questionRepository.findActiveQuestionsByQuizIdWithOptions(quiz.getId());
 
-        int totalQuestions = quiz.getQuestions().size();
+        int totalQuestions = activeQuestions.size();
+
+        // Lấy câu trả lời user
+        List<QuizAttemptAnswer> userAnswers =
+                attemptAnswerRepository.findByAttempt_Id(attemptId);
+
+        Set<Integer> correctAnswerIds =
+                answerOptionRepository.findCorrectAnswerIdsByQuizId(quiz.getId());
+
         int correctCount = 0;
 
         for (QuizAttemptAnswer userAnswer : userAnswers) {
-            if (userAnswer.getSelectedAnswerOption() != null &&
-                    correctAnswers.contains(userAnswer.getSelectedAnswerOption().getId())) {
+            if (userAnswer.getSelectedAnswerOption() != null
+                    && correctAnswerIds.contains(userAnswer.getSelectedAnswerOption().getId())) {
                 correctCount++;
             }
         }
 
         BigDecimal score = BigDecimal.ZERO;
         if (totalQuestions > 0) {
-            score = new BigDecimal(correctCount)
-                    .divide(new BigDecimal(totalQuestions), 4, RoundingMode.HALF_UP)
-                    .multiply(new BigDecimal(100));
+            score = BigDecimal.valueOf(correctCount)
+                    .divide(BigDecimal.valueOf(totalQuestions), 4, RoundingMode.HALF_UP)
+                    .multiply(BigDecimal.valueOf(100));
         }
 
-        String result = (score.compareTo(quiz.getPassRatePercentage()) >= 0) ? "Pass" : "Fail";
-
+        attempt.setScore(score.setScale(2, RoundingMode.HALF_UP));
+        attempt.setResult(
+                score.compareTo(quiz.getPassRatePercentage()) >= 0 ? "Pass" : "Fail"
+        );
         attempt.setStatus("completed");
         attempt.setEndTime(LocalDateTime.now());
-        attempt.setScore(score.setScale(2, RoundingMode.HALF_UP));
-        attempt.setResult(result);
 
         return attemptRepository.save(attempt);
     }
 
-    /**
-     * SỬA LẠI LOGIC CỦA HÀM NÀY (Đã sửa lỗi 999)
-     */
     @Transactional(readOnly = true)
     public QuizReviewDto getQuizReview(Integer attemptId, Integer userId) {
-        // 1. Lấy attempt
+
         QuizAttempt attempt = attemptRepository.findCompletedAttemptById(attemptId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bài làm đã hoàn thành."));
 
-        // 2. Xác thực (Đây là dòng 183 gây lỗi)
-        logger.info("[DEBUG] getQuizReview: Checking user... (Request: {}, Owner: {})", userId, attempt.getUser().getId());
-
-        // Lấy vai trò (Giả sử bạn có UserRole.java và liên kết getRole())
+        // === CHECK QUYỀN (GIỮ NGUYÊN) ===
         User currentUser = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng đang xem."));
-        String userRole = (currentUser.getRole() != null) ? currentUser.getRole().getName() : "STUDENT";
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng."));
+        String userRole = (currentUser.getRole() != null)
+                ? currentUser.getRole().getName()
+                : "STUDENT";
 
         if (!attempt.getUser().getId().equals(userId) && !userRole.equals("ADMIN")) {
-            logger.error("BẢO MẬT THẤT BẠI: User {} (Role: {}) đang cố xem bài của User {}",
-                    userId, userRole, attempt.getUser().getId());
             throw new RuntimeException("Không có quyền xem kết quả này.");
         }
 
-        logger.info("Bảo mật OK. Bắt đầu lấy dữ liệu review...");
+        // === NGUỒN DỮ LIỆU CHÍNH: QuizAttemptAnswer ===
+        List<QuizAttemptAnswer> userAnswersList =
+                attemptAnswerRepository.findByAttempt_Id(attemptId);
 
-        // 3. Lấy dữ liệu
-        Quiz quiz = attempt.getQuiz();
-
-        // === SỬA LOGIC CỐT LÕI TẠI ĐÂY ===
-        // Nguồn dữ liệu chính: Lấy các câu hỏi CHÍNH THỨC của Quiz
-        List<Question> questionsInQuiz = questionRepository.findQuestionsByQuizIdWithOptions(quiz.getId());
-
-        // Nguồn dữ liệu phụ: Lấy các câu trả lời user đã LƯU
-        List<QuizAttemptAnswer> userAnswersList = attemptAnswerRepository.findByAttempt_Id(attemptId);
-
-        // Tạo Map (bộ tra cứu) từ danh sách phụ
+        // Map để tra cứu nhanh
         Map<Integer, QuizAttemptAnswer> userAnswerMap = userAnswersList.stream()
                 .collect(Collectors.toMap(
-                        ans -> ans.getQuestion().getId(), // Key là Question ID
-                        ans -> ans                      // Value là toàn bộ object Answer
+                        ans -> ans.getQuestion().getId(),
+                        ans -> ans
                 ));
 
-        // 4. Xây dựng DTO
+        // Lấy danh sách Question từ attempt (KHÔNG QUAN TÂM ACTIVE/INACTIVE)
+        List<Question> questionsInAttempt = userAnswersList.stream()
+                .map(QuizAttemptAnswer::getQuestion)
+                .distinct()
+                .collect(Collectors.toList());
+
+        // === BUILD DTO ===
+        Quiz quiz = attempt.getQuiz();
+
         QuizReviewDto reviewDto = new QuizReviewDto();
         reviewDto.setAttemptId(attemptId);
+        reviewDto.setQuizId(quiz.getId());
         reviewDto.setQuizName(quiz.getName());
         reviewDto.setScore(attempt.getScore());
         reviewDto.setResult(attempt.getResult());
-        reviewDto.setTotalQuestions(questionsInQuiz.size());
-
-        reviewDto.setQuizId(quiz.getId());
-        reviewDto.setLessonId(quiz.getId());
+        reviewDto.setTotalQuestions(questionsInAttempt.size());
 
         int correctCount = 0;
-        List<QuestionReviewDto> questionReviewDtos = new ArrayList<>();
+        List<QuestionReviewDto> questionDtos = new ArrayList<>();
 
-        // === LUÔN LẶP QUA DANH SÁCH 'questionsInQuiz' (CHÍNH THỨC) ===
-        // Vòng lặp này sẽ KHÔNG BAO GIỜ chạy câu 999 (dữ liệu rác)
-        for (Question q : questionsInQuiz) {
+        for (Question q : questionsInAttempt) {
+
             QuestionReviewDto qDto = new QuestionReviewDto();
-            qDto.setQuestionId(q.getId()); // ID này sẽ luôn đúng
+            qDto.setQuestionId(q.getId());
             qDto.setContent(q.getContent());
             qDto.setExplanation(q.getExplanation());
 
-            // Tìm đáp án đúng từ 'q'
             AnswerOption correctAnswer = q.getAnswerOptions().stream()
-                    .filter(option -> Boolean.TRUE.equals(option.getIsCorrect()))
+                    .filter(opt -> Boolean.TRUE.equals(opt.getIsCorrect()))
                     .findFirst()
                     .orElse(null);
 
-            // Tra cứu đáp án của user từ Map
             QuizAttemptAnswer userAnswer = userAnswerMap.get(q.getId());
-            AnswerOption selectedOption = (userAnswer != null) ? userAnswer.getSelectedAnswerOption() : null;
+            AnswerOption selectedOption =
+                    (userAnswer != null) ? userAnswer.getSelectedAnswerOption() : null;
 
-            // Gán nội dung
-            qDto.setCorrectAnswerContent(correctAnswer != null ? correctAnswer.getContent() : "Không có đáp án đúng");
-            qDto.setUserAnswerContent(selectedOption != null ? selectedOption.getContent() : "(Bỏ qua)");
+            qDto.setCorrectAnswerContent(
+                    correctAnswer != null ? correctAnswer.getContent() : "Không có đáp án đúng"
+            );
+            qDto.setUserAnswerContent(
+                    selectedOption != null ? selectedOption.getContent() : "(Bỏ qua)"
+            );
 
-            // So sánh
-            if (selectedOption != null && correctAnswer != null && selectedOption.getId().equals(correctAnswer.getId())) {
-                qDto.setCorrect(true);
-                correctCount++;
-            } else {
-                qDto.setCorrect(false);
-            }
-            questionReviewDtos.add(qDto);
+            boolean isCorrect =
+                    selectedOption != null &&
+                            correctAnswer != null &&
+                            selectedOption.getId().equals(correctAnswer.getId());
+
+            qDto.setCorrect(isCorrect);
+
+            if (isCorrect) correctCount++;
+
+            questionDtos.add(qDto);
         }
-        // === KẾT THÚC SỬA LOGIC ===
 
         reviewDto.setCorrectCount(correctCount);
-        reviewDto.setQuestions(questionReviewDtos);
+        reviewDto.setQuestions(questionDtos);
 
         return reviewDto;
     }

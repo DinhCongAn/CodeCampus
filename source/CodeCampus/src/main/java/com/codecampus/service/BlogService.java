@@ -222,4 +222,18 @@ public class BlogService {
         Files.copy(file.getInputStream(), uploadPath.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
         return fileName;
     }
+
+    /**
+     * Toggle trạng thái Featured của bài viết (Admin)
+     */
+    public void toggleFeatured(Long blogId) {
+        Blog blog = blogRepository.findById(blogId)
+                .orElseThrow(() -> new RuntimeException("Bài viết không tồn tại"));
+
+        // Đảo trạng thái featured
+        blog.setIsFeatured(!Boolean.TRUE.equals(blog.getIsFeatured()));
+
+        blogRepository.save(blog);
+    }
+
 }

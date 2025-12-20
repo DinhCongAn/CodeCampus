@@ -1,6 +1,7 @@
 package com.codecampus.controller;
 
 import com.codecampus.entity.*;
+import com.codecampus.repository.QuestionRepository;
 import com.codecampus.service.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,7 @@ public class QuizLearningController {
     private final UserService userService;
     private final AiLearningService aiLearningService;
     private final LessonService lessonService;
+    @Autowired private QuestionRepository questionRepository; // Inject thêm Repo này
 
     @Autowired
     public QuizLearningController(QuizService quizService,
@@ -109,11 +111,13 @@ public class QuizLearningController {
             // Lưu ý: currentLesson.getQuiz() có thể null nếu fetch lười (Lazy), nên gọi service cho chắc
             Quiz quiz = (currentLesson.getQuiz() != null) ? currentLesson.getQuiz() : quizService.findQuizById(quizId);
 
+            int totalActiveQuestions = questionRepository.countActiveQuestionsByQuizId(quizId);
             List<QuizAttempt> pastAttempts = quizAttemptService.findAttemptsByUserAndQuiz(currentUser.getId(), quizId);
 
             // 6. Đẩy dữ liệu ra View (Model Attributes)
 
             // --- Nhóm dữ liệu chung (Layout/Sidebar/Nav) ---
+            model.addAttribute("totalActiveQuestions", totalActiveQuestions);
             model.addAttribute("currentLesson", currentLesson);
             model.addAttribute("course", course);
             model.addAttribute("allLessons", allLessons);

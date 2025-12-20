@@ -412,18 +412,19 @@
                     <i class="fas fa-info-circle me-1"></i> Kiểm tra kỹ nội dung trước khi lưu. Bạn có thể chỉnh sửa trực tiếp vào các ô bên dưới.
                 </div>
                 <div class="table-responsive">
-                    <table class="table table-bordered table-sm small align-middle">
+                    <table class="table table-bordered table-sm small align-middle table-hover">
                         <thead class="table-light text-center">
                         <tr>
                             <th width="3%">#</th>
-                            <th width="30%">Câu hỏi</th>
-                            <th width="12%">Đáp án A</th>
-                            <th width="12%">Đáp án B</th>
-                            <th width="12%">Đáp án C</th>
-                            <th width="12%">Đáp án D</th>
+                            <th width="10%">Thông tin chung</th>
+                            <th width="25%">Câu hỏi</th>
+                            <th width="10%">Đáp án A</th>
+                            <th width="10%">Đáp án B</th>
+                            <th width="10%">Đáp án C</th>
+                            <th width="10%">Đáp án D</th>
                             <th width="5%">Đúng</th>
                             <th>Giải thích</th>
-                            <th width="5%">Xóa</th>
+                            <th width="3%">Xóa</th>
                         </tr>
                         </thead>
                         <tbody id="aiResultTable">
@@ -660,62 +661,138 @@
             });
     }
 
-    function showResultModal(data) {
-        document.getElementById('resTotal').innerText = data.total || 0;
-        document.getElementById('resSuccess').innerText = data.success || 0;
-        document.getElementById('resError').innerText = data.error || 0;
+    // Thay thế hàm function showResultModal(data) hiện tại
+    function showResultModal(data, isAiResult = false) {
+        // Lấy list dữ liệu gốc từ Thymeleaf
+        const allCourses = Array.isArray(window.courses) ? window.courses : (typeof courses !== 'undefined' ? courses : []);
+        const allLevels = Array.isArray(window.levels) ? window.levels : (typeof levels !== 'undefined' ? levels : []);
+
+        function findNameById(list, id) {
+            if (!id) return '';
+            const item = list.find(i => i.id == id || i.id == parseInt(id));
+            return item ? item.name : `ID: ${id}`;
+        }
+
+        // 1. Cập nhật các chỉ số tổng quan
+        const total = data.totalRecords || data.total || 0;
+        const success = data.successCount || data.success || 0;
+        const error = data.failCount || data.error || 0;
+
+        document.getElementById('resTotal').innerText = total;
+        document.getElementById('resSuccess').innerText = success;
+        document.getElementById('resError').innerText = error;
 
         const tbody = document.getElementById('resultTableBody');
         tbody.innerHTML = '';
 
-        if (data.details && data.details.length > 0) {
-            data.details.forEach(item => {
+        let allResults = [];
+
+        if (isAiResult) {
+            // AI: Lấy cả thành công và thất bại, đánh dấu trạng thái
+            if (data.successDetails) {
+                data.successDetails.forEach(item => { item.isSuccess = true; allResults.push(item); });
+            }
+            if (data.failDetails) {
+                data.failDetails.forEach(item => { item.isSuccess = false; allResults.push(item); });
+            }
+        } else {
+            // Excel: Dùng cấu trúc cũ
+            allResults = data.details || [];
+        }
+
+        // Nếu không có kết quả chi tiết, hiển thị dòng tổng kết
+        if (allResults.length === 0 && (total > 0)) {
+            tbody.innerHTML = `<tr>
+            <td colspan="14" class="text-center py-3 bg-primary-subtle text-primary fw-bold">
+                <i class="fas fa-info-circle me-2"></i> Không có thông tin chi tiết để hiển thị.
+            </td>
+        </tr>`;
+        }
+
+        // Lặp qua TẤT CẢ các kết quả để hiển thị chi tiết từng câu
+        if (allResults.length > 0) {
+            allResults.forEach((item, index) => {
                 const row = document.createElement('tr');
 
-                // Cấu hình hiển thị trạng thái
-                let statusBadge = '<span class="badge bg-success"><i class="fas fa-check me-1"></i>OK</span>';
-                let messageText = item.message;
-                let messageClass = 'text-muted';
+                // Xác định trạng thái
+                const isError = isAiResult ? !item.isSuccess : (item.status === 'error');
 
-                if (item.status === 'error') {
-                    statusBadge = '<span class="badge bg-danger"><i class="fas fa-times me-1"></i>Lỗi</span>';
-                    row.classList.add('table-danger'); // Tô hồng dòng lỗi
-                    messageClass = 'text-danger fw-bold';
-                }
+                let statusBadge = isError
+                    ? '<span class="badge bg-danger"><i class="fas fa-times me-1"></i>Lỗi</span>'
+                    : '<span class="badge bg-success"><i class="fas fa-check me-1"></i>OK</span>';
 
-                // Hàm rút gọn text nếu quá dài (để bảng đỡ vỡ)
+                let messageText = item.errorMessage || item.message || "Đã lưu thành công";
+                let messageClass = isError ? 'text-danger fw-bold' : 'text-success';
+                row.classList.add(isError ? 'table-danger' : 'table-success-subtle');
+
                 const truncate = (str, len = 50) => {
                     if (!str) return '';
                     return str.length > len ? str.substring(0, len) + '...' : str;
                 };
 
+                let rowContent;
+
+                if (isAiResult && item.originalRequest) {
+                    // TÁI TẠO DỮ LIỆU TỪ DTO GỐC (cho AI)
+                    const req = item.originalRequest;
+                    const options = req.answerOptions || [];
+
+                    rowContent = {
+                        id: index + 1,
+                        course: findNameById(allCourses, req.courseId),
+                        lesson: findNameById(window.lessons || [], req.lessonId),
+                        level: findNameById(allLevels, req.levelId),
+                        content: req.content || 'N/A',
+                        explanation: req.explanation || '',
+                        media: '',
+                        a: options[0]?.content || '',
+                        b: options[1]?.content || '',
+                        c: options[2]?.content || '',
+                        d: options[3]?.content || '',
+                        correct: options.map((opt, idx) => opt.isCorrect ? String.fromCharCode(65 + idx) : null)
+                            .filter(c => c !== null).join(',')
+                    };
+                } else {
+                    // Dữ liệu từ Import Excel (Cấu trúc cũ)
+                    rowContent = {
+                        id: item.row || (index + 1),
+                        course: item.course || '',
+                        lesson: item.lesson || '',
+                        level: item.level || '',
+                        content: item.content || '',
+                        explanation: item.explanation || '',
+                        media: item.media || '',
+                        a: item.a || '', b: item.b || '', c: item.c || '', d: item.d || '',
+                        correct: item.correct || ''
+                    };
+                }
+
+                // Xây dựng hàng HTML (ĐỒNG NHẤT HIỂN THỊ)
                 row.innerHTML = `
-                    <td class="text-center fw-bold">${item.row}</td>
-                    <td>${statusBadge}</td>
-                    <td class="${messageClass}">${messageText}</td>
+                <td class="text-center fw-bold">${rowContent.id}</td>
+                <td>${statusBadge}</td>
+                <td class="${messageClass}" style="white-space: normal;">${messageText}</td>
 
-                    <td>${item.course || ''}</td>
-                    <td>${item.lesson || ''}</td>
-                    <td>${item.level || ''}</td>
+                <td>${rowContent.course}</td>
+                <td>${rowContent.lesson}</td>
+                <td>${rowContent.level}</td>
 
-                    <td title="${item.content || ''}" class="fw-bold text-dark">
-                        ${truncate(item.content, 80)}
-                    </td>
+                <td title="${rowContent.content}" class="fw-bold text-dark" style="white-space: normal;">
+                    ${truncate(rowContent.content, 100)}
+                </td>
 
-                    <td title="${item.explanation || ''}">${truncate(item.explanation, 40)}</td>
+                <td title="${rowContent.explanation}">${truncate(rowContent.explanation, 40)}</td>
 
-                    <td>${item.media ? '<a href="'+item.media+'" target="_blank">Link</a>' : ''}</td>
+                <td>${rowContent.media ? '<a href="'+rowContent.media+'" target="_blank">Link</a>' : ''}</td>
 
-                    <td>${item.a || ''}</td>
-                    <td>${item.b || ''}</td>
-                    <td>${item.c || ''}</td>
-                    <td>${item.d || ''}</td>
-                    <td class="text-center fw-bold text-primary">${item.correct || ''}</td>
-                `;
+                <td>${rowContent.a}</td>
+                <td>${rowContent.b}</td>
+                <td>${rowContent.c}</td>
+                <td>${rowContent.d}</td>
+                <td class="text-center fw-bold text-primary">${rowContent.correct}</td>
+            `;
                 tbody.appendChild(row);
             });
-        } else {
-            tbody.innerHTML = '<tr><td colspan="14" class="text-center py-5">Không có dữ liệu chi tiết.</td></tr>';
         }
 
         const resultModal = new bootstrap.Modal(document.getElementById('resultModal'));
@@ -731,8 +808,17 @@
     }
 
     function runAiGenerate() {
-        const courseId = document.getElementById('aiCourse').value;
+        const courseSelect = document.getElementById('aiCourse');
+        const lessonSelect = document.getElementById('aiLesson');
+        const levelSelect = document.getElementById('aiLevel');
+
+        const courseId = courseSelect.value;
         if (!courseId) { alert("Vui lòng chọn khóa học!"); return; }
+
+        // Lấy Text hiển thị từ Dropdown để hiện vào bảng preview
+        const courseName = courseSelect.options[courseSelect.selectedIndex]?.text || "";
+        const lessonName = lessonSelect.options[lessonSelect.selectedIndex]?.text || "Chưa chọn bài học";
+        const levelName = levelSelect.options[levelSelect.selectedIndex]?.text || "Trung bình";
 
         // UI Feedback
         document.getElementById('aiLoading').classList.remove('d-none');
@@ -742,24 +828,24 @@
         const formData = new FormData();
         formData.append('courseId', courseId);
         formData.append('quizId', document.getElementById('aiQuiz').value);
-        formData.append('lessonId', document.getElementById('aiLesson').value);
-        formData.append('levelId', document.getElementById('aiLevel').value);
+        formData.append('lessonId', lessonSelect.value);
+        formData.append('levelId', levelSelect.value);
         formData.append('count', document.getElementById('aiCount').value);
         formData.append('description', document.getElementById('aiDesc').value);
 
         const csrf = getCsrfData();
 
-        // Call API
         fetch('/admin/questions/api/ai-generate', {
             method: 'POST',
-            headers: { [csrf.header]: csrf.token }, // Content-Type để tự động là multipart form
+            headers: { [csrf.header]: csrf.token },
             body: formData
         })
             .then(res => res.json())
             .then(data => {
                 if(Array.isArray(data)) {
-                    generatedData = data; // Lưu vào biến tạm
-                    renderPreviewTable(data);
+                    generatedData = data;
+                    // Truyền thêm tên Course, Lesson, Level vào hàm render
+                    renderPreviewTable(data, courseName, lessonName, levelName);
 
                     // Chuyển view
                     document.getElementById('aiInputSection').classList.add('d-none');
@@ -776,28 +862,36 @@
             });
     }
 
-    function renderPreviewTable(list) {
+    // Hàm render nhận thêm 3 tham số tên
+    function renderPreviewTable(list, courseName, lessonName, levelName) {
         const tbody = document.getElementById('aiResultTable');
         tbody.innerHTML = '';
 
         list.forEach((item, index) => {
             const row = `
             <tr id="ai-row-${index}">
-                <td class="text-center">${index + 1}</td>
-                <td><textarea class="form-control form-control-sm" rows="3" onchange="updateData(${index}, 'content', this.value)">${item.content}</textarea></td>
+                <td class="text-center fw-bold">${index + 1}</td>
+
+                <td class="small bg-light">
+                    <div class="fw-bold text-primary">${courseName}</div>
+                    <div class="text-muted fst-italic"><i class="fas fa-book-open me-1"></i>${lessonName}</div>
+                    <div class="mt-1"><span class="badge bg-info text-dark">${levelName}</span></div>
+                </td>
+
+                <td><textarea class="form-control form-control-sm" rows="4" onchange="updateData(${index}, 'content', this.value)">${item.content}</textarea></td>
                 <td><input type="text" class="form-control form-control-sm" value="${item.answerA}" onchange="updateData(${index}, 'answerA', this.value)"></td>
                 <td><input type="text" class="form-control form-control-sm" value="${item.answerB}" onchange="updateData(${index}, 'answerB', this.value)"></td>
                 <td><input type="text" class="form-control form-control-sm" value="${item.answerC || ''}" onchange="updateData(${index}, 'answerC', this.value)"></td>
                 <td><input type="text" class="form-control form-control-sm" value="${item.answerD || ''}" onchange="updateData(${index}, 'answerD', this.value)"></td>
                 <td>
-                    <select class="form-select form-select-sm fw-bold text-primary" onchange="updateData(${index}, 'correctChar', this.value)">
+                    <select class="form-select form-select-sm fw-bold text-success" onchange="updateData(${index}, 'correctChar', this.value)">
                         <option value="A" ${item.correctChar === 'A' ? 'selected' : ''}>A</option>
                         <option value="B" ${item.correctChar === 'B' ? 'selected' : ''}>B</option>
                         <option value="C" ${item.correctChar === 'C' ? 'selected' : ''}>C</option>
                         <option value="D" ${item.correctChar === 'D' ? 'selected' : ''}>D</option>
                     </select>
                 </td>
-                <td><textarea class="form-control form-control-sm" rows="2" onchange="updateData(${index}, 'explanation', this.value)">${item.explanation || ''}</textarea></td>
+                <td><textarea class="form-control form-control-sm" rows="3" onchange="updateData(${index}, 'explanation', this.value)">${item.explanation || ''}</textarea></td>
                 <td class="text-center"><button class="btn btn-sm btn-outline-danger" onclick="removeAiRow(${index})"><i class="fas fa-trash"></i></button></td>
             </tr>
         `;
@@ -819,12 +913,26 @@
         }
     }
 
+    // Thay thế hàm function saveAiData() hiện tại
     function saveAiData() {
-        if (generatedData.length === 0) { alert("Không có dữ liệu để lưu!"); return; }
+        if (generatedData.length === 0) {
+            alert("Không có dữ liệu để lưu!");
+            return;
+        }
+
+        let saveRequests;
+        try {
+            saveRequests = mapAiDataToSaveRequests(generatedData);
+        } catch (e) {
+            alert("Lỗi dữ liệu đầu vào: " + e.message);
+            return;
+        }
 
         const csrf = getCsrfData();
         const btn = document.getElementById('btnSaveAi');
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang lưu...';
+        const originalText = btn.innerHTML;
+
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang lưu và kiểm tra...';
         btn.disabled = true;
 
         fetch('/admin/questions/api/ai-save-batch', {
@@ -833,16 +941,25 @@
                 'Content-Type': 'application/json',
                 [csrf.header]: csrf.token
             },
-            body: JSON.stringify(generatedData)
+            body: JSON.stringify(saveRequests)
         })
-            .then(res => res.json())
-            .then(data => {
-                alert(data.message);
-                location.reload(); // Reload trang để hiện data mới
+            .then(response => {
+                if (response.status === 403) throw new Error("Lỗi bảo mật (403): Token không hợp lệ. Vui lòng tải lại trang.");
+                return response.json();
             })
-            .catch(err => {
-                alert("Lỗi lưu DB: " + err);
-                btn.innerHTML = '<i class="fas fa-save me-2"></i>Xác nhận & Lưu vào DB';
+            .then(data => {
+                const aiModalEl = document.getElementById('aiModal');
+                const aiModalInstance = bootstrap.Modal.getInstance(aiModalEl);
+                if(aiModalInstance) aiModalInstance.hide();
+
+                showResultModal(data, true); // true báo hiệu đây là kết quả AI
+            })
+            .catch(error => {
+                console.error('Lỗi kết nối hoặc xử lý response:', error);
+                alert("Lỗi hệ thống: " + error.message);
+            })
+            .finally(() => {
+                btn.innerHTML = originalText;
                 btn.disabled = false;
             });
     }
@@ -852,6 +969,86 @@
         document.getElementById('aiPreviewSection').classList.add('d-none');
         document.getElementById('btnSaveAi').classList.add('d-none');
         generatedData = [];
+    }
+
+    // --- BỔ SUNG: HÀM MAP DATA CHO BACKEND ---
+    function mapAiDataToSaveRequests(aiData) {
+        // Lấy các khóa ngoại từ các dropdown của modal AI
+        const courseId = document.getElementById('aiCourse').value;
+        const quizId = document.getElementById('aiQuiz').value;
+        const lessonId = document.getElementById('aiLesson').value;
+        const levelId = document.getElementById('aiLevel').value;
+
+        // Kiểm tra CourseId vì nó là trường bắt buộc
+        if (!courseId) {
+            throw new Error("Vui lòng chọn Khóa học trước khi lưu.");
+        }
+
+        return aiData.map(aiItem => {
+            const answers = [];
+
+            // Chuyển đáp án A, B, C, D thành list AnswerOptionSaveRequest
+            ['A', 'B', 'C', 'D'].forEach(char => {
+                const contentKey = 'answer' + char;
+                const content = aiItem[contentKey];
+
+                if (content && content.trim() !== '') {
+                    answers.push({
+                        content: content,
+                        isCorrect: aiItem.correctChar === char
+                    });
+                }
+            });
+
+            // Định dạng QuestionSaveRequest DTO
+            return {
+                courseId: parseInt(courseId),
+                quizId: quizId ? parseInt(quizId) : null,
+                lessonId: lessonId ? parseInt(lessonId) : null,
+                levelId: parseInt(levelId),
+                content: aiItem.content,
+                explanation: aiItem.explanation || "",
+                answerOptions: answers
+            };
+        });
+    }
+
+    // --- BỔ SUNG: HÀM MAP DATA CHO BACKEND ---
+    function mapAiDataToSaveRequests(aiData) {
+        const courseId = document.getElementById('aiCourse').value;
+        const quizId = document.getElementById('aiQuiz').value;
+        const lessonId = document.getElementById('aiLesson').value;
+        const levelId = document.getElementById('aiLevel').value;
+
+        if (!courseId) {
+            throw new Error("Vui lòng chọn Khóa học trước khi lưu.");
+        }
+
+        return aiData.map(aiItem => {
+            const answers = [];
+
+            ['A', 'B', 'C', 'D'].forEach(char => {
+                const contentKey = 'answer' + char;
+                const content = aiItem[contentKey];
+
+                if (content && content.trim() !== '') {
+                    answers.push({
+                        content: content,
+                        isCorrect: aiItem.correctChar === char
+                    });
+                }
+            });
+
+            return {
+                courseId: parseInt(courseId),
+                quizId: quizId ? parseInt(quizId) : null,
+                lessonId: lessonId ? parseInt(lessonId) : null,
+                levelId: parseInt(levelId),
+                content: aiItem.content,
+                explanation: aiItem.explanation || "",
+                answerOptions: answers
+            };
+        });
     }
 </script>
 

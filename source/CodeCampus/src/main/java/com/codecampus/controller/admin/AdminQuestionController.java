@@ -1,6 +1,9 @@
 package com.codecampus.controller.admin;
 
 import com.codecampus.dto.GeneratedQuestionDTO;
+import com.codecampus.dto.QuestionSaveRequest; // <<-- Bổ sung
+import com.codecampus.dto.SaveResultDetail;   // <<-- Bổ sung
+import com.codecampus.dto.SaveResultDetail.FailEntry; // <<-- Bổ sung
 import com.codecampus.entity.Lesson;
 import com.codecampus.entity.Question;
 import com.codecampus.repository.LessonRepository;
@@ -41,20 +44,15 @@ public class AdminQuestionController {
             @RequestParam(value = "keyword", required = false) String keyword,
             @RequestParam(value = "courseId", required = false) Integer courseId,
             @RequestParam(value = "quizId", required = false) Integer quizId,
-
-            // 1. Nhận tham số status từ form HTML
             @RequestParam(value = "status", required = false) String status,
-
             @RequestParam(value = "levelId", required = false) Integer levelId,
             Model model
     ) {
-        // 2. Truyền status vào Service (lúc này service sẽ quyết định null hay có giá trị)
         Page<Question> questionsPage = questionService.getQuestionsByFilters(keyword, courseId, quizId, levelId, status, page, 10);
         model.addAttribute("qPage", questionsPage);
         model.addAttribute("courses", questionService.getAllCourses());
         model.addAttribute("levels", questionService.getAllLevels());
 
-        // 3. Trả lại các giá trị filter để giao diện hiển thị lại (giữ trạng thái dropdown)
         model.addAttribute("keyword", keyword);
         model.addAttribute("courseId", courseId);
         model.addAttribute("quizId", quizId);
@@ -71,7 +69,7 @@ public class AdminQuestionController {
     // --- 2. LƯU (THÊM / SỬA) ---
     @PostMapping("/save")
     public String saveQuestion(
-            @ModelAttribute Question question, // Bind các field: content, course.id, lesson.id, level.id
+            @ModelAttribute Question question,
             @RequestParam(value = "id", required = false) Integer id,
             @RequestParam(value = "quizId", required = false) Integer quizId,
             @RequestParam(value = "correctIndex", required = false) Integer correctIndex,
@@ -88,19 +86,17 @@ public class AdminQuestionController {
     }
 
     // --- 3. IMPORT EXCEL ---
-
     @PostMapping("/import")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> importQuestions(
             @RequestParam("file") MultipartFile file,
-            @RequestParam(value = "courseId", required = true) Integer courseId, // Bắt buộc
+            @RequestParam(value = "courseId", required = true) Integer courseId,
             @RequestParam(value = "quizId", required = false) Integer quizId,
             @RequestParam(value = "lessonId", required = false) Integer lessonId
     ) {
         try {
             if (file.isEmpty()) throw new IllegalArgumentException("File trống.");
 
-            // Gọi Service với đầy đủ tham số
             Map<String, Object> result = questionService.importQuestionsFromExcel(file, courseId, quizId, lessonId);
 
             return ResponseEntity.ok(result);
@@ -137,11 +133,10 @@ public class AdminQuestionController {
         }).collect(Collectors.toList());
     }
 
-    // API lấy Lesson theo Course (FIX: Thêm mới)
+    // API lấy Lesson theo Course
     @GetMapping("/api/lessons-by-course")
     @ResponseBody
     public List<Map<String, Object>> getLessonsApi(@RequestParam Integer courseId) {
-        // Gọi repo lấy lessons
         List<Lesson> lessons = lessonRepository.findByCourseId(courseId);
         return lessons.stream().map(l -> {
             Map<String, Object> map = new HashMap<>();
@@ -163,15 +158,12 @@ public class AdminQuestionController {
                     map.put("explanation", q.getExplanation());
                     map.put("courseId", q.getCourse() != null ? q.getCourse().getId() : null);
                     map.put("levelId", q.getQuestionLevel() != null ? q.getQuestionLevel().getId() : null);
-                    // FIX: Map lesson ID
                     map.put("lessonId", q.getLesson() != null ? q.getLesson().getId() : null);
 
-                    // Lấy Quiz đầu tiên (Logic đơn giản hóa cho UI)
                     if (q.getQuizzes() != null && !q.getQuizzes().isEmpty()) {
                         map.put("quizId", q.getQuizzes().get(0).getId());
                     }
 
-                    // Map Answers
                     List<Map<String, Object>> answers = q.getAnswerOptions().stream().map(a -> {
                         Map<String, Object> am = new HashMap<>();
                         am.put("content", a.getContent());
@@ -185,10 +177,10 @@ public class AdminQuestionController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/toggle/{id}") // Dùng POST cho chuẩn bảo mật
+    @PostMapping("/toggle/{id}")
     public String toggleStatus(@PathVariable Integer id,
                                RedirectAttributes redirectAttributes,
-                               HttpServletRequest request) { // Thêm Request để lấy trang hiện tại
+                               HttpServletRequest request) {
         try {
             questionService.toggleStatus(id);
             redirectAttributes.addFlashAttribute("successMessage", "Đã cập nhật trạng thái câu hỏi.");
@@ -196,7 +188,6 @@ public class AdminQuestionController {
             redirectAttributes.addFlashAttribute("errorMessage", "Lỗi: " + e.getMessage());
         }
 
-        // Mẹo: Redirect về đúng trang người dùng đang đứng (để đỡ bị nhảy về trang chủ)
         String referer = request.getHeader("Referer");
         return "redirect:" + (referer != null ? referer : "/admin/questions");
     }
@@ -220,15 +211,30 @@ public class AdminQuestionController {
         }
     }
 
-    // API 2: Lưu danh sách câu hỏi đã duyệt
+    // API 2: Lưu danh sách câu hỏi đã duyệt - ĐÃ SỬA ĐỂ DÙNG SAVE RESULT DETAIL
     @PostMapping("/api/ai-save-batch")
     @ResponseBody
-    public ResponseEntity<?> saveBatchQuestions(@RequestBody List<GeneratedQuestionDTO> questions) {
+    public ResponseEntity<SaveResultDetail> saveBatchQuestions(@RequestBody List<QuestionSaveRequest> questions) {
         try {
-            questionService.saveGeneratedQuestions(questions);
-            return ResponseEntity.ok(Map.of("message", "Đã lưu thành công " + questions.size() + " câu hỏi!"));
+            // Gọi hàm mới trong Service, nó sẽ thực hiện Validation và trả về báo cáo
+            SaveResultDetail result = questionService.saveAiGeneratedQuestions(questions);
+
+            // Trả về báo cáo chi tiết để Frontend hiển thị Modal
+            return ResponseEntity.ok(result);
+
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Lỗi lưu dữ liệu: " + e.getMessage());
+            // Xử lý lỗi hệ thống bất ngờ (Lỗi 500)
+            SaveResultDetail errorResult = SaveResultDetail.builder()
+                    .totalRecords(questions != null ? questions.size() : 0)
+                    .failCount(questions != null ? questions.size() : 0)
+                    .failDetails(List.of(
+                            FailEntry.builder()
+                                    .sourceData("Lỗi hệ thống")
+                                    .errorMessage("Lỗi server không xác định: " + e.getMessage())
+                                    .build()
+                    ))
+                    .build();
+            return ResponseEntity.internalServerError().body(errorResult);
         }
     }
 }

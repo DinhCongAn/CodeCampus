@@ -90,4 +90,11 @@ public class AdminBlogController {
         }
         return "redirect:/admin/blogs";
     }
+
+    @PostMapping("/toggle-featured/{id}")
+    @ResponseBody
+    public void toggleFeatured(@PathVariable Long id) {
+        blogService.toggleFeatured(id);
+    }
+
 }

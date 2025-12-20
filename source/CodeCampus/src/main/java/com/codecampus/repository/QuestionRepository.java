@@ -37,6 +37,20 @@ public interface QuestionRepository extends JpaRepository <Question, Integer>{
             @Param("quizId") Integer quizId
     );
 
+    @Query("""
+    SELECT COUNT(q)
+    FROM Question q
+    WHERE q.status = 'active'
+      AND EXISTS (
+          SELECT 1
+          FROM q.quizzes quiz
+          WHERE quiz.id = :quizId
+      )
+""")
+    int countActiveQuestionsByQuizId(@Param("quizId") Integer quizId);
+
+
+
 
     // Bỏ "DISTINCT" và thay đổi cách lọc Quiz
     @Query("SELECT q FROM Question q " +

@@ -63,7 +63,7 @@ public class CourseController {
     @GetMapping("/courses")
     public String showCourseList(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "4") int size,
+            @RequestParam(defaultValue = "6") int size,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Integer categoryId,
             Model model) {
