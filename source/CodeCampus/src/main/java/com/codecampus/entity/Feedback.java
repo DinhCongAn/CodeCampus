@@ -9,6 +9,8 @@ import lombok.*; // Import Lombok
 import org.hibernate.annotations.Nationalized;
 
 import java.time.LocalDateTime; // Dùng LocalDateTime để khớp với SQL Server DATETIME
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "feedbacks", uniqueConstraints = {
@@ -61,5 +63,20 @@ public class Feedback {
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
+    }
+
+    // BỔ SUNG THÊM ĐOẠN NÀY
+    @OneToMany(mappedBy = "feedback", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<FeedbackAttachment> attachments = new ArrayList<>();
+
+    // Helper method để thêm file tiện lợi hơn (Optional nhưng nên có)
+    public void addAttachment(FeedbackAttachment attachment) {
+        attachments.add(attachment);
+        attachment.setFeedback(this);
+    }
+
+    public void removeAttachment(FeedbackAttachment attachment) {
+        attachments.remove(attachment);
+        attachment.setFeedback(null);
     }
 }

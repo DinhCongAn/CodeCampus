@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title th:text="${course.name}">Chi tiết Khóa học</title>
 
-    <!-- Config đồng bộ giao diện Modern Clean Light -->
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -74,42 +73,46 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
+
+        /* Animation cho Modal Ảnh */
+        #imageViewerModal { transition: opacity 0.3s ease; }
+        #imageViewerModal.hidden { opacity: 0; pointer-events: none; }
+        #imageViewerModal:not(.hidden) { opacity: 1; pointer-events: auto; }
     </style>
 </head>
 
 <body class="antialiased font-sans selection:bg-indigo-100 selection:text-indigo-900">
 
-<!-- Header Sticky -->
 <div class="sticky top-0 z-50 glass-panel border-b border-slate-200/80 shadow-sm">
     <div th:replace="~{fragments/header :: header}"></div>
 </div>
 
 <div class="max-w-[1450px] mx-auto px-4 sm:px-6 py-10 md:flex gap-10 relative">
 
-    <!-- Background Decor -->
     <div class="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
         <div class="absolute top-[5%] left-[5%] w-96 h-96 bg-indigo-500/5 rounded-full blur-[100px]"></div>
     </div>
 
-    <!-- MAIN CONTENT -->
     <main class="w-full md:w-3/4 lg:w-3/4 md:pr-4">
 
-        <!-- Breadcrumb / Back Button -->
         <a th:href="@{/courses}" class="inline-flex items-center text-slate-500 hover:text-indigo-600 mb-6 group transition-colors font-medium text-sm bg-white/50 px-3 py-1.5 rounded-full border border-slate-200 hover:border-indigo-200 backdrop-blur-sm">
             <svg class="w-4 h-4 mr-1.5 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
             Quay lại danh sách
         </a>
 
-        <!-- Error Message -->
         <div th:if="${errorMessage}"
              class="bg-red-50 border-l-4 border-red-500 text-red-700 px-4 py-3 rounded-r-lg mb-6 shadow-sm flex items-center">
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             <span th:text="${errorMessage}"></span>
         </div>
 
-        <!-- COURSE INFO HEADER -->
+        <div th:if="${successMessage}"
+             class="bg-green-50 border-l-4 border-green-500 text-green-700 px-4 py-3 rounded-r-lg mb-6 shadow-sm flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            <span th:text="${successMessage}"></span>
+        </div>
+
         <article class="relative">
-            <!-- Category Badge -->
             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-600 border border-indigo-100 uppercase tracking-wide mb-3"
                   th:text="${course.category?.name}">Danh mục</span>
 
@@ -122,29 +125,22 @@
                 Thông tin tóm tắt về khóa học...
             </p>
 
-            <!-- Main Thumbnail with Shadow -->
             <div class="relative group rounded-3xl overflow-hidden shadow-soft-xl mb-12 ring-1 ring-black/5">
                 <img th:src="@{${course.thumbnailUrl}}" alt="Thumbnail" class="w-full object-cover transform transition-transform duration-700 hover:scale-105" />
                 <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent pointer-events-none"></div>
             </div>
 
-            <!-- PROSE CONTENT (Bài viết chi tiết) -->
             <div class="prose prose-lg prose-slate max-w-none prose-img:rounded-2xl prose-headings:font-bold prose-a:text-indigo-600 bg-white/60 p-8 md:p-10 rounded-3xl border border-white/60 shadow-sm backdrop-blur-md"
                  th:utext="${course.description}">
             </div>
         </article>
 
-        <!-- REGISTER BOX (FIXED POSITION AT BOTTOM OF CONTENT) -->
         <div class="mt-12 bg-white p-8 rounded-3xl shadow-soft-xl border border-indigo-100 relative overflow-hidden group">
-            <!-- Decorative Glow -->
             <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-indigo-500 rounded-full opacity-10 blur-3xl group-hover:opacity-20 transition-opacity"></div>
-
             <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <!-- Left Side: Price & Text -->
                 <div>
                     <h3 class="font-bold text-2xl text-slate-800 mb-2">Đăng ký khóa học ngay</h3>
                     <p class="text-slate-500 mb-4">Sở hữu trọn bộ tài liệu, video bài giảng và chứng chỉ sau khi hoàn thành.</p>
-
                     <div th:if="${lowestPriceOpt.isPresent()}">
                         <div th:with="lowestPrice=${lowestPriceOpt.get()}" class="flex items-baseline flex-wrap gap-3">
                             <span th:if="${lowestPrice.salePrice != null}"
@@ -163,7 +159,6 @@
                     </div>
                 </div>
 
-                <!-- Right Side: Button -->
                 <div class="md:w-auto w-full flex-shrink-0">
                     <button type="button" id="openRegisterModalButton"
                             class="w-full md:w-auto px-8 py-4 bg-indigo-600 text-white rounded-2xl font-bold text-lg hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-500/30 transition-all transform hover:-translate-y-1 flex items-center justify-center">
@@ -172,16 +167,12 @@
                     </button>
                 </div>
             </div>
-
-            <!-- Features -->
             <div class="mt-6 pt-6 border-t border-slate-100 flex flex-wrap gap-4 text-sm text-slate-600">
                 <span class="flex items-center"><svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Truy cập trọn đời</span>
                 <span class="flex items-center"><svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Cấp chứng chỉ</span>
                 <span class="flex items-center"><svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Hỗ trợ 24/7</span>
             </div>
         </div>
-        <!-- END REGISTER BOX -->
-
 
         <div class="mt-16 pt-10 border-t border-slate-200">
             <div class="flex items-center justify-between mb-8">
@@ -213,7 +204,7 @@
                     <span th:text="${myFeedback != null ? 'Cập nhật đánh giá của bạn' : 'Viết đánh giá của bạn'}">Viết đánh giá</span>
                 </h3>
 
-                <form th:action="@{/feedback/submit}" method="post">
+                <form th:action="@{/feedback/submit}" method="post" enctype="multipart/form-data">
                     <input type="hidden" name="courseId" th:value="${course.id}">
 
                     <div class="mb-4">
@@ -239,13 +230,43 @@
                                   th:text="${myFeedback != null ? myFeedback.comment : ''}" required minlength="10"></textarea>
                     </div>
 
-                    <button type="submit"
-                            class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-bold rounded-xl text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all shadow-lg shadow-indigo-200">
-                        Gửi đánh giá
-                        <span class="material-icons ml-2 text-sm">send</span>
-                    </button>
+                    <div class="mb-6">
+                        <label class="block text-sm font-semibold text-slate-600 mb-2">Hình ảnh đính kèm (tùy chọn)</label>
+                        <div class="flex items-center gap-4">
+                            <label class="cursor-pointer flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-sm text-slate-600 font-medium text-sm">
+                                <span class="material-icons text-indigo-500">add_photo_alternate</span>
+                                <span>Chọn ảnh</span>
+                                <input type="file" name="file" accept="image/*" class="hidden" onchange="previewImage(this)">
+                            </label>
+                            <span id="fileNameDisplay" class="text-sm text-slate-400 italic truncate max-w-[200px]">Chưa chọn tệp</span>
+                        </div>
+                        <img id="imagePreview" class="hidden mt-3 h-20 w-auto rounded-lg border border-slate-200 object-cover" />
+                    </div>
+
+                    <div class="flex items-center justify-between mt-6 pt-4 border-t border-slate-100">
+                        <button type="submit"
+                                class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-bold rounded-xl text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all shadow-lg shadow-indigo-200">
+                            <span th:text="${myFeedback != null ? 'Cập nhật' : 'Gửi đánh giá'}">Gửi đánh giá</span>
+                            <span class="material-icons ml-2 text-sm">send</span>
+                        </button>
+
+                        <button th:if="${myFeedback != null}"
+                                type="submit"
+                                form="deleteFeedbackForm"
+                                class="text-red-500 hover:text-red-700 font-bold text-sm px-4 py-2 hover:bg-red-50 rounded-lg transition-colors flex items-center gap-2"
+                                onclick="return confirm('Bạn có chắc chắn muốn xóa đánh giá này không? Hành động này không thể hoàn tác.')">
+                            <span class="material-icons text-lg">delete_outline</span>
+                            Xóa đánh giá
+                        </button>
+                    </div>
+                </form>
+
+                <form id="deleteFeedbackForm" th:action="@{/feedback/delete}" method="post" class="hidden">
+                    <input type="hidden" name="feedbackId" th:value="${myFeedback?.id}">
+                    <input type="hidden" name="courseId" th:value="${course.id}">
                 </form>
             </div>
+
             <div th:unless="${isRegistered}" class="bg-slate-50 rounded-2xl p-6 text-center border border-slate-200 border-dashed mb-10">
                 <p class="text-slate-500 font-medium">Bạn cần đăng ký khóa học để gửi đánh giá.</p>
             </div>
@@ -286,20 +307,30 @@
                            th:text="${fb.comment}">
                             Khóa học rất hay...
                         </p>
+
+                        <div th:if="${!#lists.isEmpty(fb.attachments)}" class="mt-4 flex gap-2 overflow-x-auto pb-2">
+                            <div th:each="att : ${fb.attachments}">
+                                <div th:onclick="openImageViewer([[${att.fileUrl}]])"
+                                     class="block group relative cursor-pointer">
+
+                                    <img th:src="@{${att.fileUrl}}"
+                                         class="h-24 w-auto rounded-lg border border-slate-200 object-cover hover:opacity-90 transition-opacity"
+                                         alt="Feedback Image">
+
+                                    <div class="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
+                                        <span class="material-icons text-white text-sm">zoom_in</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-
     </main>
 
-    <!-- SIDEBAR (Right Column) -->
     <aside class="hidden md:block w-full md:w-1/4 lg:w-1/4 space-y-8">
-
-        <!-- Sticky Wrapper -->
-        <!-- "sticky top-28" giúp sidebar dính lại khi cuộn trang -->
         <div class="sticky top-28 space-y-8">
-            <!-- Sidebar Content (Fragment: Search & Categories) -->
             <div th:replace="~{fragments/course-sidebar :: course-sidebar}"></div>
         </div>
     </aside>
@@ -307,24 +338,16 @@
 
 <div th:replace="~{fragments/footer :: footer}"></div>
 
-<!-- ========== MODALS ========== -->
-
-<!-- Modal chọn gói học phí (Fragment) -->
 <div th:replace="~{fragments/register-modal :: register-modal(course=${course}, pricePackages=${pricePackages})}"></div>
 
-<!-- Modal: yêu cầu đăng nhập -->
-<div id="loginPromptModal"
-     class="fixed inset-0 z-[60] hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+<div id="loginPromptModal" class="fixed inset-0 z-[60] hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
     <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"></div>
-
     <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
         <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-md border border-slate-100">
             <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
                 <div class="sm:flex sm:items-start">
                     <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-indigo-100 sm:mx-0 sm:h-10 sm:w-10">
-                        <svg class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                        </svg>
+                        <svg class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
                     </div>
                     <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
                         <h3 class="text-lg font-bold leading-6 text-slate-900" id="modal-title">Vui lòng đăng nhập</h3>
@@ -335,28 +358,22 @@
                 </div>
             </div>
             <div class="bg-slate-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
-                <a th:href="@{/login(redirectUrl=${'/courses/' + course.id})}"
-                   class="inline-flex w-full justify-center rounded-xl bg-indigo-600 px-3 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 sm:ml-3 sm:w-auto transition-colors">Đăng nhập ngay</a>
-                <a th:href="@{/register}"
-                   class="mt-3 inline-flex w-full justify-center rounded-xl bg-white px-3 py-2.5 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 sm:mt-0 sm:w-auto transition-colors">Đăng ký tài khoản</a>
+                <a th:href="@{/login(redirectUrl=${'/courses/' + course.id})}" class="inline-flex w-full justify-center rounded-xl bg-indigo-600 px-3 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 sm:ml-3 sm:w-auto transition-colors">Đăng nhập ngay</a>
+                <a th:href="@{/register}" class="mt-3 inline-flex w-full justify-center rounded-xl bg-white px-3 py-2.5 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 sm:mt-0 sm:w-auto transition-colors">Đăng ký tài khoản</a>
                 <button type="button" class="closeModal mt-3 sm:mt-0 inline-flex w-full justify-center rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-500 hover:text-slate-700 sm:w-auto sm:mr-auto">Bỏ qua</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal: đã đăng ký -->
-<div id="alreadyRegisteredModal"
-     class="fixed inset-0 z-[60] hidden overflow-y-auto">
+<div id="alreadyRegisteredModal" class="fixed inset-0 z-[60] hidden overflow-y-auto">
     <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"></div>
     <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
         <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-md">
             <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
                 <div class="sm:flex sm:items-start">
                     <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100 sm:mx-0 sm:h-10 sm:w-10">
-                        <svg class="h-6 w-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
+                        <svg class="h-6 w-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     </div>
                     <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
                         <h3 class="text-lg font-bold leading-6 text-slate-900">Đã sở hữu khóa học</h3>
@@ -367,19 +384,31 @@
                 </div>
             </div>
             <div class="bg-slate-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
-                <a th:href="@{/my-courses}"
-                   class="inline-flex w-full justify-center rounded-xl bg-emerald-600 px-3 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500 sm:ml-3 sm:w-auto">Vào học ngay</a>
+                <a th:href="@{/my-courses}" class="inline-flex w-full justify-center rounded-xl bg-emerald-600 px-3 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500 sm:ml-3 sm:w-auto">Vào học ngay</a>
                 <button type="button" class="closeModal mt-3 inline-flex w-full justify-center rounded-xl bg-white px-3 py-2.5 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 sm:mt-0 sm:w-auto">Đóng</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- ========== SCRIPT ========== -->
+<div id="imageViewerModal" class="fixed inset-0 z-[100] hidden" aria-hidden="true">
+    <div class="absolute inset-0 bg-black/90 backdrop-blur-sm transition-opacity" onclick="closeImageViewer()"></div>
+
+    <div class="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
+        <div class="relative max-w-full max-h-full pointer-events-auto">
+            <button onclick="closeImageViewer()" class="absolute -top-12 right-0 md:-right-12 text-white/70 hover:text-white transition-colors p-2">
+                <span class="material-icons text-4xl">close</span>
+            </button>
+
+            <img id="fullSizeImage" src="" alt="Full Size"
+                 class="max-h-[85vh] max-w-[90vw] rounded-lg shadow-2xl object-contain animate-fade-in-up">
+        </div>
+    </div>
+</div>
+
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function () {
         const openBtn = document.getElementById('openRegisterModalButton');
-
         const registerModal = document.getElementById('registerModal');
         const loginPromptModal = document.getElementById('loginPromptModal');
         const alreadyRegisteredModal = document.getElementById('alreadyRegisteredModal');
@@ -395,7 +424,6 @@
 
         closeBtns.forEach(btn => btn.addEventListener('click', closeAll));
 
-        // Hàm xử lý chung khi click đăng ký
         function handleRegisterClick() {
             if (!isLoggedIn) openModal(loginPromptModal);
             else if (isRegistered) openModal(alreadyRegisteredModal);
@@ -406,13 +434,59 @@
 
         [registerModal, loginPromptModal, alreadyRegisteredModal].forEach(modal => {
             if (!modal) return;
-            // Chỉ đóng khi click vào backdrop (lớp phủ mờ), không phải nội dung modal
             modal.addEventListener('click', (e) => {
                 if (e.target.classList.contains('fixed') && e.target.classList.contains('inset-0')) {
                     modal.classList.add('hidden');
                 }
             });
         });
+    });
+
+    // Hàm Preview ảnh upload
+    function previewImage(input) {
+        const file = input.files[0];
+        const preview = document.getElementById('imagePreview');
+        const nameDisplay = document.getElementById('fileNameDisplay');
+
+        if (file) {
+            nameDisplay.textContent = file.name;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.classList.remove('hidden');
+            }
+            reader.readAsDataURL(file);
+        } else {
+            nameDisplay.textContent = "Chưa chọn tệp";
+            preview.classList.add('hidden');
+        }
+    }
+
+    // [MỚI] Hàm xử lý Image Viewer Modal
+    function openImageViewer(imageUrl) {
+        const modal = document.getElementById('imageViewerModal');
+        const img = document.getElementById('fullSizeImage');
+        if(modal && img) {
+            img.src = imageUrl;
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // Khóa cuộn trang
+        }
+    }
+
+    function closeImageViewer() {
+        const modal = document.getElementById('imageViewerModal');
+        if(modal) {
+            modal.classList.add('hidden');
+            document.body.style.overflow = ''; // Mở khóa cuộn trang
+            setTimeout(() => { document.getElementById('fullSizeImage').src = ''; }, 200); // Clear src sau khi đóng
+        }
+    }
+
+    // Đóng modal ảnh bằng phím ESC
+    document.addEventListener('keydown', function(event) {
+        if (event.key === "Escape") {
+            closeImageViewer();
+        }
     });
 </script>
 </body>
