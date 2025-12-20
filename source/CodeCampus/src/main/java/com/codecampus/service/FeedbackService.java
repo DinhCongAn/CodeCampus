@@ -3,6 +3,9 @@ package com.codecampus.service;
 import com.codecampus.entity.*;
 import com.codecampus.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -155,5 +158,37 @@ public class FeedbackService {
         course.setReviewCount(count);
 
         courseRepository.save(course);
+    }
+
+
+
+    // Trong FeedbackService.java
+
+    public Page<Feedback> getFeedbacksForAdmin(String keyword, Integer rating, Integer courseId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        String searchKey = "";
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            searchKey = "%" + keyword.trim() + "%";
+        }
+
+        return feedbackRepository.searchFeedbacks(searchKey, rating, courseId, pageable);
+    }
+
+    public Feedback findById(Integer id) {
+        return feedbackRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đánh giá với ID: " + id));
+    }
+
+    @Transactional
+    public void deleteFeedbackAsAdmin(Integer feedbackId) {
+        Feedback feedback = findById(feedbackId);
+        // Lưu lại courseId trước khi xóa để update điểm
+        Integer courseId = feedback.getCourse().getId();
+
+        feedbackRepository.delete(feedback);
+
+        // Tính lại điểm trung bình
+        updateCourseRatingStats(courseId);
     }
 }

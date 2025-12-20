@@ -36,4 +36,17 @@ public interface FeedbackRepository extends JpaRepository<Feedback, Integer> {
             "FROM Feedback f WHERE f.course.id = :courseId")
     List<Object[]> findAverageRatingAndCountByCourseId(@Param("courseId") Integer courseId);
 
+    @Query("SELECT f FROM Feedback f WHERE " +
+            "(:keyword IS NULL OR :keyword = '' OR " +
+            " f.user.fullName LIKE :keyword OR " +
+            " f.course.name LIKE :keyword OR " +
+            " f.comment LIKE :keyword) " +
+            "AND (:rating IS NULL OR f.rating = :rating) " +      // [MỚI] Lọc theo sao
+            "AND (:courseId IS NULL OR f.course.id = :courseId) " + // [MỚI] Lọc theo khóa học
+            "ORDER BY f.createdAt DESC")
+    Page<Feedback> searchFeedbacks(@Param("keyword") String keyword,
+                                   @Param("rating") Integer rating,
+                                   @Param("courseId") Integer courseId,
+                                   Pageable pageable);
 }
+

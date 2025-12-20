@@ -7,19 +7,18 @@
         <i class="fas fa-graduation-cap text-primary"></i> <span>EDU ADMIN</span>
     </div>
     <nav class="mt-3">
+        <!-- ================= TỔNG QUAN ================= -->
         <a class="nav-link" th:href="@{/admin/dashboard}"
            th:classappend="${activePage == 'dashboard' ? 'active' : ''}">
-            <i class="fas fa-tachometer-alt"></i> <span class="text">Tổng quan</span>
+            <i class="fas fa-tachometer-alt"></i>
+            <span class="text">Tổng quan</span>
         </a>
 
-        <a class="nav-link" th:href="@{/admin/orders}"
-           th:classappend="${activePage == 'orders' ? 'active' : ''}">
-            <i class="fas fa-shopping-cart"></i> <span class="text">Đơn hàng</span>
-        </a>
-
+        <!-- ================= QUẢN LÝ HỌC TẬP ================= -->
         <a class="nav-link" th:href="@{/admin/subjects}"
            th:classappend="${activePage == 'subjects' ? 'active' : ''}">
-            <i class="fas fa-book-open"></i> <span class="text">Môn học</span>
+            <i class="fas fa-book-open"></i>
+            <span class="text">Môn học</span>
         </a>
 
         <a class="nav-link" th:href="@{/admin/quizzes}"
@@ -34,34 +33,56 @@
             <span class="text">Ngân hàng câu hỏi</span>
         </a>
 
-        <a class="nav-link" th:href="@{/admin/users}"
-           th:classappend="${activePage == 'users' ? 'active' : ''}">
-            <i class="fas fa-users"></i> <span class="text">Người dùng</span>
-        </a>
-
+        <!-- ================= NỘI DUNG & MARKETING ================= -->
         <a class="nav-link" th:href="@{/admin/blogs}"
            th:classappend="${activePage == 'blogs' ? 'active' : ''}">
-            <i class="fas fa-blog"></i> <span class="text">Blog</span>
+            <i class="fas fa-blog"></i>
+            <span class="text">Blog</span>
         </a>
 
+        <a class="nav-link" th:href="@{/admin/sliders}"
+           th:classappend="${activePage == 'sliders' ? 'active' : ''}">
+            <i class="fas fa-images"></i>
+            <span class="text">Sliders</span>
+        </a>
 
-        <a class="nav-link" th:href="@{/admin/categories}"
-           th:classappend="${activePage == 'categories' ? 'active' : ''}">
-            <i class="fas fa-th-list"></i> <span class="text">Danh mục</span>
+        <!-- ================= TƯƠNG TÁC NGƯỜI DÙNG ================= -->
+        <a class="nav-link" th:href="@{/admin/feedbacks}"
+           th:classappend="${activePage == 'feedbacks' ? 'active' : ''}">
+            <i class="fas fa-star-half-alt"></i>
+            <span class="text">Đánh giá khóa học</span>
+        </a>
+
+        <!-- ================= KINH DOANH ================= -->
+        <a class="nav-link" th:href="@{/admin/orders}"
+           th:classappend="${activePage == 'orders' ? 'active' : ''}">
+            <i class="fas fa-shopping-cart"></i>
+            <span class="text">Đơn hàng</span>
         </a>
 
         <a class="nav-link" th:href="@{/admin/revenue}"
            th:classappend="${activePage == 'revenue' ? 'active' : ''}">
-            <i class="fas fa-chart-bar"></i> <span class="text">Doanh thu</span>
+            <i class="fas fa-chart-bar"></i>
+            <span class="text">Doanh thu</span>
         </a>
 
-        <a class="nav-link" th:href="@{/admin/sliders}" th:classappend="${activePage == 'sliders' ? 'active' : ''}">
-            <i class="fas fa-images"></i> <span class="text">Sliders</span>
+        <!-- ================= HỆ THỐNG ================= -->
+        <a class="nav-link" th:href="@{/admin/users}"
+           th:classappend="${activePage == 'users' ? 'active' : ''}">
+            <i class="fas fa-users"></i>
+            <span class="text">Người dùng</span>
+        </a>
+
+        <a class="nav-link" th:href="@{/admin/categories}"
+           th:classappend="${activePage == 'categories' ? 'active' : ''}">
+            <i class="fas fa-th-list"></i>
+            <span class="text">Danh mục</span>
         </a>
 
         <a class="nav-link" th:href="@{/admin/settings}"
            th:classappend="${activePage == 'settings' ? 'active' : ''}">
-            <i class="fas fa-cog"></i> <span class="text">Cài đặt</span>
+            <i class="fas fa-cog"></i>
+            <span class="text">Cài đặt</span>
         </a>
     </nav>
 </div>
