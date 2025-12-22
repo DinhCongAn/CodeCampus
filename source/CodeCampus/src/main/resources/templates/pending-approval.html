@@ -56,21 +56,31 @@
 
                 <!-- Payment Form -->
                 <form th:action="@{/registration/confirm-payment}" method="post" th:object="${registrationRequest}" class="space-y-4">
+
                     <input type="hidden" th:field="*{courseId}" />
                     <input type="hidden" th:field="*{packageId}" />
 
-                    <button type="submit" class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold py-3 rounded-full flex items-center justify-center gap-2 hover:from-purple-700 hover:to-indigo-700 transition-all">
-                        <i class="fas fa-qrcode"></i> Thanh toán qua PayOS
-                    </button>
+                    <div th:if="${pricePackage.salePrice > 0}">
+                        <button type="submit" class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold py-3 rounded-full flex items-center justify-center gap-2 hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl">
+                            <i class="fas fa-qrcode"></i> Thanh toán qua PayOS
+                        </button>
+                        <p class="text-center text-gray-400 text-xs mt-2">
+                            <i class="fas fa-lock mr-1"></i> Giao dịch được bảo mật và xử lý tự động.
+                        </p>
+                    </div>
 
-                    <a th:href="@{/courses/{id}(id=${course.id})}" class="block text-center text-gray-600 hover:text-gray-800 text-sm">
+                    <div th:if="${pricePackage.salePrice == 0 || pricePackage.salePrice == null}">
+                        <button type="submit" class="w-full bg-emerald-600 text-white font-semibold py-3 rounded-full flex items-center justify-center gap-2 hover:bg-emerald-700 transition-all shadow-lg hover:shadow-xl">
+                            <i class="fas fa-door-open"></i> Tham gia ngay (Miễn phí)
+                        </button>
+                        <p class="text-center text-gray-400 text-xs mt-2">
+                            <i class="fas fa-check-circle mr-1"></i> Bạn sẽ được cấp quyền truy cập ngay lập tức.
+                        </p>
+                    </div>
+
+                    <a th:href="@{/courses/{id}(id=${course.id})}" class="block text-center text-gray-600 hover:text-gray-800 text-sm mt-4">
                         <i class="fas fa-arrow-left mr-1"></i> Quay lại
                     </a>
-
-                    <p class="text-center text-gray-400 text-xs mt-2">
-                        <i class="fas fa-lock mr-1"></i> Giao dịch được bảo mật và xử lý tự động.<br>
-                        Sau khi thanh toán thành công, hệ thống sẽ tự động chuyển bạn về trang <strong>Khóa học của tôi</strong>.
-                    </p>
                 </form>
             </div>
         </div>

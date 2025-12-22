@@ -154,31 +154,45 @@
                     <!-- Price Logic -->
                     <div class="mt-auto pt-4 border-t border-slate-50">
                         <div th:with="lowestPriceOpt=${courseService.getLowestPrice(course.id)}">
-                            <div th:if="${lowestPriceOpt.isPresent()}">
-                                <div th:with="lowestPrice=${lowestPriceOpt.get()}" class="flex items-center flex-wrap gap-2">
-                                    <!-- Sale Price -->
-                                    <span th:if="${lowestPrice.salePrice != null}"
-                                          class="text-xl font-extrabold text-rose-600 font-mono"
-                                          th:text="${#numbers.formatDecimal(lowestPrice.salePrice, 0, 'COMMA', 0, 'POINT') + ' đ'}">
-                                    </span>
-                                    <!-- List Price (Gạch ngang) -->
-                                    <span th:if="${lowestPrice.salePrice != null}"
-                                          class="text-sm text-slate-400 line-through font-mono decoration-slate-400"
-                                          th:text="${#numbers.formatDecimal(lowestPrice.listPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}">
-                                    </span>
-                                    <!-- Normal Price (No Sale) -->
-                                    <span th:unless="${lowestPrice.salePrice != null}"
-                                          class="text-xl font-extrabold text-indigo-600 font-mono"
-                                          th:text="${#numbers.formatDecimal(lowestPrice.listPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}">
-                                    </span>
+
+                            <div th:if="${lowestPriceOpt.isPresent()}" th:with="lowestPrice=${lowestPriceOpt.get()}">
+
+                                <div th:if="${(lowestPrice.salePrice != null ? lowestPrice.salePrice : lowestPrice.listPrice) == 0}">
+                <span class="text-lg font-bold text-emerald-500 flex items-center">
+                    <span class="mr-1">Miễn phí</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </span>
+                                </div>
+
+                                <div th:unless="${(lowestPrice.salePrice != null ? lowestPrice.salePrice : lowestPrice.listPrice) == 0}"
+                                     class="flex items-center flex-wrap gap-2">
+
+                                    <th:block th:if="${lowestPrice.salePrice != null}">
+                    <span class="text-xl font-extrabold text-rose-600 font-mono"
+                          th:text="${#numbers.formatDecimal(lowestPrice.salePrice, 0, 'COMMA', 0, 'POINT') + ' đ'}">
+                    </span>
+                                        <span class="text-sm text-slate-400 line-through font-mono decoration-slate-400"
+                                              th:text="${#numbers.formatDecimal(lowestPrice.listPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}">
+                    </span>
+                                    </th:block>
+
+                                    <th:block th:unless="${lowestPrice.salePrice != null}">
+                    <span class="text-xl font-extrabold text-indigo-600 font-mono"
+                          th:text="${#numbers.formatDecimal(lowestPrice.listPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}">
+                    </span>
+                                    </th:block>
                                 </div>
                             </div>
+
                             <div th:unless="${lowestPriceOpt.isPresent()}">
-                                <span class="text-lg font-bold text-emerald-500 flex items-center">
-                                    <span class="mr-1">Free</span>
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                </span>
+            <span class="text-lg font-bold text-rose-500 flex items-center">
+                <span class="material-icons text-sm mr-1">error_outline</span>
+                Khóa học lỗi
+            </span>
                             </div>
+
                         </div>
                     </div>
 

@@ -31,10 +31,10 @@ public class RegistrationService {
     @Autowired private PayOS payOS;
 
     /**
-     * BƯỚC 1: TẠO ĐƠN HÀNG (PENDING) & LẤY LINK THANH TOÁN
-     * - Hàm này KHÔNG kích hoạt khóa học.
-     * - Chỉ lưu trạng thái PENDING.
-     * - Trả về link để Controller redirect user sang PayOS.
+     * BƯỚC 1: XỬ LÝ ĐĂNG KÝ TRUNG TÂM (Miễn phí & Trả phí)
+     * - Tự động phát hiện giá tiền.
+     * - Nếu giá > 0: Tạo đơn PENDING -> Gọi PayOS -> Trả về link thanh toán.
+     * - Nếu giá = 0: Tạo đơn COMPLETED -> Kích hoạt ngay -> Trả về link nội bộ.
      */
     @Transactional
     public String registerAndGetPaymentUrl(RegistrationRequest request, String loggedInUsername, String returnUrl, String cancelUrl) throws Exception {
@@ -43,7 +43,7 @@ public class RegistrationService {
         User user = userRepository.findByEmail(loggedInUsername)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy User: " + loggedInUsername));
 
-        // 2. Kiểm tra mua trùng (Chỉ chặn nếu đã COMPLETED)
+        // 2. Kiểm tra mua trùng (Chỉ chặn nếu đã COMPLETED - Đã sở hữu)
         boolean alreadyBought = registrationRepository.existsByUserIdAndCourseIdAndStatus(
                 user.getId(), request.getCourseId(), "COMPLETED");
         if (alreadyBought) {
@@ -57,38 +57,56 @@ public class RegistrationService {
         PricePackage pricePackage = pricePackageRepository.findById(request.getPackageId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy gói giá"));
 
+        // Tính giá tiền cuối cùng (Ưu tiên giá Sale)
         BigDecimal priceBigDec = pricePackage.getSalePrice() != null ? pricePackage.getSalePrice() : pricePackage.getListPrice();
-        long finalPrice = priceBigDec.longValue();
+        long finalPrice = (priceBigDec != null) ? priceBigDec.longValue() : 0;
 
         // 4. Tạo OrderCode (Dùng timestamp để đảm bảo duy nhất)
         long orderCodeLong = System.currentTimeMillis();
         String orderCodeString = String.valueOf(orderCodeLong);
 
-        // 5. LƯU DATABASE: BẮT BUỘC LÀ "PENDING"
+        // 5. Khởi tạo đối tượng Registration (Chưa lưu vội)
         Registration newReg = new Registration();
         newReg.setUser(user);
         newReg.setCourse(course);
         newReg.setPricePackage(pricePackage);
         newReg.setTotalCost(priceBigDec);
         newReg.setRegistrationTime(LocalDateTime.now());
-        newReg.setStatus("PENDING"); // <--- CHỜ THANH TOÁN
         newReg.setOrderCode(orderCodeString);
         newReg.setUpdatedAt(LocalDateTime.now());
 
+        // ============================================================
+        // NHÁNH 1: MIỄN PHÍ (GIÁ <= 0) -> KÍCH HOẠT NGAY
+        // ============================================================
+        if (finalPrice <= 0) {
+            newReg.setStatus("COMPLETED"); // Thành công ngay
+
+            // Tính toán ngày hết hạn (Tái sử dụng logic)
+            calculateAndSetExpiry(newReg);
+
+            registrationRepository.save(newReg);
+
+            // Gửi email xác nhận (Tùy chọn)
+            // emailService.sendEnrollmentSuccessEmail(newReg);
+
+            // Trả về URL thành công nội bộ (Controller sẽ hứng và báo success)
+            return returnUrl;
+        }
+
+        // ============================================================
+        // NHÁNH 2: TRẢ PHÍ (GIÁ > 0) -> GỌI PAYOS
+        // ============================================================
+        newReg.setStatus("PENDING"); // Chờ thanh toán
         registrationRepository.save(newReg);
 
-        // 6. GỌI PAYOS TẠO LINK
-
-        // [SỬA LỖI] Tạo mô tả ngắn gọn (Tối đa 25 ký tự)
-        // "DH " (3 ký tự) + orderCode (13 ký tự) = 16 ký tự -> OK
+        // Tạo mô tả ngắn gọn cho PayOS
         String description = "DH " + orderCodeLong;
-        // Đề phòng trường hợp đặc biệt, cắt chuỗi cho chắc chắn
         if (description.length() > 25) {
             description = description.substring(0, 25);
         }
 
         PaymentLinkItem item = PaymentLinkItem.builder()
-                .name(course.getName()) // Đảm bảo getter này đúng với Entity của bạn
+                .name(course.getName())
                 .price(finalPrice)
                 .quantity(1)
                 .build();
@@ -96,7 +114,7 @@ public class RegistrationService {
         CreatePaymentLinkRequest payOSRequest = CreatePaymentLinkRequest.builder()
                 .orderCode(orderCodeLong)
                 .amount(finalPrice)
-                .description(description) // <--- Đã dùng biến description ngắn gọn
+                .description(description)
                 .returnUrl(returnUrl)
                 .cancelUrl(cancelUrl)
                 .item(item)
@@ -108,9 +126,8 @@ public class RegistrationService {
     }
 
     /**
-     * BƯỚC 2: TỰ ĐỘNG KÍCH HOẠT (WEBHOOK)
-     * - Đây là nơi DUY NHẤT trong hệ thống được phép chuyển trạng thái thành COMPLETED.
-     * - Hàm này được gọi tự động bởi PaymentController khi PayOS báo tiền đã về.
+     * BƯỚC 2: TỰ ĐỘNG KÍCH HOẠT (WEBHOOK PAYOS)
+     * - Chỉ dùng cho đơn hàng TRẢ PHÍ khi PayOS báo tiền đã về.
      */
     @Transactional
     public void activateRegistration(long orderCode) {
@@ -123,14 +140,11 @@ public class RegistrationService {
         // Kiểm tra an toàn: Chỉ xử lý nếu đang PENDING
         if ("PENDING".equals(reg.getStatus())) {
             // 1. Update trạng thái
-            reg.setStatus("COMPLETED"); // <--- KÍCH HOẠT THÀNH CÔNG
+            reg.setStatus("COMPLETED");
             reg.setUpdatedAt(LocalDateTime.now());
 
-            // 2. Tính hạn dùng
-            LocalDateTime now = LocalDateTime.now();
-            int duration = reg.getPricePackage().getDurationMonths();
-            reg.setValidFrom(now);
-            reg.setValidTo(now.plusMonths(duration));
+            // 2. Tính hạn dùng (Tái sử dụng logic)
+            calculateAndSetExpiry(reg);
 
             registrationRepository.save(reg);
 
@@ -150,13 +164,25 @@ public class RegistrationService {
         }
     }
 
+    /**
+     * [HELPER] Logic tính toán ngày hết hạn (Dùng chung cho cả 2 luồng)
+     * Giúp code gọn gàng và nhất quán.
+     */
+    private void calculateAndSetExpiry(Registration reg) {
+        LocalDateTime now = LocalDateTime.now();
+        int durationMonths = reg.getPricePackage().getDurationMonths();
+
+        reg.setValidFrom(now);
+        // Cộng thời hạn vào ngày hiện tại
+        reg.setValidTo(now.plusMonths(durationMonths));
+    }
+
     // =================================================================
-    // CÁC HÀM HỖ TRỢ (READ-ONLY HOẶC HỦY)
+    // CÁC HÀM HỖ TRỢ KHÁC (GIỮ NGUYÊN)
     // =================================================================
 
     /**
      * Hủy đơn hàng (User đổi ý hoặc tạo nhầm)
-     * Chỉ cho phép hủy khi đang PENDING.
      */
     @Transactional
     public void cancelRegistration(Integer registrationId, Integer currentUserId) {
@@ -191,25 +217,16 @@ public class RegistrationService {
     }
 
     /**
-     * [MỚI] Xóa đơn hàng PENDING khi người dùng hủy thanh toán
-     * Hàm này kiểm tra kỹ lưỡng để đảm bảo an toàn.
+     * Xóa đơn hàng PENDING khi người dùng hủy thanh toán
      */
     @Transactional
     public void deletePendingOrder(String orderCode, Integer currentUserId) {
-        // 1. Tìm đơn hàng
         Optional<Registration> optionalReg = registrationRepository.findByOrderCode(orderCode);
 
         if (optionalReg.isPresent()) {
             Registration reg = optionalReg.get();
-
-            // 2. Bảo mật: Kiểm tra xem đơn này có đúng là của User đang đăng nhập không?
-            if (!reg.getUser().getId().equals(currentUserId)) {
-                // Nếu không phải chính chủ -> Không làm gì cả (hoặc log cảnh báo)
-                return;
-            }
-
-            // 3. Chỉ xóa nếu trạng thái là PENDING
-            if ("PENDING".equals(reg.getStatus())) {
+            // Bảo mật: Đúng chủ và đúng là Pending mới xóa
+            if (reg.getUser().getId().equals(currentUserId) && "PENDING".equals(reg.getStatus())) {
                 registrationRepository.delete(reg);
                 System.out.println("Đã xóa đơn hàng hủy: " + orderCode);
             }

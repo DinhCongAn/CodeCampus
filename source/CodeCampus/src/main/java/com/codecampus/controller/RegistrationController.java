@@ -72,46 +72,42 @@ public class RegistrationController {
         }
     }
 
-    /**
-     * [THAY ĐỔI LỚN] Xử lý nút "Thanh toán" -> Chuyển sang PayOS
-     */
     @PostMapping("/registration/confirm-payment")
     public String handleRegistration(
             @ModelAttribute("registrationRequest") RegistrationRequest request,
             Authentication authentication,
-            HttpServletRequest httpServletRequest, // Thêm tham số này
+            HttpServletRequest httpServletRequest,
             RedirectAttributes redirectAttributes) {
 
         User currentUser = getCurrentUser(authentication);
         if (currentUser == null) return "redirect:/login";
 
         try {
-            // 1. Tạo các URL để PayOS biết đường quay về
+            // 1. Tạo các đường dẫn để Service sử dụng
             String baseUrl = getBaseUrl(httpServletRequest);
-            // Nếu thành công -> về trang khóa học của tôi
-            String successUrl = baseUrl + "/my-courses?payment=success";
-            // Nếu hủy -> quay lại trang chi tiết khóa học
+
+            // Link khi thành công (Dù là PayOS trả về hay Miễn phí tự redirect đều dùng link này)
+            String successUrl = baseUrl + "/courses/" + request.getCourseId() + "?payment=success";
+
+            // Link khi hủy (chỉ dùng cho PayOS)
             String cancelUrl = baseUrl + "/courses/" + request.getCourseId() + "?payment=cancel";
-            // 2. Gọi Service để tạo đơn hàng PENDING và lấy Link PayOS
-            // (Hàm này chúng ta vừa thêm ở bước trước)
-            String checkoutUrl = registrationService.registerAndGetPaymentUrl(
+
+            // 2. Gọi Service (Service tự quyết định trả về Link PayOS hay Link nội bộ)
+            String redirectUrl = registrationService.registerAndGetPaymentUrl(
                     request,
                     currentUser.getEmail(),
                     successUrl,
                     cancelUrl
             );
 
-            // 3. CHUYỂN HƯỚNG NGƯỜI DÙNG SANG PAYOS
-            return "redirect:" + checkoutUrl;
+            // 3. Chuyển hướng
+            return "redirect:" + redirectUrl;
 
         } catch (Exception e) {
-            // Nếu lỗi (ví dụ đã mua rồi), quay lại trang checkout và báo lỗi
-            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
-            return "redirect:/registration/checkout?courseId="
-                    + request.getCourseId() + "&packageId=" + request.getPackageId();
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi xử lý: " + e.getMessage());
+            // Quay lại trang xác nhận nếu lỗi
+            return "redirect:/registration/checkout?courseId=" + request.getCourseId() + "&packageId=" + request.getPackageId();
         }
     }
-
-    // Các hàm Cancel, Show Pending cũ có thể giữ nguyên hoặc bỏ tùy nhu cầu
-    // Nhưng với luồng tự động thì ít khi dùng đến trang "Pending" thủ công nữa.
 }
