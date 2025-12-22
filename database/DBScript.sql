@@ -487,3 +487,17 @@ GO
 -- Chạy lệnh này trong SQL Server
 ALTER TABLE blogs ADD summary NVARCHAR(500); -- Mô tả ngắn
 ALTER TABLE blogs ADD is_featured BIT DEFAULT 0; -- Cờ nổi bật
+
+
+USE codecampus_db;
+GO
+
+-- Thêm cột điểm trung bình
+ALTER TABLE courses 
+ADD average_rating DECIMAL(3, 1) DEFAULT 0.0;
+GO
+
+-- Thêm cột tổng số đánh giá
+ALTER TABLE courses 
+ADD review_count INT DEFAULT 0;
+GO

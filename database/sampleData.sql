@@ -267,7 +267,9 @@ INSERT INTO price_packages (course_id, name, duration_months, list_price, sale_p
 (6, N'Gói 6 tháng', 6, 10000, 5000, N'active', 50),
 (7, N'Gói trọn đời', 99, 10000, 5000, N'active', 50);
 GO
-
+INSERT INTO price_packages (course_id, name, duration_months, list_price, sale_price, status, sale) 
+VALUES (10, N'Gói miễn phí trọn đời', 99, 0, 0, N'active', 0);
+GO
 
 -- 12. Bảng quizzes (Phụ thuộc: courses, test_types, question_levels)
 INSERT INTO quizzes (course_id, test_type_id, name, exam_level_id, duration_minutes, pass_rate_percentage) VALUES
