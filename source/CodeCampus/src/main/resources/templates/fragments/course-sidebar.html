@@ -3,80 +3,115 @@
 <body>
 
 <!--
-    FIX: Chuyển từ <aside> sang <div> và xóa các class width (md:w-1/4...)
-    để tránh bị lồng thẻ aside trong trang cha, gây vỡ layout.
-    Chỉ giữ lại w-full và space-y-8 để căn chỉnh nội dung bên trong.
+    SIDEBAR FRAGMENT (Style: Aurora Glassmorphism)
+    - Font: Plus Jakarta Sans (Thừa hưởng từ trang cha)
+    - Icons: FontAwesome
 -->
-<div class="w-full space-y-8" th:fragment="course-sidebar">
+<div class="w-full space-y-8 font-sans" th:fragment="course-sidebar">
 
-    <!-- WIDGET: SEARCH -->
-    <div class="bg-white p-6 rounded-2xl shadow-lg shadow-indigo-500/5 border border-slate-100 relative overflow-hidden group">
-        <!-- Decor background -->
-        <div class="absolute top-0 right-0 -mr-8 -mt-8 w-24 h-24 bg-indigo-500/5 rounded-full blur-2xl group-hover:bg-indigo-500/10 transition-colors"></div>
+    <!-- WIDGET 1: SEARCH -->
+    <div class="glass-card p-6 rounded-[1.5rem] relative overflow-hidden group border border-white/60 shadow-sm transition-all duration-300 hover:shadow-md">
+        <!-- Decor background blob -->
+        <div class="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-brand-500/10 rounded-full blur-3xl group-hover:bg-brand-500/20 transition-colors pointer-events-none"></div>
 
-        <h3 class="font-bold text-slate-800 text-lg mb-4 flex items-center">
-            <svg class="w-5 h-5 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        <h3 class="font-bold text-slate-800 text-lg mb-5 flex items-center relative z-10">
+            <span class="w-9 h-9 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center mr-3 text-sm shadow-sm">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </span>
             Tìm kiếm
         </h3>
 
-        <form th:action="@{/courses}" method="GET" class="space-y-3 relative z-10">
-            <div class="relative">
+        <form th:action="@{/courses}" method="GET" class="space-y-4 relative z-10">
+            <div class="relative group/input">
                 <input type="text"
                        name="keyword"
                        id="search-keyword-input" th:value="${keyword}"
                        placeholder="Nhập tên khóa học..."
-                       class="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all shadow-inner placeholder-slate-400"/>
+                       class="w-full pl-4 pr-10 py-3.5 bg-slate-50/50 border border-slate-200 text-slate-700 text-sm rounded-xl focus:outline-none focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all shadow-inner placeholder-slate-400 focus:bg-white"/>
 
                 <button type="button"
                         id="search-clear-btn"
-                        class="absolute inset-y-0 right-0 flex items-center justify-center w-10 text-slate-400 hover:text-red-500 transition-colors hidden"
+                        class="absolute inset-y-0 right-3 flex items-center justify-center text-slate-400 hover:text-red-500 transition-colors hidden cursor-pointer"
                         aria-label="Xóa tìm kiếm">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    <i class="fa-solid fa-circle-xmark"></i>
                 </button>
             </div>
 
             <input type="hidden" name="categoryId" th:value="${selectedCategoryId}" th:if="${selectedCategoryId != null}" />
 
-            <button type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold text-sm hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-500/30 transition-all transform active:scale-95 flex justify-center items-center">
+            <button type="submit" class="w-full bg-gradient-to-r from-brand-600 to-indigo-600 text-white py-3.5 rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-brand-500/30 hover:-translate-y-0.5 transition-all flex justify-center items-center gap-2 group/btn">
                 <span>Tìm kiếm</span>
+                <i class="fa-solid fa-arrow-right text-xs transition-transform group-hover/btn:translate-x-1"></i>
             </button>
         </form>
     </div>
 
-    <!-- WIDGET: CATEGORIES -->
-    <div class="bg-white p-6 rounded-2xl shadow-lg shadow-indigo-500/5 border border-slate-100">
-        <h3 class="font-bold text-slate-800 text-lg mb-4 flex items-center border-b border-slate-100 pb-3">
-            <svg class="w-5 h-5 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path></svg>
+    <!-- WIDGET 2: CATEGORIES -->
+    <div class="glass-card p-6 rounded-[1.5rem] relative border border-white/60 shadow-sm">
+        <h3 class="font-bold text-slate-800 text-lg mb-5 flex items-center pb-4 border-b border-slate-100">
+            <span class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mr-3 text-sm shadow-sm">
+                <i class="fa-solid fa-layer-group"></i>
+            </span>
             Danh mục
         </h3>
-        <ul class="space-y-1">
+
+        <ul class="space-y-2">
+            <!-- All Courses Option -->
             <li>
                 <a th:href="@{/courses(keyword=${keyword})}"
-                   class="flex items-center justify-between px-3 py-2.5 rounded-xl transition-all duration-200 group"
-                   th:classappend="${selectedCategoryId == null} ? 'bg-indigo-50 text-indigo-700 font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-50 hover:text-indigo-600'">
-                    <span>Tất cả khóa học</span>
-                    <svg th:if="${selectedCategoryId == null}" class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                   class="flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-300 group border"
+                   th:classappend="${selectedCategoryId == null}
+                        ? 'bg-gradient-to-r from-brand-600 to-brand-500 text-white border-transparent shadow-md shadow-brand-500/20'
+                        : 'bg-white border-transparent text-slate-600 hover:bg-slate-50 hover:text-brand-600 hover:border-brand-100'">
+                    <span class="font-bold text-sm">Tất cả khóa học</span>
+
+                    <!-- Icon Active -->
+                    <i th:if="${selectedCategoryId == null}" class="fa-solid fa-check text-xs"></i>
+
+                    <!-- Icon Inactive (Hover shows arrow) -->
+                    <i th:unless="${selectedCategoryId == null}" class="fa-solid fa-chevron-right text-xs opacity-0 group-hover:opacity-100 transition-all transform group-hover:translate-x-1 text-brand-400"></i>
                 </a>
             </li>
+
+            <!-- Loop Categories -->
             <li th:each="cat : ${courseCategories}">
                 <a th:href="@{/courses(categoryId=${cat.id}, keyword=${keyword})}"
-                   class="flex items-center justify-between px-3 py-2.5 rounded-xl transition-all duration-200 group"
-                   th:classappend="${cat.id == selectedCategoryId} ? 'bg-indigo-50 text-indigo-700 font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-50 hover:text-indigo-600'">
-                    <span th:text="${cat.name}">Tên danh mục</span>
-                    <svg th:if="${cat.id == selectedCategoryId}" class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                    <span th:unless="${cat.id == selectedCategoryId}" class="opacity-0 group-hover:opacity-100 text-slate-400 transition-opacity">→</span>
+                   class="flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-300 group border"
+                   th:classappend="${cat.id == selectedCategoryId}
+                        ? 'bg-gradient-to-r from-brand-600 to-brand-500 text-white border-transparent shadow-md shadow-brand-500/20'
+                        : 'bg-white border-transparent text-slate-600 hover:bg-slate-50 hover:text-brand-600 hover:border-brand-100'">
+
+                    <span class="font-semibold text-sm" th:text="${cat.name}">Tên danh mục</span>
+
+                    <!-- Icon Active -->
+                    <i th:if="${cat.id == selectedCategoryId}" class="fa-solid fa-check text-xs"></i>
+
+                    <!-- Icon Inactive -->
+                    <i th:unless="${cat.id == selectedCategoryId}" class="fa-solid fa-chevron-right text-xs opacity-0 group-hover:opacity-100 transition-all transform group-hover:translate-x-1 text-brand-400"></i>
                 </a>
             </li>
         </ul>
     </div>
 
-    <!-- WIDGET: ADS / PROMO (Optional Decor) -->
-    <div class="bg-gradient-to-br from-indigo-600 to-violet-600 p-6 rounded-2xl shadow-xl text-white text-center relative overflow-hidden">
-        <div class="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+    <!-- WIDGET 3: PROMO (Upgrade UI) -->
+    <div class="glass-card p-6 rounded-[1.5rem] text-center relative overflow-hidden group cursor-pointer border border-white/60 shadow-sm hover:shadow-lg transition-all">
+        <!-- Background Gradient animate -->
+        <div class="absolute inset-0 bg-gradient-to-br from-brand-600 via-purple-600 to-brand-800 opacity-90 transition-opacity group-hover:opacity-100"></div>
+
+        <!-- Shine Effect -->
+        <div class="absolute top-0 -left-full w-1/2 h-full bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12 group-hover:animate-[shimmer_1.5s_infinite]"></div>
+
         <div class="relative z-10">
-            <h4 class="font-bold text-lg mb-2">Trở thành Pro!</h4>
-            <p class="text-indigo-100 text-xs mb-4">Đăng ký thành viên để mở khóa toàn bộ khóa học cao cấp.</p>
-            <a href="#" class="inline-block bg-white text-indigo-600 px-4 py-2 rounded-lg text-xs font-bold hover:bg-indigo-50 transition-colors shadow-sm">Tìm hiểu thêm</a>
+            <div class="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 text-white backdrop-blur-md shadow-inner border border-white/20">
+                <i class="fa-solid fa-crown text-2xl text-yellow-300 drop-shadow-md"></i>
+            </div>
+
+            <h4 class="text-white font-extrabold text-xl mb-1 tracking-tight">Trở thành Pro!</h4>
+            <p class="text-indigo-100 text-xs mb-5 font-medium px-2">Mở khóa toàn bộ khóa học cao cấp và nhận chứng chỉ quốc tế.</p>
+
+            <a href="#" class="inline-block bg-white text-brand-700 text-xs font-bold px-6 py-2.5 rounded-lg shadow-lg hover:bg-brand-50 transition-all transform group-hover:scale-105 group-hover:shadow-xl">
+                Tìm hiểu thêm
+            </a>
         </div>
     </div>
 
@@ -91,8 +126,10 @@
                     function updateClearButtonVisibility() {
                         if (searchInput.value.length > 0) {
                             clearButton.classList.remove('hidden');
+                            clearButton.classList.add('flex');
                         } else {
                             clearButton.classList.add('hidden');
+                            clearButton.classList.remove('flex');
                         }
                     }
 
@@ -102,6 +139,7 @@
                     clearButton.addEventListener('click', function() {
                         searchInput.value = '';
                         clearButton.classList.add('hidden');
+                        clearButton.classList.remove('flex');
                         searchInput.focus();
                     });
                 }

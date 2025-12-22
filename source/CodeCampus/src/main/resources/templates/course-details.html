@@ -4,32 +4,47 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title th:text="${course.name}">Chi tiết Khóa học</title>
+    <title th:text="${course.name} + ' - CodeCampus'">Chi tiết Khóa học</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- ================= FONTS & ICONS (ĐỒNG BỘ) ================= -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <!-- ================= ANIMATION (AOS) ================= -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
     <link rel="icon" th:href="@{/images/logo.png}" />
     <link rel="stylesheet" th:href="@{/css/main.css}">
 
+    <!-- ================= CONFIG ================= -->
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Manrope', 'sans-serif'],
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
                         mono: ['JetBrains Mono', 'monospace'],
                     },
                     colors: {
                         brand: {
-                            primary: '#4f46e5',
-                            secondary: '#7c3aed',
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            200: '#c7d2fe',
+                            300: '#a5b4fc',
+                            400: '#818cf8',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            800: '#3730a3',
+                            900: '#312e81',
                         }
                     },
                     boxShadow: {
+                        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.05)',
+                        'glow': '0 0 40px -10px rgba(99, 102, 241, 0.5)',
                         'soft-xl': '0 20px 40px -10px rgba(0, 0, 0, 0.08), 0 10px 20px -10px rgba(79, 70, 229, 0.05)',
-                        'glow': '0 0 20px rgba(79, 70, 229, 0.3)',
                     },
                     typography: (theme) => ({
                         DEFAULT: {
@@ -37,317 +52,368 @@
                                 color: '#334155',
                                 h1: { color: '#1e293b', fontWeight: '800' },
                                 h2: { color: '#1e293b', fontWeight: '700' },
+                                h3: { color: '#1e293b', fontWeight: '700' },
                                 strong: { color: '#4f46e5' },
                                 a: { color: '#4f46e5', '&:hover': { color: '#4338ca' } },
+                                code: { color: '#ec4899', backgroundColor: '#fdf2f8', padding: '0.2em 0.4em', borderRadius: '0.25rem', fontWeight: '600' },
                             },
                         },
                     }),
+                    animation: {
+                        'blob': 'blob 7s infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    }
                 }
             }
         }
     </script>
     <style>
+        /* --- GLOBAL BACKGROUND --- */
         body {
             background-color: #f8fafc;
             background-image:
-                    radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.05), transparent 40%),
-                    radial-gradient(circle at 90% 60%, rgba(139, 92, 246, 0.05), transparent 40%);
-            color: #0f172a;
+                    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
+                    radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.08) 0px, transparent 50%),
+                    radial-gradient(at 100% 100%, rgba(56, 189, 248, 0.1) 0px, transparent 50%),
+                    radial-gradient(at 0% 100%, rgba(168, 85, 247, 0.08) 0px, transparent 50%);
+            background-attachment: fixed;
+            background-size: 100% 100%;
+            color: #1e293b;
         }
 
+        /* --- GLASS CLASSES --- */
         .glass-panel {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.6);
         }
 
         .glass-card {
-            background: #ffffff;
-            border: 1px solid rgba(226, 232, 240, 0.8);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+            transition: all 0.3s ease;
         }
 
-        .text-gradient {
-            background: linear-gradient(to right, #4f46e5, #9333ea);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+        /* Modal Animation */
+        .modal-enter { animation: modalFadeIn 0.3s ease-out forwards; }
+        .modal-leave { animation: modalFadeOut 0.2s ease-in forwards; }
 
-        /* Animation cho Modal Ảnh */
-        #imageViewerModal { transition: opacity 0.3s ease; }
-        #imageViewerModal.hidden { opacity: 0; pointer-events: none; }
-        #imageViewerModal:not(.hidden) { opacity: 1; pointer-events: auto; }
+        @keyframes modalFadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        @keyframes modalFadeOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.95); } }
     </style>
 </head>
 
-<body class="antialiased font-sans selection:bg-indigo-100 selection:text-indigo-900">
+<body class="antialiased font-sans selection:bg-brand-500 selection:text-white">
 
-<div class="sticky top-0 z-50 glass-panel border-b border-slate-200/80 shadow-sm">
+<!-- Header Sticky -->
+<div class="sticky top-0 z-50">
     <div th:replace="~{fragments/header :: header}"></div>
 </div>
 
-<div class="max-w-[1450px] mx-auto px-4 sm:px-6 py-10 md:flex gap-10 relative">
+<div class="max-w-[1500px] mx-auto px-4 sm:px-6 py-10 md:flex gap-10 relative">
 
-    <div class="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
-        <div class="absolute top-[5%] left-[5%] w-96 h-96 bg-indigo-500/5 rounded-full blur-[100px]"></div>
+    <!-- ================= DECOR BACKGROUND ELEMENTS ================= -->
+    <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+        <div class="absolute top-0 left-0 w-[600px] h-[600px] bg-brand-400/20 rounded-full blur-[120px] mix-blend-multiply animate-blob opacity-60"></div>
+        <div class="absolute bottom-0 right-0 w-[600px] h-[600px] bg-purple-300/20 rounded-full blur-[120px] mix-blend-multiply animate-blob animation-delay-2000 opacity-60"></div>
     </div>
 
-    <main class="w-full md:w-3/4 lg:w-3/4 md:pr-4">
+    <!-- MAIN CONTENT (Left) -->
+    <main class="w-full md:w-3/4 lg:w-3/4 md:pr-4 flex flex-col gap-8">
 
-        <a th:href="@{/courses}" class="inline-flex items-center text-slate-500 hover:text-indigo-600 mb-6 group transition-colors font-medium text-sm bg-white/50 px-3 py-1.5 rounded-full border border-slate-200 hover:border-indigo-200 backdrop-blur-sm">
-            <svg class="w-4 h-4 mr-1.5 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-            Quay lại danh sách
-        </a>
+        <!-- Breadcrumb / Back Link -->
+        <div data-aos="fade-right">
+            <a th:href="@{/courses}" class="inline-flex items-center text-slate-500 hover:text-brand-600 group transition-all font-bold text-sm bg-white/60 px-4 py-2 rounded-full border border-white/60 hover:border-brand-200 hover:bg-white shadow-sm hover:shadow-md">
+                <i class="fa-solid fa-arrow-left mr-2 transition-transform group-hover:-translate-x-1"></i>
+                Quay lại danh sách
+            </a>
+        </div>
 
-        <div th:if="${errorMessage}"
-             class="bg-red-50 border-l-4 border-red-500 text-red-700 px-4 py-3 rounded-r-lg mb-6 shadow-sm flex items-center">
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <!-- Alert Messages -->
+        <div th:if="${errorMessage}" class="glass-card bg-red-50/80 border-l-4 border-red-500 text-red-700 px-5 py-4 rounded-r-xl shadow-sm flex items-center" data-aos="fade-up">
+            <i class="fa-solid fa-circle-exclamation mr-3 text-lg"></i>
             <span th:text="${errorMessage}"></span>
         </div>
 
-        <div th:if="${successMessage}"
-             class="bg-green-50 border-l-4 border-green-500 text-green-700 px-4 py-3 rounded-r-lg mb-6 shadow-sm flex items-center">
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+        <div th:if="${successMessage}" class="glass-card bg-emerald-50/80 border-l-4 border-emerald-500 text-emerald-700 px-5 py-4 rounded-r-xl shadow-sm flex items-center" data-aos="fade-up">
+            <i class="fa-solid fa-circle-check mr-3 text-lg"></i>
             <span th:text="${successMessage}"></span>
         </div>
 
+        <!-- COURSE HERO SECTION -->
         <article class="relative">
-            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-600 border border-indigo-100 uppercase tracking-wide mb-3"
-                  th:text="${course.category?.name}">Danh mục</span>
+            <!-- Category Badge -->
+            <div data-aos="fade-up">
+                <span class="inline-flex items-center px-4 py-1.5 rounded-lg text-xs font-extrabold bg-brand-50 text-brand-600 border border-brand-100 uppercase tracking-widest mb-4 shadow-sm">
+                    <i class="fa-solid fa-layer-group mr-2"></i>
+                    <span th:text="${course.category?.name}">Danh mục</span>
+                </span>
+            </div>
 
-            <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold text-slate-900 my-4 leading-tight tracking-tight" th:text="${course.name}">
+            <!-- Title -->
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold text-slate-900 my-4 leading-[1.1] tracking-tight"
+                th:text="${course.name}" data-aos="fade-up" data-aos-delay="100">
                 Tiêu đề khóa học
             </h1>
 
-            <p class="text-xl text-slate-600 mb-8 leading-relaxed font-light"
-               th:text="${T(com.codecampus.util.BlogUtil).getBriefInfo(course.description)}">
-                Thông tin tóm tắt về khóa học...
+            <!-- Short Description -->
+            <p class="text-xl text-slate-600 mb-10 leading-relaxed font-medium max-w-3xl"
+               th:text="${T(com.codecampus.util.BlogUtil).getBriefInfo(course.description)}"
+               data-aos="fade-up" data-aos-delay="200">
+                Thông tin tóm tắt...
             </p>
 
-            <div class="relative group rounded-3xl overflow-hidden shadow-soft-xl mb-12 ring-1 ring-black/5">
-                <img th:src="@{${course.thumbnailUrl}}" alt="Thumbnail" class="w-full object-cover transform transition-transform duration-700 hover:scale-105" />
-                <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent pointer-events-none"></div>
+            <!-- Thumbnail -->
+            <div class="relative group rounded-[2rem] overflow-hidden shadow-2xl mb-12 ring-1 ring-white/50" data-aos="zoom-in" data-aos-delay="300">
+                <!-- Glow Effect behind image -->
+                <div class="absolute -inset-1 bg-gradient-to-r from-brand-600 to-purple-600 rounded-[2rem] blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+                <div class="relative rounded-[2rem] overflow-hidden">
+                    <img th:src="@{${course.thumbnailUrl}}" alt="Thumbnail" class="w-full object-cover transform transition-transform duration-700 group-hover:scale-105" />
+                    <!-- Play Button (Decoration) -->
+                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div class="w-20 h-20 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/50 text-white shadow-glow animate-pulse">
+                            <i class="fa-solid fa-play ml-1 text-2xl"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="prose prose-lg prose-slate max-w-none prose-img:rounded-2xl prose-headings:font-bold prose-a:text-indigo-600 bg-white/60 p-8 md:p-10 rounded-3xl border border-white/60 shadow-sm backdrop-blur-md"
-                 th:utext="${course.description}">
+            <!-- Full Description (Rich Text) -->
+            <div class="glass-card p-8 md:p-12 rounded-[2.5rem] prose prose-lg prose-slate max-w-none prose-img:rounded-2xl prose-headings:font-extrabold prose-a:text-brand-600 hover:prose-a:text-brand-700 bg-white/60 border border-white/60 shadow-sm"
+                 th:utext="${course.description}"
+                 data-aos="fade-up">
             </div>
         </article>
 
-        <div class="mt-12 bg-white p-8 rounded-3xl shadow-soft-xl border border-indigo-100 relative overflow-hidden group">
-            <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-indigo-500 rounded-full opacity-10 blur-3xl group-hover:opacity-20 transition-opacity"></div>
-            <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <!-- CTA / PRICING BOX (Highlight) -->
+        <div class="mt-8 bg-white/80 backdrop-blur-xl p-8 md:p-10 rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(79,70,229,0.15)] border border-white relative overflow-hidden group" data-aos="fade-up">
+            <!-- Background Glow -->
+            <div class="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-brand-500/10 rounded-full blur-[80px] group-hover:bg-brand-500/20 transition-colors"></div>
+
+            <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+                <!-- Info Side -->
                 <div>
-                    <h3 class="font-bold text-2xl text-slate-800 mb-2"
-                        th:text="${lowestPriceOpt.isPresent() ? 'Đăng ký khóa học ngay' : 'Khóa học tạm ngưng đăng ký'}">
-                        Đăng ký khóa học ngay
+                    <h3 class="font-extrabold text-2xl text-slate-900 mb-2 flex items-center gap-2"
+                        th:text="${lowestPriceOpt.isPresent() ? 'Đăng ký ngay hôm nay' : 'Khóa học tạm ngưng'}">
                     </h3>
-                    <p class="text-slate-500 mb-4"
-                       th:text="${lowestPriceOpt.isPresent() ? 'Sở hữu trọn bộ tài liệu, video bài giảng và chứng chỉ sau khi hoàn thành.' : 'Hiện tại chưa có gói học phí khả dụng cho khóa học này. Vui lòng quay lại sau.'}">
-                        Sở hữu trọn bộ tài liệu, video bài giảng và chứng chỉ sau khi hoàn thành.
+                    <p class="text-slate-500 mb-6 font-medium text-sm">
+                        <i class="fa-solid fa-check-circle text-emerald-500 mr-1"></i>
+                        <span th:text="${lowestPriceOpt.isPresent() ? 'Sở hữu trọn đời • Cấp chứng chỉ • Mentor 1-1' : 'Vui lòng quay lại sau.'}"></span>
                     </p>
 
                     <div th:if="${lowestPriceOpt.isPresent()}" th:with="lowestPrice=${lowestPriceOpt.get()}">
                         <div th:if="${(lowestPrice.salePrice != null ? lowestPrice.salePrice : lowestPrice.listPrice) == 0}">
-                            <span class="text-4xl font-extrabold text-emerald-500">Miễn phí</span>
+                            <span class="text-5xl font-black text-emerald-500 tracking-tight">Miễn phí</span>
                         </div>
 
                         <div th:unless="${(lowestPrice.salePrice != null ? lowestPrice.salePrice : lowestPrice.listPrice) == 0}"
-                             class="flex items-baseline flex-wrap gap-3">
-                    <span th:if="${lowestPrice.salePrice != null}"
-                          class="text-4xl font-extrabold text-rose-600 tracking-tight"
-                          th:text="${#numbers.formatDecimal(lowestPrice.salePrice, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
-                            <span th:if="${lowestPrice.salePrice != null}"
-                                  class="text-lg text-slate-400 line-through decoration-2"
-                                  th:text="${#numbers.formatDecimal(lowestPrice.listPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
-                            <span th:unless="${lowestPrice.salePrice != null}"
-                                  class="text-4xl font-extrabold text-indigo-600 tracking-tight"
-                                  th:text="${#numbers.formatDecimal(lowestPrice.listPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
+                             class="flex items-baseline flex-wrap gap-4">
+                            <th:block th:if="${lowestPrice.salePrice != null}">
+                                <span class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-orange-500 tracking-tight"
+                                      th:text="${#numbers.formatDecimal(lowestPrice.salePrice, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
+                                <span class="text-xl text-slate-400 line-through decoration-2 font-semibold"
+                                      th:text="${#numbers.formatDecimal(lowestPrice.listPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
+                            </th:block>
+                            <th:block th:unless="${lowestPrice.salePrice != null}">
+                                <span class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-indigo-600 tracking-tight"
+                                      th:text="${#numbers.formatDecimal(lowestPrice.listPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
+                            </th:block>
                         </div>
-                    </div>
-
-                    <div th:unless="${lowestPriceOpt.isPresent()}">
-                        <span class="text-4xl font-extrabold text-rose-500">Khóa học lỗi</span>
                     </div>
                 </div>
 
+                <!-- Action Button Side -->
                 <div class="md:w-auto w-full flex-shrink-0">
+                    <!-- Case 1: Đã đăng ký -->
                     <a th:if="${isRegistered}"
                        th:href="@{/my-courses}"
-                       class="w-full md:w-auto px-8 py-4 bg-emerald-600 text-white rounded-2xl font-bold text-lg hover:bg-emerald-700 hover:shadow-lg hover:shadow-emerald-500/30 transition-all transform hover:-translate-y-1 flex items-center justify-center">
+                       class="w-full md:w-auto px-10 py-5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-2xl font-bold text-lg hover:shadow-lg hover:shadow-emerald-500/40 transition-all transform hover:-translate-y-1 flex items-center justify-center gap-2 group/btn">
                         <span>Vào học ngay</span>
-                        <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path></svg>
+                        <i class="fa-solid fa-arrow-right group-hover/btn:translate-x-1 transition-transform"></i>
                     </a>
 
+                    <!-- Case 2: Chưa đăng ký & Có giá -->
                     <button th:if="${!isRegistered && lowestPriceOpt.isPresent()}"
                             type="button" id="openRegisterModalButton"
-                            class="w-full md:w-auto px-8 py-4 bg-indigo-600 text-white rounded-2xl font-bold text-lg hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-500/30 transition-all transform hover:-translate-y-1 flex items-center justify-center">
+                            class="w-full md:w-auto px-10 py-5 bg-gradient-to-r from-brand-600 to-indigo-600 text-white rounded-2xl font-bold text-lg hover:shadow-lg hover:shadow-brand-500/40 transition-all transform hover:-translate-y-1 flex items-center justify-center gap-2 group/btn">
                         <span>Đăng ký ngay</span>
-                        <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                        <i class="fa-solid fa-cart-plus group-hover/btn:scale-110 transition-transform"></i>
                     </button>
 
+                    <!-- Case 3: Chưa khả dụng -->
                     <button th:if="${!isRegistered && !lowestPriceOpt.isPresent()}"
                             type="button" disabled
-                            class="w-full md:w-auto px-8 py-4 bg-slate-300 text-slate-500 rounded-2xl font-bold text-lg cursor-not-allowed flex items-center justify-center">
+                            class="w-full md:w-auto px-10 py-5 bg-slate-200 text-slate-400 rounded-2xl font-bold text-lg cursor-not-allowed flex items-center justify-center gap-2">
                         <span>Chưa khả dụng</span>
-                        <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <i class="fa-solid fa-lock"></i>
                     </button>
                 </div>
             </div>
 
-            <div class="mt-6 pt-6 border-t border-slate-100 flex flex-wrap gap-4 text-sm text-slate-600">
-                <span class="flex items-center"><svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Truy cập trọn đời</span>
-                <span class="flex items-center"><svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Cấp chứng chỉ</span>
-                <span class="flex items-center"><svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Hỗ trợ 24/7</span>
+            <!-- Features Footer -->
+            <div class="mt-8 pt-6 border-t border-slate-100 flex flex-wrap gap-6 text-sm font-semibold text-slate-600 justify-center md:justify-start">
+                <span class="flex items-center gap-2"><i class="fa-solid fa-infinity text-brand-500"></i> Truy cập trọn đời</span>
+                <span class="flex items-center gap-2"><i class="fa-solid fa-certificate text-brand-500"></i> Cấp chứng chỉ</span>
+                <span class="flex items-center gap-2"><i class="fa-solid fa-laptop-code text-brand-500"></i> Bài tập thực hành</span>
             </div>
         </div>
 
-        <div class="mt-16 pt-10 border-t border-slate-200">
-            <div class="flex items-center justify-between mb-8">
-                <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Đánh giá từ học viên</h2>
+        <!-- REVIEWS SECTION -->
+        <div class="mt-16 pt-10 border-t border-slate-200/60" data-aos="fade-up">
+            <div class="flex items-center justify-between mb-10">
+                <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Đánh giá học viên</h2>
 
-                <div class="flex items-center gap-3 bg-indigo-50 px-4 py-2 rounded-2xl border border-indigo-100">
-                    <span class="text-3xl font-black text-indigo-600"
+                <div class="glass-card px-5 py-3 rounded-2xl flex items-center gap-4">
+                    <span class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500"
                           th:text="${course.averageRating > 0 ? course.averageRating : '0.0'}">4.8</span>
                     <div class="flex flex-col">
-                        <div class="flex text-yellow-400 text-sm">
+                        <div class="flex text-yellow-400 text-sm gap-0.5">
                             <th:block th:each="i : ${#numbers.sequence(1, 5)}">
-                                <span class="material-icons text-lg"
-                                      th:text="${i <= course.averageRating ? 'star' : (i - 0.5 <= course.averageRating ? 'star_half' : 'star_border')}">
-                                </span>
+                                <i th:class="${i <= course.averageRating ? 'fa-solid fa-star' : (i - 0.5 <= course.averageRating ? 'fa-solid fa-star-half-stroke' : 'fa-regular fa-star text-slate-300')}"></i>
                             </th:block>
                         </div>
-                        <span class="text-xs font-bold text-slate-500 uppercase tracking-wide">
-                            <span th:text="${course.reviewCount}">120</span> nhận xét
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
+                            <span th:text="${course.reviewCount}">120</span> Reviews
                         </span>
                     </div>
                 </div>
             </div>
 
-            <div th:if="${isRegistered}" class="bg-white p-6 md:p-8 rounded-3xl shadow-soft-xl border border-slate-100 mb-10 relative overflow-hidden">
-                <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-bl-full pointer-events-none"></div>
+            <!-- Review Form -->
+            <div th:if="${isRegistered}" class="bg-white/90 p-8 rounded-[2rem] shadow-sm border border-slate-100 mb-10 relative overflow-hidden group">
+                <div class="absolute top-0 right-0 w-40 h-40 bg-brand-500/5 rounded-bl-full pointer-events-none transition-colors group-hover:bg-brand-500/10"></div>
 
-                <h3 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-                    <span class="material-icons text-indigo-500">rate_review</span>
-                    <span th:text="${myFeedback != null ? 'Cập nhật đánh giá của bạn' : 'Viết đánh giá của bạn'}">Viết đánh giá</span>
+                <h3 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-brand-50 flex items-center justify-center text-brand-600">
+                        <i class="fa-regular fa-pen-to-square"></i>
+                    </div>
+                    <span th:text="${myFeedback != null ? 'Cập nhật đánh giá của bạn' : 'Viết đánh giá của bạn'}"></span>
                 </h3>
 
-                <form th:action="@{/feedback/submit}" method="post" enctype="multipart/form-data">
+                <form th:action="@{/feedback/submit}" method="post" enctype="multipart/form-data" class="space-y-6">
                     <input type="hidden" name="courseId" th:value="${course.id}">
 
-                    <div class="mb-4">
-                        <label class="block text-sm font-semibold text-slate-600 mb-2">Bạn chấm khóa học này mấy điểm?</label>
-                        <div class="flex flex-row-reverse justify-end gap-1 group">
+                    <!-- Star Rating -->
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Chấm điểm khóa học</label>
+                        <div class="flex flex-row-reverse justify-end gap-2 group/stars w-fit">
                             <th:block th:each="i : ${#numbers.sequence(5, 1, -1)}">
                                 <input type="radio" th:id="'star' + ${i}" name="rating" th:value="${i}"
                                        class="peer hidden" required
                                        th:checked="${myFeedback != null && myFeedback.rating == i}">
                                 <label th:for="'star' + ${i}"
-                                       class="cursor-pointer text-slate-200 peer-checked:text-yellow-400 peer-hover:text-yellow-400 hover:text-yellow-400 transition-colors text-3xl">
-                                    ★
+                                       class="cursor-pointer text-slate-200 peer-checked:text-yellow-400 peer-hover:text-yellow-400 hover:text-yellow-400 transition-all text-3xl hover:scale-110">
+                                    <i class="fa-solid fa-star"></i>
                                 </label>
                             </th:block>
                         </div>
                     </div>
 
-                    <div class="mb-4">
-                        <label class="block text-sm font-semibold text-slate-600 mb-2">Cảm nhận của bạn</label>
+                    <!-- Comment -->
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Cảm nhận của bạn</label>
                         <textarea name="comment" rows="4"
-                                  class="w-full rounded-xl border-slate-200 bg-slate-50 p-4 text-slate-700 focus:border-indigo-500 focus:ring-indigo-500 transition-shadow outline-none resize-none placeholder-slate-400"
-                                  placeholder="Chia sẻ điều bạn thích hoặc chưa thích về khóa học này..."
+                                  class="w-full rounded-2xl border-slate-200 bg-slate-50 p-4 text-slate-700 focus:border-brand-500 focus:ring-brand-500 transition-all outline-none resize-none placeholder-slate-400 shadow-inner"
+                                  placeholder="Nội dung bài học có dễ hiểu không? Mentor hỗ trợ thế nào?..."
                                   th:text="${myFeedback != null ? myFeedback.comment : ''}" required minlength="10"></textarea>
                     </div>
 
-                    <div class="mb-6">
-                        <label class="block text-sm font-semibold text-slate-600 mb-2">Hình ảnh đính kèm (tùy chọn)</label>
+                    <!-- Image Upload -->
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Hình ảnh (Tùy chọn)</label>
                         <div class="flex items-center gap-4">
-                            <label class="cursor-pointer flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-sm text-slate-600 font-medium text-sm">
-                                <span class="material-icons text-indigo-500">add_photo_alternate</span>
+                            <label class="cursor-pointer flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-sm text-slate-600 font-bold text-xs uppercase tracking-wide">
+                                <i class="fa-solid fa-image text-brand-500"></i>
                                 <span>Chọn ảnh</span>
                                 <input type="file" name="file" accept="image/*" class="hidden" onchange="previewImage(this)">
                             </label>
-                            <span id="fileNameDisplay" class="text-sm text-slate-400 italic truncate max-w-[200px]">Chưa chọn tệp</span>
+                            <span id="fileNameDisplay" class="text-xs text-slate-400 italic truncate max-w-[200px]">Chưa chọn tệp</span>
                         </div>
-                        <img id="imagePreview" class="hidden mt-3 h-20 w-auto rounded-lg border border-slate-200 object-cover" />
+                        <img id="imagePreview" class="hidden mt-4 h-24 w-auto rounded-xl border border-slate-200 object-cover shadow-sm" />
                     </div>
 
-                    <div class="flex items-center justify-between mt-6 pt-4 border-t border-slate-100">
+                    <!-- Buttons -->
+                    <div class="flex items-center justify-between pt-4 border-t border-slate-100">
                         <button type="submit"
-                                class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-bold rounded-xl text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all shadow-lg shadow-indigo-200">
-                            <span th:text="${myFeedback != null ? 'Cập nhật' : 'Gửi đánh giá'}">Gửi đánh giá</span>
-                            <span class="material-icons ml-2 text-sm">send</span>
+                                class="inline-flex items-center justify-center px-8 py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-brand-500/30 gap-2">
+                            <span th:text="${myFeedback != null ? 'Cập nhật' : 'Gửi đánh giá'}">Gửi</span>
+                            <i class="fa-solid fa-paper-plane text-xs"></i>
                         </button>
 
                         <button th:if="${myFeedback != null}"
                                 type="submit"
                                 form="deleteFeedbackForm"
-                                class="text-red-500 hover:text-red-700 font-bold text-sm px-4 py-2 hover:bg-red-50 rounded-lg transition-colors flex items-center gap-2"
-                                onclick="return confirm('Bạn có chắc chắn muốn xóa đánh giá này không? Hành động này không thể hoàn tác.')">
-                            <span class="material-icons text-lg">delete_outline</span>
-                            Xóa đánh giá
+                                class="text-red-500 hover:text-red-700 font-bold text-xs px-4 py-2 hover:bg-red-50 rounded-lg transition-colors flex items-center gap-2"
+                                onclick="return confirm('Xóa đánh giá này?')">
+                            <i class="fa-regular fa-trash-can"></i> Xóa
                         </button>
                     </div>
                 </form>
-
                 <form id="deleteFeedbackForm" th:action="@{/feedback/delete}" method="post" class="hidden">
                     <input type="hidden" name="feedbackId" th:value="${myFeedback?.id}">
                     <input type="hidden" name="courseId" th:value="${course.id}">
                 </form>
             </div>
 
-            <div th:unless="${isRegistered}" class="bg-slate-50 rounded-2xl p-6 text-center border border-slate-200 border-dashed mb-10">
-                <p class="text-slate-500 font-medium">Bạn cần đăng ký khóa học để gửi đánh giá.</p>
-            </div>
-
+            <!-- List Reviews -->
             <div class="space-y-6">
-                <div th:if="${#lists.isEmpty(feedbacks)}" class="text-center py-10">
-                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 mb-3">
-                        <span class="material-icons text-slate-400 text-3xl">chat_bubble_outline</span>
+                <div th:if="${#lists.isEmpty(feedbacks)}" class="text-center py-12 glass-card rounded-[2rem]">
+                    <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-slate-50 mb-4 shadow-inner">
+                        <i class="fa-regular fa-comments text-slate-300 text-4xl"></i>
                     </div>
-                    <p class="text-slate-500">Chưa có đánh giá nào. Hãy là người đầu tiên!</p>
+                    <p class="text-slate-500 font-medium">Chưa có đánh giá nào. Hãy là người đầu tiên!</p>
                 </div>
 
-                <div th:each="fb : ${feedbacks}" class="flex gap-4 md:gap-6 p-6 bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                <div th:each="fb : ${feedbacks}" class="flex gap-5 p-6 bg-white/80 rounded-3xl border border-white shadow-sm hover:shadow-md transition-shadow">
                     <div class="flex-shrink-0">
                         <img th:src="${fb.user.avatarUrl != null ? fb.user.avatarUrl : '/images/default-avatar.png'}"
                              alt="Avatar"
-                             class="w-12 h-12 md:w-14 md:h-14 rounded-full object-cover border-2 border-indigo-50">
+                             class="w-12 h-12 rounded-full object-cover border-2 border-white shadow-md">
                     </div>
 
                     <div class="flex-1">
                         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
                             <div>
-                                <h4 class="font-bold text-slate-900 text-lg" th:text="${fb.user.fullName}">Nguyễn Văn A</h4>
-                                <div class="flex text-yellow-400 text-sm mt-0.5">
+                                <h4 class="font-bold text-slate-900 text-base" th:text="${fb.user.fullName}">User Name</h4>
+                                <div class="flex text-yellow-400 text-xs mt-1 gap-0.5">
                                     <th:block th:each="i : ${#numbers.sequence(1, 5)}">
-                                        <span class="material-icons text-base"
-                                              th:text="${i <= fb.rating ? 'star' : 'star_border'}"
-                                              style="font-size: 16px;">
-                                        </span>
+                                        <i th:class="${i <= fb.rating ? 'fa-solid fa-star' : 'fa-regular fa-star text-slate-300'}"></i>
                                     </th:block>
                                 </div>
                             </div>
-                            <span class="text-sm text-slate-400 font-mono mt-1 sm:mt-0"
-                                  th:text="${#temporals.format(fb.createdAt, 'dd/MM/yyyy')}">12/12/2024</span>
+                            <span class="text-xs text-slate-400 font-bold mt-1 sm:mt-0 bg-slate-100 px-2 py-1 rounded"
+                                  th:text="${#temporals.format(fb.createdAt, 'dd/MM/yyyy')}">Date</span>
                         </div>
 
-                        <p class="text-slate-600 leading-relaxed bg-slate-50/50 p-3 rounded-xl inline-block w-full"
-                           th:text="${fb.comment}">
-                            Khóa học rất hay...
-                        </p>
+                        <p class="text-slate-600 leading-relaxed text-sm bg-slate-50 p-3 rounded-2xl inline-block w-full border border-slate-100"
+                           th:text="${fb.comment}">Comment...</p>
 
-                        <div th:if="${!#lists.isEmpty(fb.attachments)}" class="mt-4 flex gap-2 overflow-x-auto pb-2">
+                        <!-- Attachments -->
+                        <div th:if="${!#lists.isEmpty(fb.attachments)}" class="mt-3 flex gap-2 overflow-x-auto">
                             <div th:each="att : ${fb.attachments}">
                                 <div th:onclick="openImageViewer([[${att.fileUrl}]])"
-                                     class="block group relative cursor-pointer">
-
+                                     class="block group relative cursor-pointer overflow-hidden rounded-xl border border-slate-200">
                                     <img th:src="@{${att.fileUrl}}"
-                                         class="h-24 w-auto rounded-lg border border-slate-200 object-cover hover:opacity-90 transition-opacity"
+                                         class="h-20 w-auto object-cover hover:scale-110 transition-transform duration-500"
                                          alt="Feedback Image">
-
-                                    <div class="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
-                                        <span class="material-icons text-white text-sm">zoom_in</span>
+                                    <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                        <i class="fa-solid fa-magnifying-glass-plus text-white"></i>
                                     </div>
                                 </div>
                             </div>
@@ -358,85 +424,111 @@
         </div>
     </main>
 
+    <!-- SIDEBAR (Right) -->
+    <!-- XÓA class 'h-fit' để sticky hoạt động -->
     <aside class="hidden md:block w-full md:w-1/4 lg:w-1/4 space-y-8">
-        <div class="sticky top-28 space-y-8">
+        <div class="sticky top-28 space-y-8" data-aos="fade-left" data-aos-delay="100">
             <div th:replace="~{fragments/course-sidebar :: course-sidebar}"></div>
+
+            <!-- Banner Go Pro (Consistent with list page) -->
+            <div class="glass-card rounded-2xl p-6 text-center relative overflow-hidden group cursor-pointer animate-float shadow-glow">
+                <div class="absolute inset-0 bg-gradient-to-br from-brand-600 to-purple-600 opacity-90 transition-opacity group-hover:opacity-100"></div>
+                <div class="relative z-10">
+                    <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3 text-white backdrop-blur-md shadow-inner">
+                        <i class="fa-solid fa-crown text-xl text-yellow-300 drop-shadow-md"></i>
+                    </div>
+                    <h4 class="text-white font-extrabold text-xl mb-1">Go Pro</h4>
+                    <p class="text-white/90 text-xs mb-5 font-medium">Mở khóa toàn bộ khóa học nâng cao</p>
+                    <span class="inline-block bg-white text-brand-600 text-xs font-bold px-5 py-2.5 rounded-lg shadow-lg group-hover:scale-105 transition-transform">
+                        Nâng cấp ngay
+                    </span>
+                </div>
+            </div>
         </div>
     </aside>
 </div>
 
+<!-- ================= MODALS (Đã Style Lại) ================= -->
 <div th:replace="~{fragments/footer :: footer}"></div>
-
 <div th:replace="~{fragments/register-modal :: register-modal(course=${course}, pricePackages=${pricePackages})}"></div>
 
-<div id="loginPromptModal" class="fixed inset-0 z-[60] hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+<!-- Login Prompt Modal -->
+<div id="loginPromptModal" class="fixed inset-0 z-[60] hidden overflow-y-auto">
     <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"></div>
-    <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-        <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-md border border-slate-100">
-            <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
-                <div class="sm:flex sm:items-start">
-                    <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-indigo-100 sm:mx-0 sm:h-10 sm:w-10">
-                        <svg class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
-                    </div>
-                    <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-                        <h3 class="text-lg font-bold leading-6 text-slate-900" id="modal-title">Vui lòng đăng nhập</h3>
-                        <div class="mt-2">
-                            <p class="text-sm text-slate-500">Bạn cần có tài khoản CodeCampus để đăng ký và lưu tiến độ học tập của khóa học này.</p>
-                        </div>
-                    </div>
+    <div class="flex min-h-full items-center justify-center p-4 text-center">
+        <div class="relative transform overflow-hidden rounded-3xl bg-white text-left shadow-2xl transition-all sm:w-full sm:max-w-md border border-white/50 p-6">
+            <div class="text-center">
+                <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-brand-50 mb-4 animate-bounce">
+                    <i class="fa-solid fa-user-lock text-2xl text-brand-600"></i>
                 </div>
-            </div>
-            <div class="bg-slate-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
-                <a th:href="@{/login(redirectUrl=${'/courses/' + course.id})}" class="inline-flex w-full justify-center rounded-xl bg-indigo-600 px-3 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 sm:ml-3 sm:w-auto transition-colors">Đăng nhập ngay</a>
-                <a th:href="@{/register}" class="mt-3 inline-flex w-full justify-center rounded-xl bg-white px-3 py-2.5 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 sm:mt-0 sm:w-auto transition-colors">Đăng ký tài khoản</a>
-                <button type="button" class="closeModal mt-3 sm:mt-0 inline-flex w-full justify-center rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-500 hover:text-slate-700 sm:w-auto sm:mr-auto">Bỏ qua</button>
+                <h3 class="text-xl font-black text-slate-900 mb-2">Đăng nhập để tiếp tục</h3>
+                <p class="text-sm text-slate-500 mb-6">Bạn cần có tài khoản CodeCampus để đăng ký và lưu tiến độ học tập của khóa học này.</p>
+
+                <div class="space-y-3">
+                    <a th:href="@{/login(redirectUrl=${'/courses/' + course.id})}"
+                       class="block w-full rounded-xl bg-brand-600 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-brand-500/30 hover:bg-brand-700 transition-all">
+                        Đăng nhập ngay
+                    </a>
+                    <a th:href="@{/register}"
+                       class="block w-full rounded-xl bg-white border border-slate-200 px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 transition-all">
+                        Tạo tài khoản mới
+                    </a>
+                    <button type="button" class="closeModal text-slate-400 text-xs font-bold hover:text-slate-600 mt-2">
+                        Bỏ qua
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Already Registered Modal -->
 <div id="alreadyRegisteredModal" class="fixed inset-0 z-[60] hidden overflow-y-auto">
     <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"></div>
-    <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-        <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-md">
-            <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
-                <div class="sm:flex sm:items-start">
-                    <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100 sm:mx-0 sm:h-10 sm:w-10">
-                        <svg class="h-6 w-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    </div>
-                    <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-                        <h3 class="text-lg font-bold leading-6 text-slate-900">Đã sở hữu khóa học</h3>
-                        <div class="mt-2">
-                            <p class="text-sm text-slate-500">Tuyệt vời! Bạn đã đăng ký khóa học này rồi. Hãy tiếp tục hành trình chinh phục tri thức nào.</p>
-                        </div>
-                    </div>
+    <div class="flex min-h-full items-center justify-center p-4 text-center">
+        <div class="relative transform overflow-hidden rounded-3xl bg-white text-left shadow-2xl transition-all sm:w-full sm:max-w-md p-6">
+            <div class="text-center">
+                <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 mb-4">
+                    <i class="fa-solid fa-circle-check text-3xl text-emerald-500"></i>
+                </div>
+                <h3 class="text-xl font-black text-slate-900 mb-2">Đã sở hữu khóa học</h3>
+                <p class="text-sm text-slate-500 mb-6">Tuyệt vời! Bạn đã đăng ký khóa học này rồi. Hãy tiếp tục hành trình chinh phục tri thức nào.</p>
+
+                <div class="flex gap-3">
+                    <a th:href="@{/my-courses}" class="flex-1 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white shadow-lg hover:bg-emerald-700 transition-all">
+                        Vào học ngay
+                    </a>
+                    <button type="button" class="closeModal flex-1 rounded-xl bg-slate-100 px-4 py-3 text-sm font-bold text-slate-600 hover:bg-slate-200 transition-all">
+                        Đóng
+                    </button>
                 </div>
             </div>
-            <div class="bg-slate-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
-                <a th:href="@{/my-courses}" class="inline-flex w-full justify-center rounded-xl bg-emerald-600 px-3 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500 sm:ml-3 sm:w-auto">Vào học ngay</a>
-                <button type="button" class="closeModal mt-3 inline-flex w-full justify-center rounded-xl bg-white px-3 py-2.5 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 sm:mt-0 sm:w-auto">Đóng</button>
-            </div>
         </div>
     </div>
 </div>
 
+<!-- Image Viewer Modal -->
 <div id="imageViewerModal" class="fixed inset-0 z-[100] hidden" aria-hidden="true">
-    <div class="absolute inset-0 bg-black/90 backdrop-blur-sm transition-opacity" onclick="closeImageViewer()"></div>
-
+    <div class="absolute inset-0 bg-black/90 backdrop-blur-md transition-opacity" onclick="closeImageViewer()"></div>
     <div class="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
         <div class="relative max-w-full max-h-full pointer-events-auto">
-            <button onclick="closeImageViewer()" class="absolute -top-12 right-0 md:-right-12 text-white/70 hover:text-white transition-colors p-2">
-                <span class="material-icons text-4xl">close</span>
+            <button onclick="closeImageViewer()" class="absolute -top-12 right-0 md:-right-12 text-white/70 hover:text-white transition-colors p-2 bg-white/10 rounded-full hover:bg-white/20">
+                <i class="fa-solid fa-xmark text-2xl"></i>
             </button>
-
             <img id="fullSizeImage" src="" alt="Full Size"
-                 class="max-h-[85vh] max-w-[90vw] rounded-lg shadow-2xl object-contain animate-fade-in-up">
+                 class="max-h-[85vh] max-w-[90vw] rounded-2xl shadow-2xl object-contain animate-[zoomIn_0.3s_ease-out]">
         </div>
     </div>
 </div>
 
+<!-- ================= SCRIPTS ================= -->
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function () {
+        // Init AOS
+        AOS.init({ once: true, offset: 50, duration: 800, easing: 'ease-out-cubic' });
+
+        // Modal Logic
         const openBtn = document.getElementById('openRegisterModalButton');
         const registerModal = document.getElementById('registerModal');
         const loginPromptModal = document.getElementById('loginPromptModal');
@@ -446,9 +538,19 @@
         const isLoggedIn = /*[[${loggedInUser != null}]]*/ false;
         const isRegistered = /*[[${isRegistered}]]*/ false;
 
-        function openModal(modal) { if (modal) modal.classList.remove('hidden'); }
+        function openModal(modal) {
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.querySelector('div[class*="transform"]')?.classList.add('modal-enter');
+            }
+        }
+
         function closeAll() {
-            [registerModal, loginPromptModal, alreadyRegisteredModal].forEach(m => m && m.classList.add('hidden'));
+            [registerModal, loginPromptModal, alreadyRegisteredModal].forEach(m => {
+                if (m && !m.classList.contains('hidden')) {
+                    m.classList.add('hidden');
+                }
+            });
         }
 
         closeBtns.forEach(btn => btn.addEventListener('click', closeAll));
@@ -465,13 +567,13 @@
             if (!modal) return;
             modal.addEventListener('click', (e) => {
                 if (e.target.classList.contains('fixed') && e.target.classList.contains('inset-0')) {
-                    modal.classList.add('hidden');
+                    closeAll();
                 }
             });
         });
     });
 
-    // Hàm Preview ảnh upload
+    // Image Upload Preview
     function previewImage(input) {
         const file = input.files[0];
         const preview = document.getElementById('imagePreview');
@@ -491,14 +593,14 @@
         }
     }
 
-    // [MỚI] Hàm xử lý Image Viewer Modal
+    // Image Viewer Logic
     function openImageViewer(imageUrl) {
         const modal = document.getElementById('imageViewerModal');
         const img = document.getElementById('fullSizeImage');
         if(modal && img) {
             img.src = imageUrl;
             modal.classList.remove('hidden');
-            document.body.style.overflow = 'hidden'; // Khóa cuộn trang
+            document.body.style.overflow = 'hidden';
         }
     }
 
@@ -506,16 +608,13 @@
         const modal = document.getElementById('imageViewerModal');
         if(modal) {
             modal.classList.add('hidden');
-            document.body.style.overflow = ''; // Mở khóa cuộn trang
-            setTimeout(() => { document.getElementById('fullSizeImage').src = ''; }, 200); // Clear src sau khi đóng
+            document.body.style.overflow = '';
+            setTimeout(() => { document.getElementById('fullSizeImage').src = ''; }, 200);
         }
     }
 
-    // Đóng modal ảnh bằng phím ESC
     document.addEventListener('keydown', function(event) {
-        if (event.key === "Escape") {
-            closeImageViewer();
-        }
+        if (event.key === "Escape") closeImageViewer();
     });
 </script>
 </body>

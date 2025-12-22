@@ -1,43 +1,126 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-<footer class="bg-gray-900 text-gray-400 py-10 mt-16">
-    <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-        <div>
-            <h5 class="text-white font-semibold mb-3">Về F8</h5>
-            <ul class="space-y-2 text-sm">
-                <li><a href="#" class="hover:text-white">Giới thiệu</a></li>
-                <li><a href="#" class="hover:text-white">Liên hệ</a></li>
-            </ul>
-        </div>
-        <div>
-            <h5 class="text-white font-semibold mb-3">Khóa học</h5>
-            <ul class="space-y-2 text-sm">
-                <li><a href="#" class="hover:text-white">HTML & CSS</a></li>
-                <li><a href="#" class="hover:text-white">JavaScript</a></li>
-            </ul>
-        </div>
-        <div>
-            <h5 class="text-white font-semibold mb-3">Blog</h5>
-            <ul class="space-y-2 text-sm">
-                <li><a href="#" class="hover:text-white">Bài viết mới</a></li>
-            </ul>
-        </div>
-        <div>
-            <h5 class="text-white font-semibold mb-3">Theo dõi</h5>
-            <ul class="space-y-2 text-sm">
-                <li><a href="#" class="hover:text-white">Facebook</a></li>
-                <li><a href="#" class="hover:text-white">YouTube</a></li>
-            </ul>
-        </div>
+<!--
+    FRAGMENT FOOTER
+    - Theme: Aurora Dark (Slate-900)
+    - Font: Plus Jakarta Sans
+    - Layout: 4 Columns Wide
+-->
+<footer th:fragment="footer" class="bg-slate-900 text-slate-300 font-sans relative overflow-hidden border-t border-slate-800">
+
+    <!-- 1. DECOR BACKGROUND (Hiệu ứng Aurora tối) -->
+    <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+        <!-- Blob tím bên trái -->
+        <div class="absolute top-[-50%] left-[-10%] w-[600px] h-[600px] bg-brand-900/20 rounded-full blur-[120px] mix-blend-screen"></div>
+        <!-- Blob xanh bên phải -->
+        <div class="absolute bottom-[-50%] right-[-10%] w-[600px] h-[600px] bg-emerald-900/10 rounded-full blur-[120px] mix-blend-screen"></div>
+        <!-- Noise Texture mờ -->
+        <div class="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03]"></div>
     </div>
-    <div class="text-center text-gray-500 text-sm mt-10">
-        © 2025 F8. All rights reserved.
+
+    <!-- 2. MAIN CONTENT -->
+    <div class="max-w-[1500px] mx-auto px-4 sm:px-6 pt-20 pb-10 relative z-10">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 mb-16">
+
+            <!-- CỘT 1: THƯƠNG HIỆU & MẠNG XÃ HỘI (Chiếm 4/12) -->
+            <div class="lg:col-span-4 space-y-6">
+                <!-- Logo -->
+                <a th:href="@{/home}" class="flex items-center gap-3 group w-fit">
+                    <div class="relative">
+                        <div class="absolute inset-0 bg-brand-500 blur opacity-20 group-hover:opacity-40 transition-opacity"></div>
+                        <img src="https://s3-sgn09.fptcloud.com/codelearnstorage/Media/Default/Users/PhanhTrinh2706/top5website/top-5-trang-web-hoc-lap-trinh-4.jpg"
+                             alt="CodeCampus" class="relative w-11 h-11 rounded-xl border border-slate-700 grayscale group-hover:grayscale-0 transition-all duration-300 object-cover">
+                    </div>
+                    <div>
+                        <span class="text-2xl font-extrabold text-white tracking-tight block leading-none">CodeCampus</span>
+                        <span class="text-[10px] text-slate-500 font-bold tracking-widest uppercase">Learning Ecosystem</span>
+                    </div>
+                </a>
+
+                <p class="text-slate-400 text-sm leading-relaxed max-w-sm">
+                    Nền tảng học lập trình thực chiến hàng đầu Việt Nam. Chúng tôi không chỉ dạy Code, chúng tôi kiến tạo sự nghiệp cho bạn.
+                </p>
+
+                <!-- Social Icons (Hover Effect) -->
+                <div class="flex items-center gap-3 pt-2">
+                    <a href="#" class="w-10 h-10 rounded-xl bg-slate-800/80 border border-slate-700 flex items-center justify-center text-slate-400 hover:bg-[#1877F2] hover:text-white hover:border-[#1877F2] hover:-translate-y-1 transition-all duration-300 shadow-lg group" aria-label="Facebook">
+                        <i class="fa-brands fa-facebook-f text-lg"></i>
+                    </a>
+                    <a href="#" class="w-10 h-10 rounded-xl bg-slate-800/80 border border-slate-700 flex items-center justify-center text-slate-400 hover:bg-[#FF0000] hover:text-white hover:border-[#FF0000] hover:-translate-y-1 transition-all duration-300 shadow-lg group" aria-label="YouTube">
+                        <i class="fa-brands fa-youtube text-lg"></i>
+                    </a>
+                    <a href="#" class="w-10 h-10 rounded-xl bg-slate-800/80 border border-slate-700 flex items-center justify-center text-slate-400 hover:bg-black hover:text-white hover:border-slate-500 hover:-translate-y-1 transition-all duration-300 shadow-lg group" aria-label="TikTok">
+                        <i class="fa-brands fa-tiktok text-lg"></i>
+                    </a>
+                    <a href="#" class="w-10 h-10 rounded-xl bg-slate-800/80 border border-slate-700 flex items-center justify-center text-slate-400 hover:bg-[#171515] hover:text-white hover:border-white hover:-translate-y-1 transition-all duration-300 shadow-lg group" aria-label="GitHub">
+                        <i class="fa-brands fa-github text-lg"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- CỘT 2: VỀ CHÚNG TÔI (Chiếm 2/12) -->
+            <div class="lg:col-span-2">
+                <h5 class="text-white font-bold mb-6 text-sm uppercase tracking-wider border-b border-brand-500/30 pb-2 w-fit">Về CodeCampus</h5>
+                <ul class="space-y-3 text-sm font-medium">
+                    <li><a href="#" class="text-slate-400 hover:text-brand-400 transition-colors flex items-center gap-2 group"><i class="fa-solid fa-chevron-right text-[10px] opacity-0 group-hover:opacity-100 transition-all -ml-3 group-hover:ml-0 text-brand-500"></i> Giới thiệu</a></li>
+                    <li><a href="#" class="text-slate-400 hover:text-brand-400 transition-colors flex items-center gap-2 group"><i class="fa-solid fa-chevron-right text-[10px] opacity-0 group-hover:opacity-100 transition-all -ml-3 group-hover:ml-0 text-brand-500"></i> Cơ hội việc làm</a></li>
+                    <li><a href="#" class="text-slate-400 hover:text-brand-400 transition-colors flex items-center gap-2 group"><i class="fa-solid fa-chevron-right text-[10px] opacity-0 group-hover:opacity-100 transition-all -ml-3 group-hover:ml-0 text-brand-500"></i> Đối tác</a></li>
+                    <li><a href="#" class="text-slate-400 hover:text-brand-400 transition-colors flex items-center gap-2 group"><i class="fa-solid fa-chevron-right text-[10px] opacity-0 group-hover:opacity-100 transition-all -ml-3 group-hover:ml-0 text-brand-500"></i> Điều khoản sử dụng</a></li>
+                    <li><a href="#" class="text-slate-400 hover:text-brand-400 transition-colors flex items-center gap-2 group"><i class="fa-solid fa-chevron-right text-[10px] opacity-0 group-hover:opacity-100 transition-all -ml-3 group-hover:ml-0 text-brand-500"></i> Bảo mật thông tin</a></li>
+                </ul>
+            </div>
+
+            <!-- CỘT 3: KHÓA HỌC (Chiếm 2/12) -->
+            <div class="lg:col-span-2">
+                <h5 class="text-white font-bold mb-6 text-sm uppercase tracking-wider border-b border-emerald-500/30 pb-2 w-fit">Khóa học nổi bật</h5>
+                <ul class="space-y-3 text-sm font-medium">
+                    <li><a href="#" class="text-slate-400 hover:text-emerald-400 transition-colors flex items-center gap-2 group"><i class="fa-solid fa-chevron-right text-[10px] opacity-0 group-hover:opacity-100 transition-all -ml-3 group-hover:ml-0 text-emerald-500"></i> Front-end Master</a></li>
+                    <li><a href="#" class="text-slate-400 hover:text-emerald-400 transition-colors flex items-center gap-2 group"><i class="fa-solid fa-chevron-right text-[10px] opacity-0 group-hover:opacity-100 transition-all -ml-3 group-hover:ml-0 text-emerald-500"></i> Java Spring Boot</a></li>
+                    <li><a href="#" class="text-slate-400 hover:text-emerald-400 transition-colors flex items-center gap-2 group"><i class="fa-solid fa-chevron-right text-[10px] opacity-0 group-hover:opacity-100 transition-all -ml-3 group-hover:ml-0 text-emerald-500"></i> Python & AI</a></li>
+                    <li><a href="#" class="text-slate-400 hover:text-emerald-400 transition-colors flex items-center gap-2 group"><i class="fa-solid fa-chevron-right text-[10px] opacity-0 group-hover:opacity-100 transition-all -ml-3 group-hover:ml-0 text-emerald-500"></i> ReactJS Pro</a></li>
+                    <li><a href="#" class="text-slate-400 hover:text-emerald-400 transition-colors flex items-center gap-2 group"><i class="fa-solid fa-chevron-right text-[10px] opacity-0 group-hover:opacity-100 transition-all -ml-3 group-hover:ml-0 text-emerald-500"></i> DevOps Basic</a></li>
+                </ul>
+            </div>
+
+            <!-- CỘT 4: NEWSLETTER (Chiếm 4/12) -->
+            <div class="lg:col-span-4 bg-slate-800/40 p-6 rounded-2xl border border-slate-700/50 backdrop-blur-sm">
+                <h5 class="text-white font-bold mb-4 flex items-center gap-2">
+                    <i class="fa-regular fa-envelope text-brand-500"></i> Đăng ký nhận tin
+                </h5>
+                <p class="text-xs text-slate-400 mb-5 leading-relaxed">Nhận ngay Ebook "Lộ trình 0-1000$ cho Dev" và mã giảm giá 20% khi đăng ký hôm nay.</p>
+
+                <form class="space-y-3">
+                    <div class="relative group">
+                        <input type="email" placeholder="Email của bạn..."
+                               class="w-full bg-slate-900 border border-slate-700 text-white text-sm rounded-xl px-4 py-3.5 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all placeholder-slate-600">
+                    </div>
+                    <button type="button" class="w-full bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white font-bold py-3.5 rounded-xl transition-all duration-200 shadow-lg shadow-brand-900/40 hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                        <span>Đăng ký ngay</span>
+                        <i class="fa-solid fa-paper-plane text-xs"></i>
+                    </button>
+                </form>
+                <p class="text-[10px] text-slate-500 mt-4 text-center">Chúng tôi cam kết không spam. Hủy đăng ký bất cứ lúc nào.</p>
+            </div>
+        </div>
+
+        <!-- 3. BOTTOM FOOTER -->
+        <div class="border-t border-slate-800/80 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="text-xs text-slate-500 font-medium">
+                &copy; 2025 CodeCampus Inc. All rights reserved.
+            </div>
+
+            <div class="flex items-center gap-6">
+                <!-- Trust Badges (Giả lập) -->
+                <div class="flex gap-3 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
+                    <i class="fa-brands fa-cc-visa text-2xl text-white"></i>
+                    <i class="fa-brands fa-cc-mastercard text-2xl text-white"></i>
+                    <i class="fa-brands fa-cc-paypal text-2xl text-white"></i>
+                </div>
+            </div>
+
+            <div class="text-xs text-slate-500 font-medium flex items-center gap-1.5">
+                <span>Made with</span>
+                <i class="fa-solid fa-heart text-rose-500 animate-pulse"></i>
+                <span>by CodeCampus Team</span>
+            </div>
+        </div>
     </div>
 </footer>
-</body>
-</html>
