@@ -8,6 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.Set;
@@ -22,22 +23,27 @@ public class CustomUserDetailsService implements UserDetailsService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy user với email: " + email));
 
-        if (!"active".equals(user.getStatus())) {
-            throw new RuntimeException("Tài khoản chưa được kích hoạt.");
-        }
+        // Xác định trạng thái dựa trên database
+        boolean enabled = "active".equals(user.getStatus()); // Nếu là active thì true, ngược lại (pending) là false
+        boolean accountNonLocked = !"blocked".equals(user.getStatus()); // Nếu blocked thì false
 
         Set<GrantedAuthority> authorities = Collections.singleton(
                 new SimpleGrantedAuthority(user.getRole().getName())
         );
 
-        // Trả về đối tượng UserDetails mà Spring Security hiểu
+        // Sử dụng Constructor đầy đủ của User (Spring Security)
         return new org.springframework.security.core.userdetails.User(
                 user.getEmail(),
-                user.getPasswordHash(), // Phải dùng cột passwordHash đã mã hóa
+                user.getPasswordHash(),
+                enabled,             // enabled (Nếu false sẽ ném DisabledException)
+                true,                // accountNonExpired
+                true,                // credentialsNonExpired
+                accountNonLocked,    // accountNonLocked (Nếu false sẽ ném LockedException)
                 authorities
         );
     }

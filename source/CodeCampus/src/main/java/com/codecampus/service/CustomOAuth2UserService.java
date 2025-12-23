@@ -4,6 +4,7 @@ import com.codecampus.entity.User;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
@@ -22,23 +23,36 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
-        // 1. Lấy thông tin user từ Google
         OAuth2User oauthUser = super.loadUser(userRequest);
         Map<String, Object> attributes = oauthUser.getAttributes();
 
         String email = (String) attributes.get("email");
         String name = (String) attributes.get("name");
-        String avatarUrl = (String) attributes.get("picture"); // Lấy avatar nếu muốn
-        System.out.println("OAuth2 attributes: " + attributes);
+        String avatarUrl = (String) attributes.get("picture");
 
-        // 2. Xử lý (lưu/cập nhật vào DB) bằng UserService của chúng ta
+        // Xử lý lưu/cập nhật DB
         User user = userService.processOAuthPostLogin(email, name, avatarUrl);
 
-        // 3. Trả về một đối tượng OAuth2User mới cho Spring Security
+        if ("blocked".equals(user.getStatus())) {
+            // Tạo một OAuth2Error với mã lỗi là "blocked"
+            OAuth2Error oauth2Error = new OAuth2Error("blocked");
+            throw new OAuth2AuthenticationException(oauth2Error, "blocked");
+        }
+
+        if ("pending".equals(user.getStatus())) {
+            OAuth2Error oauth2Error = new OAuth2Error("pending");
+            throw new OAuth2AuthenticationException(oauth2Error, "pending");
+        }
+
+        String roleName = user.getRole().getName();
+        if (!roleName.startsWith("ROLE_")) {
+            roleName = "ROLE_" + roleName;
+        }
+
         return new DefaultOAuth2User(
-                Collections.singletonList(new org.springframework.security.core.authority.SimpleGrantedAuthority(user.getRole().getName())),
+                Collections.singletonList(new org.springframework.security.core.authority.SimpleGrantedAuthority(roleName)),
                 attributes,
-                "email" // Key dùng làm principal name (tên định danh chính)
+                "email"
         );
     }
 }

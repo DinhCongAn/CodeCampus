@@ -4,9 +4,14 @@ import com.codecampus.service.CustomOAuth2UserService;
 import com.codecampus.service.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 
 @Configuration
 @EnableWebSecurity
@@ -20,53 +25,73 @@ public class SecurityConfig {
         this.customOAuth2UserService = customOAuth2UserService;
     }
 
+    // Handler xử lý lỗi tập trung
+    @Bean
+    public AuthenticationFailureHandler customFailureHandler() {
+        return (request, response, exception) -> {
+            String errorParam = "invalid";
+
+            // Trường hợp 1: Lỗi từ Login bằng Google
+            if (exception instanceof OAuth2AuthenticationException) {
+                OAuth2AuthenticationException oauthException = (OAuth2AuthenticationException) exception;
+                String errorCode = oauthException.getError().getErrorCode(); // Lấy "blocked" hoặc "pending" ở đây
+
+                if ("blocked".equals(errorCode)) {
+                    errorParam = "blocked";
+                } else if ("pending".equals(errorCode)) {
+                    errorParam = "pending";
+                }
+            }
+            // Trường hợp 2: Lỗi từ Login bằng Email/Mật khẩu (Form Login)
+            else if (exception instanceof DisabledException) {
+                errorParam = "pending";
+            }
+            else if (exception instanceof LockedException) {
+                errorParam = "blocked";
+            }
+            else if (exception instanceof BadCredentialsException) {
+                errorParam = "invalid";
+            }
+
+            // Log ra console để bạn kiểm tra khi test
+            System.out.println("Login failed with param: " + errorParam);
+
+            response.sendRedirect("/login?error=" + errorParam);
+        };
+    }
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // 1. [QUAN TRỌNG] Tắt CSRF cho Webhook
-                .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/payment/**", "/api/ai/**")
-                )
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/payment/**", "/api/ai/**"))
                 .authorizeHttpRequests(authz -> authz
-                        // Cho phép các trang public
                         .requestMatchers(
-                                "/home","/blog/**","courses/**", "/login", "/register", "/logout",
+                                "/home","/blog/**","/courses/**", "/login", "/register", "/logout",
                                 "/forgot-password", "/reset-password", "/verify",
-                                "/login/**", // Cho phép CSS/JS trong thư mục /login
-                                "/css/**", "/js/**", "/images/**",
-                                // ===== THAY ĐỔI =====
-                                "/register-process","/payment/**", // Chỉ cần mở cái này
-                                "/payment-info", "/api/ai/**" // mở quyền cho chatbot AI
+                                "/login/**", "/css/**", "/js/**", "/images/**",
+                                "/register-process","/payment/**", "/api/ai/**"
                         ).permitAll()
-                        // Tất cả các request khác phải được xác thực
                         .anyRequest().authenticated()
                 )
-                // Cấu hình Form Login (cho email/password)
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
-                        .usernameParameter("email") // Khớp với name="email" trong form
+                        .usernameParameter("email")
                         .defaultSuccessUrl("/home", true)
-                        .failureUrl("/login?error=true") // Báo lỗi qua param.error
+                        .failureHandler(customFailureHandler()) // Dùng handler chung
                         .permitAll()
                 )
-                // Cấu hình Google Login
                 .oauth2Login(oauth2 -> oauth2
                         .loginPage("/login")
-                        .userInfoEndpoint(userInfo -> userInfo
-                                .userService(customOAuth2UserService) // Dùng service tùy chỉnh
-                        )
+                        .userInfoEndpoint(ui -> ui.userService(customOAuth2UserService))
+                        .failureHandler(customFailureHandler()) // Đồng bộ cho Google
                         .defaultSuccessUrl("/home", true)
                 )
-                // Cấu hình Logout
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/login?logout=true")
-                        .invalidateHttpSession(true)
-                        .deleteCookies("JSESSIONID")
                         .permitAll()
                 )
-                // Cung cấp dịch vụ tìm user (cho form email/pass)
                 .userDetailsService(customUserDetailsService);
 
         return http.build();

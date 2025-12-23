@@ -44,4 +44,9 @@ public interface BlogRepository extends JpaRepository<Blog, Long> {
                            Pageable pageable);
 
     Page<Blog> findByTitleContainingIgnoreCaseAndStatus(String title, String status, Pageable pageable);
+
+    // Lấy top 2 bài viết cùng danh mục, trừ bài viết hiện tại, sắp xếp mới nhất
+    List<Blog> findTop2ByCategoryIdAndIdNotAndStatusOrderByCreatedAtDesc(
+            Integer categoryId, Integer currentId, String status
+    );
 }

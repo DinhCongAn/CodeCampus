@@ -3,92 +3,214 @@
 <head>
     <meta charset="UTF-8">
     <title>Xác nhận thanh toán | CodeCampus</title>
+
+    <!-- ================= FONTS & ICONS ================= -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- ================= ANIMATION (AOS) ================= -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <!-- ================= TAILWIND & CONFIG ================= -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            200: '#c7d2fe',
+                            300: '#a5b4fc',
+                            400: '#818cf8',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            800: '#3730a3',
+                            900: '#312e81',
+                        }
+                    },
+                    boxShadow: {
+                        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.05)',
+                        'glow': '0 0 40px -10px rgba(99, 102, 241, 0.5)',
+                    },
+                    animation: {
+                        'blob': 'blob 10s infinite',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* --- GLOBAL BACKGROUND --- */
+        body {
+            background-color: #f8fafc;
+            background-image:
+                    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
+                    radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.08) 0px, transparent 50%),
+                    radial-gradient(at 100% 100%, rgba(56, 189, 248, 0.1) 0px, transparent 50%),
+                    radial-gradient(at 0% 100%, rgba(168, 85, 247, 0.08) 0px, transparent 50%);
+            background-attachment: fixed;
+            background-size: 100% 100%;
+            color: #1e293b;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+            transition: all 0.3s ease;
+        }
+    </style>
 </head>
-<body class="bg-gray-100 font-sans">
+<body class="antialiased font-sans selection:bg-brand-500 selection:text-white flex flex-col min-h-screen">
 
 <!-- Header -->
-<div th:replace="~{fragments/header :: header}"></div>
+<div class="sticky top-0 z-50">
+    <div th:replace="~{fragments/header :: header}"></div>
+</div>
 
-<main class="py-12">
-    <div class="max-w-3xl mx-auto">
+<main class="flex-grow relative py-12 px-4 sm:px-6">
+    <!-- Decor Background -->
+    <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+        <div class="absolute top-20 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-brand-400/15 rounded-full blur-[120px] mix-blend-multiply animate-blob"></div>
+    </div>
+
+    <div class="max-w-4xl mx-auto">
+
+        <!-- Breadcrumb / Back -->
+        <div class="mb-8 text-center" data-aos="fade-down">
+            <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 mb-2 tracking-tight">Xác nhận đơn hàng</h1>
+            <p class="text-slate-500 font-medium">Kiểm tra thông tin kỹ lưỡng trước khi thanh toán.</p>
+        </div>
 
         <!-- Checkout Card -->
-        <div class="bg-white shadow-lg rounded-xl overflow-hidden">
-            <!-- Header -->
-            <div class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-center py-6">
-                <h2 class="text-2xl font-semibold flex items-center justify-center gap-2"><i class="fas fa-shopping-cart"></i> Xác nhận đơn hàng</h2>
-                <p class="mt-1 text-sm opacity-80">Vui lòng kiểm tra thông tin trước khi thanh toán</p>
-            </div>
+        <div class="glass-card rounded-[2.5rem] p-8 md:p-10 relative overflow-hidden shadow-2xl" data-aos="zoom-in-up">
 
-            <div class="p-6 space-y-6">
-                <!-- Course Info -->
-                <div class="text-center space-y-2">
-                    <img th:src="${course.thumbnailUrl != null ? course.thumbnailUrl : 'https://via.placeholder.com/600x300'}"
-                         class="w-full h-56 object-cover rounded-lg" alt="Course Thumbnail">
-                    <h3 class="text-xl font-bold text-gray-800" th:text="${course.name}"></h3>
-                    <p class="text-gray-500 text-sm" th:text="${course.description}"></p>
-                </div>
+            <!-- Grid Layout -->
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-10">
 
-                <hr class="border-gray-200">
-
-                <!-- Package Info -->
-                <div class="flex justify-between text-gray-600">
-                    <span>Gói đăng ký:</span>
-                    <span class="font-semibold" th:text="${pricePackage.name}"></span>
-                </div>
-                <div class="flex justify-between text-gray-600">
-                    <span>Thời hạn:</span>
-                    <span th:text="${pricePackage.durationMonths + ' tháng'}"></span>
-                </div>
-                <div class="flex justify-between text-gray-400 line-through">
-                    <span>Giá gốc:</span>
-                    <span th:text="${#numbers.formatDecimal(pricePackage.listPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
-                </div>
-
-                <!-- Total Payment -->
-                <div class="bg-green-50 border border-green-200 rounded-lg p-4 flex justify-between items-center">
-                    <span class="font-semibold">Tổng thanh toán:</span>
-                    <span class="text-green-600 font-bold text-lg"
-                          th:text="${#numbers.formatDecimal(pricePackage.salePrice != null ? pricePackage.salePrice : pricePackage.listPrice, 0, 'COMMA', 0, 'POINT') + ' VNĐ'}"></span>
-                </div>
-
-                <!-- Payment Form -->
-                <form th:action="@{/registration/confirm-payment}" method="post" th:object="${registrationRequest}" class="space-y-4">
-
-                    <input type="hidden" th:field="*{courseId}" />
-                    <input type="hidden" th:field="*{packageId}" />
-
-                    <div th:if="${pricePackage.salePrice > 0}">
-                        <button type="submit" class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold py-3 rounded-full flex items-center justify-center gap-2 hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl">
-                            <i class="fas fa-qrcode"></i> Thanh toán qua PayOS
-                        </button>
-                        <p class="text-center text-gray-400 text-xs mt-2">
-                            <i class="fas fa-lock mr-1"></i> Giao dịch được bảo mật và xử lý tự động.
-                        </p>
+                <!-- Left: Course Info (2 cols) -->
+                <div class="md:col-span-2 space-y-6">
+                    <div class="relative group rounded-2xl overflow-hidden shadow-lg border border-white/50">
+                        <img th:src="${course.thumbnailUrl != null ? course.thumbnailUrl : 'https://via.placeholder.com/600x300'}"
+                             class="w-full aspect-[4/3] object-cover transition-transform duration-700 group-hover:scale-110" alt="Course Thumbnail">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                        <span class="absolute bottom-3 left-3 bg-white/90 backdrop-blur text-xs font-bold px-2 py-1 rounded text-slate-800 uppercase tracking-wider">
+                            Course
+                        </span>
                     </div>
 
-                    <div th:if="${pricePackage.salePrice == 0 || pricePackage.salePrice == null}">
-                        <button type="submit" class="w-full bg-emerald-600 text-white font-semibold py-3 rounded-full flex items-center justify-center gap-2 hover:bg-emerald-700 transition-all shadow-lg hover:shadow-xl">
-                            <i class="fas fa-door-open"></i> Tham gia ngay (Miễn phí)
-                        </button>
-                        <p class="text-center text-gray-400 text-xs mt-2">
-                            <i class="fas fa-check-circle mr-1"></i> Bạn sẽ được cấp quyền truy cập ngay lập tức.
-                        </p>
+                    <div>
+                        <h3 class="text-xl font-extrabold text-slate-900 leading-tight mb-2" th:text="${course.name}">Tên khóa học</h3>
+                        <p class="text-sm text-slate-500 line-clamp-3 leading-relaxed" th:text="${course.description}">Mô tả...</p>
+                    </div>
+                </div>
+
+                <!-- Divider (Mobile only) -->
+                <div class="md:hidden border-t border-slate-200"></div>
+
+                <!-- Right: Payment Details (3 cols) -->
+                <div class="md:col-span-3 flex flex-col justify-center">
+
+                    <!-- Invoice Box -->
+                    <div class="bg-white/50 rounded-2xl border border-white p-6 shadow-sm mb-8 space-y-4">
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-slate-500 font-medium">Gói đăng ký</span>
+                            <span class="font-bold text-slate-800 bg-slate-100 px-3 py-1 rounded-lg" th:text="${pricePackage.name}">Gói Pro</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-slate-500 font-medium">Thời hạn</span>
+                            <span class="font-bold text-slate-800" th:text="${pricePackage.durationMonths + ' tháng'}">12 tháng</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm" th:if="${pricePackage.salePrice != null}">
+                            <span class="text-slate-500 font-medium">Giá gốc</span>
+                            <span class="text-slate-400 line-through" th:text="${#numbers.formatDecimal(pricePackage.listPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
+                        </div>
+
+                        <div class="border-t border-dashed border-slate-300 my-4"></div>
+
+                        <div class="flex justify-between items-end">
+                            <span class="text-slate-600 font-bold">Tổng thanh toán</span>
+                            <span class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-purple-600"
+                                  th:text="${#numbers.formatDecimal(pricePackage.salePrice != null ? pricePackage.salePrice : pricePackage.listPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
+                        </div>
                     </div>
 
-                    <a th:href="@{/courses/{id}(id=${course.id})}" class="block text-center text-gray-600 hover:text-gray-800 text-sm mt-4">
-                        <i class="fas fa-arrow-left mr-1"></i> Quay lại
-                    </a>
-                </form>
+                    <!-- Actions -->
+                    <form th:action="@{/registration/confirm-payment}" method="post" th:object="${registrationRequest}" class="space-y-4">
+                        <input type="hidden" th:field="*{courseId}" />
+                        <input type="hidden" th:field="*{packageId}" />
+
+                        <!-- Paid -->
+                        <div th:if="${pricePackage.salePrice > 0}">
+                            <button type="submit" class="group relative w-full py-4 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 text-white font-bold text-lg shadow-xl shadow-brand-500/30 hover:shadow-brand-500/50 hover:-translate-y-1 transition-all overflow-hidden">
+                                <span class="relative z-10 flex items-center justify-center gap-2">
+                                    <i class="fas fa-qrcode"></i> Thanh toán qua PayOS
+                                </span>
+                                <!-- Shine -->
+                                <div class="absolute top-0 -left-full w-1/2 h-full bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12 group-hover:animate-[shimmer_1s_infinite]"></div>
+                            </button>
+                            <p class="text-center text-xs text-slate-400 mt-3 flex items-center justify-center gap-1">
+                                <i class="fas fa-shield-halved"></i> Giao dịch được mã hóa an toàn 100%
+                            </p>
+                        </div>
+
+                        <!-- Free -->
+                        <div th:if="${pricePackage.salePrice == 0 || pricePackage.salePrice == null}">
+                            <button type="submit" class="group w-full py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold text-lg shadow-xl shadow-emerald-500/30 hover:-translate-y-1 transition-all">
+                                <i class="fas fa-rocket mr-2"></i> Tham gia ngay (Miễn phí)
+                            </button>
+                            <p class="text-center text-xs text-slate-400 mt-3">
+                                Kích hoạt quyền truy cập ngay lập tức.
+                            </p>
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <a th:href="@{/courses/{id}(id=${course.id})}" class="text-sm font-bold text-slate-400 hover:text-brand-600 transition-colors inline-flex items-center gap-1">
+                                <i class="fas fa-arrow-left text-xs"></i> Chọn gói khác
+                            </a>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
+
+        <!-- Trust Badges -->
+        <div class="mt-8 flex justify-center gap-6 opacity-40 grayscale hover:grayscale-0 transition-all duration-500" data-aos="fade-up" data-aos-delay="100">
+            <i class="fab fa-cc-visa text-3xl text-slate-600"></i>
+            <i class="fab fa-cc-mastercard text-3xl text-slate-600"></i>
+            <i class="fab fa-cc-paypal text-3xl text-slate-600"></i>
+            <i class="fas fa-lock text-3xl text-slate-600"></i>
+        </div>
+
     </div>
 </main>
 
 <!-- Footer -->
 <div th:replace="~{fragments/footer :: footer}"></div>
+
+<!-- Script -->
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        AOS.init({ once: true, offset: 50, duration: 800 });
+    });
+</script>
 
 </body>
 </html>

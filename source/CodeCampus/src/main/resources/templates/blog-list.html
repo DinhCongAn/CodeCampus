@@ -4,93 +4,297 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Danh sách Blog - CodeCampus</title>
+    <title>Blog & Tin tức - CodeCampus</title>
+
+    <!-- ================= FONTS & ICONS (ĐỒNG BỘ) ================= -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <!-- ================= ANIMATION (AOS) ================= -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="icon" th:href="@{/images/logo.png}" />
+    <!-- Giữ lại main.css nếu cần -->
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+
+    <!-- ================= CONFIG (ĐỒNG BỘ) ================= -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            200: '#c7d2fe',
+                            300: '#a5b4fc',
+                            400: '#818cf8',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            800: '#3730a3',
+                            900: '#312e81',
+                        }
+                    },
+                    boxShadow: {
+                        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.05)',
+                        'glow': '0 0 40px -10px rgba(99, 102, 241, 0.5)',
+                        'card-hover': '0 20px 40px -5px rgba(99, 102, 241, 0.15), 0 10px 20px -5px rgba(0, 0, 0, 0.04)',
+                    },
+                    animation: {
+                        'blob': 'blob 7s infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* --- GLOBAL BACKGROUND --- */
+        body {
+            background-color: #f8fafc;
+            background-image:
+                    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
+                    radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.08) 0px, transparent 50%),
+                    radial-gradient(at 100% 100%, rgba(56, 189, 248, 0.1) 0px, transparent 50%),
+                    radial-gradient(at 0% 100%, rgba(168, 85, 247, 0.08) 0px, transparent 50%);
+            background-attachment: fixed;
+            background-size: 100% 100%;
+            color: #1e293b;
+        }
+
+        /* --- GLASS CARD --- */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.95);
+            transform: translateY(-5px);
+            border-color: rgba(99, 102, 241, 0.3);
+            box-shadow: var(--tw-shadow-card-hover);
+        }
+
+        /* --- UTILS --- */
+        .img-zoom-container { overflow: hidden; }
+        .img-zoom-container img { transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+        .group:hover .img-zoom-container img { transform: scale(1.1); }
+        .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .line-clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    </style>
 </head>
 
-<body class="bg-gray-50 text-gray-800 font-sans">
+<body class="antialiased font-sans selection:bg-brand-500 selection:text-white">
 
-<div th:replace="~{fragments/header :: header}"></div>
+<!-- Header Sticky -->
+<div class="sticky top-0 z-50">
+    <div th:replace="~{fragments/header :: header}"></div>
+</div>
 
-<div class="max-w-7xl mx-auto px-6 py-12 md:flex">
+<div class="max-w-[1500px] mx-auto px-4 sm:px-6 py-12 md:flex gap-10 relative">
 
-    <main class="w-full md:w-3/4 lg:w-2/3 md:pr-8">
-        <h1 class="text-4xl font-bold text-gray-900 mb-10">Tất cả bài viết</h1>
+    <!-- ================= DECOR BACKGROUND ELEMENTS ================= -->
+    <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+        <div class="absolute top-20 left-10 w-[600px] h-[600px] bg-orange-300/15 rounded-full blur-[120px] mix-blend-multiply animate-blob opacity-60"></div>
+        <div class="absolute bottom-20 right-10 w-[600px] h-[600px] bg-brand-400/15 rounded-full blur-[120px] mix-blend-multiply animate-blob animation-delay-2000 opacity-60"></div>
+    </div>
 
-        <div th:if="${keyword}" class="mb-6">
-            <h2 class="text-xl">Kết quả tìm kiếm cho:
-                <span class="font-semibold" th:text="${keyword}"></span>
-            </h2>
+    <!-- MAIN CONTENT (Left) -->
+    <main class="w-full md:w-3/4 lg:w-3/4 flex flex-col min-h-screen">
+
+        <!-- Page Title & Controls -->
+        <div class="mb-10 flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-200/60 pb-6"
+             data-aos="fade-down">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="w-1.5 h-6 bg-gradient-to-b from-orange-400 to-red-500 rounded-full shadow-lg"></span>
+                    <span class="text-orange-600 font-bold tracking-widest uppercase text-xs">Knowledge Base</span>
+                </div>
+                <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
+                    Chia sẻ <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-600">Kiến thức</span>
+                </h1>
+                <p class="text-slate-500 mt-2 text-sm font-medium">Cập nhật công nghệ mới, kinh nghiệm lập trình và câu chuyện nghề nghiệp.</p>
+            </div>
         </div>
 
-        <div th:if="${param.error == 'notFound'}" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
-            <span class="block sm:inline">Không tìm thấy bài viết bạn yêu cầu.</span>
+        <!-- Search Result Alert -->
+        <div th:if="${keyword}" class="glass-card bg-indigo-50/50 border border-indigo-100 text-indigo-800 p-4 rounded-2xl mb-8 flex items-center justify-between shadow-sm" data-aos="fade-up">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-magnifying-glass text-indigo-500"></i>
+                </div>
+                <div>
+                    <span class="text-xs text-indigo-400 font-bold uppercase tracking-wider block">Kết quả tìm kiếm</span>
+                    <span class="font-bold text-lg">"[[${keyword}]]"</span>
+                </div>
+            </div>
+            <a th:href="@{/blog}" class="w-8 h-8 rounded-full bg-white flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors shadow-sm">
+                <i class="fa-solid fa-xmark"></i>
+            </a>
         </div>
 
+        <div th:if="${param.error == 'notFound'}" class="glass-card bg-red-50/50 border border-red-200 text-red-700 p-4 rounded-2xl mb-8 flex items-center shadow-sm" role="alert">
+            <i class="fa-solid fa-circle-exclamation mr-3 text-lg"></i>
+            <span class="font-medium">Không tìm thấy bài viết bạn yêu cầu.</span>
+        </div>
+
+        <!-- Blog List -->
         <div class="space-y-8">
 
-            <div th:each="blog : ${blogPage.content}"
-                 class="bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col md:flex-row">
+            <!-- Blog Card Loop -->
+            <div th:each="blog, iterStat : ${blogPage.content}"
+                 class="glass-card group rounded-[2rem] p-4 flex flex-col md:flex-row gap-6 hover:border-brand-200 transition-all duration-300"
+                 data-aos="fade-up"
+                 th:data-aos-delay="${iterStat.index * 100}">
 
-                <a th:href="@{'/blog/' + ${blog.id}}" class="md:w-1/3">
-                    <img th:src="@{${blog.thumbnailUrl}}" alt="Thumbnail"
-                         class="w-full h-56 md:h-full object-cover" />
+                <!-- Image Section -->
+                <a th:href="@{'/blog/' + ${blog.id}}" class="md:w-5/12 relative aspect-[16/10] md:aspect-[4/3] rounded-2xl overflow-hidden img-zoom-container shadow-sm shrink-0">
+                    <img th:src="@{${blog.thumbnailUrl}}" alt="Thumbnail" class="w-full h-full object-cover" />
+
+                    <!-- Date Overlay -->
+                    <div class="absolute top-3 left-3 bg-white/90 backdrop-blur text-slate-800 text-xs font-bold px-3 py-1.5 rounded-lg shadow-md border border-white/50 flex flex-col items-center">
+                        <span class="text-xl leading-none" th:text="${#temporals.format(blog.publishedAt ?: blog.updatedAt, 'dd')}">12</span>
+                        <span class="text-[10px] uppercase text-slate-500" th:text="${#temporals.format(blog.publishedAt ?: blog.updatedAt, 'MMM')}">DEC</span>
+                    </div>
+
+                    <!-- Read More Overlay -->
+                    <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                         <span class="bg-white/20 backdrop-blur-md border border-white/60 text-white rounded-full px-5 py-2 text-sm font-bold transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                             Đọc tiếp <i class="fa-solid fa-arrow-right ml-1"></i>
+                         </span>
+                    </div>
                 </a>
 
-                <div class="p-6 md:w-2/3">
-                    <span class="text-sm font-semibold text-blue-600" th:text="${blog.category?.name}">Danh mục</span>
+                <!-- Content Section -->
+                <div class="md:w-7/12 flex flex-col py-2 pr-2">
+                    <div class="mb-3">
+                        <span class="inline-flex items-center gap-1.5 text-[11px] font-bold text-brand-600 bg-brand-50 px-2.5 py-1 rounded-md border border-brand-100 uppercase tracking-wide">
+                            <i class="fa-solid fa-hashtag text-[10px]"></i>
+                            <span th:text="${blog.category?.name}">Technology</span>
+                        </span>
+                    </div>
 
                     <a th:href="@{'/blog/' + ${blog.id}}">
-                        <h2 class="text-2xl font-bold text-gray-900 my-2" th:text="${blog.title}">Tiêu đề bài viết</h2>
+                        <h2 class="text-2xl font-bold text-slate-800 group-hover:text-brand-600 transition-colors mb-3 line-clamp-2 leading-tight"
+                            th:text="${blog.title}">Tiêu đề bài viết</h2>
                     </a>
 
-                    <p class="text-gray-600 mb-4"
+                    <p class="text-slate-500 mb-6 line-clamp-3 leading-relaxed text-sm flex-1"
                        th:text="${T(com.codecampus.util.BlogUtil).getBriefInfo(blog.content)}">
                         Đây là thông tin tóm tắt...
                     </p>
 
-                    <div class="flex items-center text-sm text-gray-500 mt-4">
-                        <img th:src="@{${blog.author?.avatarUrl ?: '/images/default-avatar.png'}}"
-                             class="w-8 h-8 rounded-full object-cover mr-3" />
-                        <div>
-                            <span class="font-medium text-gray-700" th:text="${blog.author?.fullName}">Tên Tác giả</span>
-                            <p>Cập nhật: <span th:text="${#temporals.format(blog.updatedAt, 'dd-MM-yyyy')}"></span></p>
+                    <!-- Author & Meta -->
+                    <div class="flex items-center justify-between border-t border-dashed border-slate-200 pt-4 mt-auto">
+                        <div class="flex items-center gap-3">
+                            <img th:src="@{${blog.author?.avatarUrl ?: '/images/default-avatar.png'}}"
+                                 class="w-9 h-9 rounded-full object-cover border-2 border-white shadow-sm" alt="Author" />
+                            <div class="flex flex-col">
+                                <span class="text-xs font-bold text-slate-700" th:text="${blog.author?.fullName}">Tên Tác giả</span>
+                                <span class="text-[10px] text-slate-400 font-medium">Author</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-4 text-xs text-slate-400 font-medium">
+                            <span class="flex items-center gap-1"><i class="fa-regular fa-eye"></i> 1.2k</span>
+                            <span class="flex items-center gap-1"><i class="fa-regular fa-comment"></i> 4</span>
                         </div>
                     </div>
                 </div>
             </div>
-            <div th:if="${blogPage.empty}" class="bg-white p-6 rounded-2xl shadow-lg text-center">
-                <h2 class="text-xl font-semibold text-gray-700">Không tìm thấy bài viết nào</h2>
-                <p class="text-gray-500">Vui lòng thử lại với từ khóa hoặc danh mục khác.</p>
+
+            <!-- Empty State -->
+            <div th:if="${blogPage.empty}" class="glass-card p-12 rounded-[2rem] text-center" data-aos="zoom-in">
+                <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-300 shadow-inner">
+                    <i class="fa-regular fa-newspaper text-4xl"></i>
+                </div>
+                <h2 class="text-xl font-bold text-slate-700 mb-2">Chưa có bài viết nào</h2>
+                <p class="text-slate-500 mb-6">Chúng tôi đang cập nhật nội dung. Vui lòng quay lại sau.</p>
+                <a href="/blog" class="inline-flex items-center gap-2 px-6 py-2.5 bg-slate-800 text-white font-bold rounded-xl hover:bg-slate-700 transition-all shadow-lg">
+                    <i class="fa-solid fa-rotate-left"></i> Tải lại trang
+                </a>
             </div>
 
         </div>
-        <div class="flex justify-center items-center space-x-4 mt-12"
-             th:if="${blogPage.totalPages > 1}">
+
+        <!-- Pagination -->
+        <div class="flex justify-center items-center space-x-3 mt-16"
+             th:if="${blogPage.totalPages > 1}" data-aos="fade-up">
 
             <a th:if="${!blogPage.isFirst()}"
                th:href="@{/blog(page=${blogPage.number - 1}, size=${blogPage.size}, keyword=${keyword}, categoryId=${selectedCategoryId})}"
-               class="px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-gray-700 hover:bg-gray-50">
-                &larr; Trang trước
+               class="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-xl shadow-sm text-slate-600 hover:bg-brand-50 hover:text-brand-600 hover:border-brand-200 transition-all">
+                <i class="fa-solid fa-chevron-left text-xs"></i>
             </a>
-            <span class="text-gray-700" th:text="|Trang ${blogPage.number + 1} / ${blogPage.totalPages}|"></span>
+
+            <span class="px-5 py-2 bg-slate-900 text-white rounded-xl shadow-lg font-bold text-sm font-mono tracking-widest border border-slate-700"
+                  th:text="|${blogPage.number + 1}/${blogPage.totalPages}|"></span>
+
             <a th:if="${!blogPage.isLast()}"
                th:href="@{/blog(page=${blogPage.number + 1}, size=${blogPage.size}, keyword=${keyword}, categoryId=${selectedCategoryId})}"
-               class="px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-gray-700 hover:bg-gray-50">
-                Trang sau &rarr;
+               class="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-xl shadow-sm text-slate-600 hover:bg-brand-50 hover:text-brand-600 hover:border-brand-200 transition-all">
+                <i class="fa-solid fa-chevron-right text-xs"></i>
             </a>
         </div>
     </main>
 
-    <div th:replace="~{fragments/sidebar :: blog-sidebar}"></div>
+    <!-- Sidebar Wrapper -->
+    <!-- XÓA h-fit để sticky hoạt động -->
+    <aside class="hidden md:block w-full md:w-1/4 lg:w-1/4 space-y-8">
+        <div class="sticky top-28 space-y-8" data-aos="fade-left" data-aos-delay="100">
+
+            <!-- Fragment Sidebar -->
+            <div th:replace="~{fragments/sidebar :: blog-sidebar}"></div>
+
+            <!-- Banner Newsletter Mini -->
+            <div class="glass-card rounded-2xl p-6 text-center relative overflow-hidden group">
+                <div class="absolute inset-0 bg-gradient-to-br from-orange-500 to-rose-500 opacity-90 transition-opacity group-hover:opacity-100"></div>
+                <div class="relative z-10 text-white">
+                    <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3 backdrop-blur-md">
+                        <i class="fa-regular fa-paper-plane text-xl"></i>
+                    </div>
+                    <h4 class="font-bold text-lg mb-1">Newsletter</h4>
+                    <p class="text-white/80 text-xs mb-4">Nhận bài viết hay nhất hàng tuần qua email.</p>
+                    <button class="w-full bg-white text-orange-600 text-xs font-bold py-2.5 rounded-lg shadow-lg hover:scale-105 transition-transform">Đăng ký ngay</button>
+                </div>
+            </div>
+
+        </div>
+    </aside>
 
 </div>
 
 <div th:replace="~{fragments/footer :: footer}"></div>
 
-<script th:src="@{/js/dropdown.js}" sec:authorize="isAuthenticated()"></script>
+<!-- ================= SCRIPTS ================= -->
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        AOS.init({ once: true, offset: 50, duration: 800, easing: 'ease-out-cubic' });
+    });
+</script>
 
 </body>
 </html>

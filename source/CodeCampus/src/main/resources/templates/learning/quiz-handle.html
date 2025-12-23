@@ -1,52 +1,112 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:x-transition="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- CSRF Token -->
     <meta name="_csrf" th:content="${_csrf.token}" th:if="${_csrf}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}" th:if="${_csrf}"/>
 
-    <title>Làm bài: <span th:text="${attempt.quiz.name}"></span></title>
+    <title>Làm bài: [[${attempt.quiz.name}]] | CodeCampus</title>
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- ================= FONTS & ICONS ================= -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- ================= LIBS ================= -->
     <script src="//unpkg.com/alpinejs" defer></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
 
+    <!-- ================= CONFIG ================= -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eef2ff', 100: '#e0e7ff', 200: '#c7d2fe', 300: '#a5b4fc',
+                            400: '#818cf8', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca',
+                            800: '#3730a3', 900: '#312e81',
+                        }
+                    },
+                    boxShadow: {
+                        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.05)',
+                        'glow': '0 0 40px -10px rgba(99, 102, 241, 0.5)',
+                        'floating': '0 20px 40px -10px rgba(0,0,0,0.1)',
+                    },
+                    animation: {
+                        'blob': 'blob 10s infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                        'fade-in-up': 'fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        /* --- GLOBAL STYLE --- */
+        body {
+            background-color: #f8fafc;
+            background-image:
+                    radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.08), transparent 25%),
+                    radial-gradient(circle at 85% 30%, rgba(236, 72, 153, 0.08), transparent 25%);
+            color: #1e293b;
+            -webkit-tap-highlight-color: transparent;
+        }
+
         [x-cloak] { display: none !important; }
 
-        /* Custom Scrollbar cho bảng câu hỏi */
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-        /* Trạng thái câu đã làm */
-        .question-palette-btn.answered {
-            background-color: #2563EB; /* blue-600 */
-            color: white;
-            border-color: #2563EB;
+        .option-card-inner {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .option-card:active .option-card-inner {
+            transform: scale(0.98);
         }
 
-        /* Hiệu ứng khi chọn đáp án */
-        .quiz-option input:checked + div {
-            border-color: #2563EB;
-            background-color: #EFF6FF; /* blue-50 */
-            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.1), 0 2px 4px -1px rgba(37, 99, 235, 0.06);
-        }
-        .quiz-option input:checked + div .radio-indicator {
-            border-color: #2563EB;
-            border-width: 6px;
-        }
+        .question-transition-enter { animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 flex flex-col min-h-screen">
+<body class="antialiased font-sans flex flex-col min-h-screen relative overflow-x-hidden">
 
-<div th:replace="~{fragments/header :: header}"></div>
+<!-- DECORATIVE BACKGROUND BLOBS -->
+<div class="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+    <div class="absolute top-0 left-1/4 w-96 h-96 bg-brand-300/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob"></div>
+    <div class="absolute top-0 right-1/4 w-96 h-96 bg-purple-300/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob" style="animation-delay: 2s"></div>
+    <div class="absolute -bottom-32 left-1/3 w-96 h-96 bg-pink-300/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob" style="animation-delay: 4s"></div>
+</div>
 
-<div class="flex-grow py-8 px-4 sm:px-6 lg:px-8"
+<!-- HEADER (Fixed) -->
+<div class="sticky top-0 z-50 shrink-0 bg-white/80 backdrop-blur-md border-b border-slate-200/60 supports-[backdrop-filter]:bg-white/60">
+    <div th:replace="~{fragments/header :: header}"></div>
+</div>
+
+<div class="flex-grow flex flex-col"
      x-data="quizApp()"
      th:attr="data-attempt-id=${attempt.id},
               data-start-time=${attempt.startTime},
@@ -55,128 +115,195 @@
               data-saved-answers=${savedAnswersJson}"
      x-init="init()">
 
-    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <!-- MOBILE STICKY STATS BAR -->
+    <div class="sticky top-[60px] z-40 lg:hidden bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm px-4 py-3 flex items-center justify-between transition-transform duration-300"
+         :class="{'translate-y-0': showMobileHeader, '-translate-y-full': !showMobileHeader}">
+        <button @click="showMobilePalette = true"
+                class="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg text-slate-700 text-xs font-bold transition-colors">
+            <i class="fa-solid fa-table-cells"></i>
+            <span><span x-text="currentQuestionIndex + 1"></span>/<span x-text="questions.length"></span></span>
+            <div class="w-1.5 h-1.5 rounded-full"
+                 :class="selectedAnswers[questions[currentQuestionIndex].id] !== undefined ? 'bg-green-500' : 'bg-slate-400'"></div>
+        </button>
 
-        <main class="lg:col-span-8 xl:col-span-9 space-y-6">
+        <div class="flex items-center gap-2 font-mono font-bold text-slate-700" :class="{'text-red-500 animate-pulse': timeLeftSeconds < 300}">
+            <i class="fa-regular fa-clock"></i>
+            <span x-text="timerDisplay">00:00</span>
+        </div>
+    </div>
 
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-                <div>
-                    <h2 class="text-lg font-bold text-slate-700">
-                        Câu hỏi <span class="text-blue-600 text-2xl ml-1" x-text="currentQuestionIndex + 1"></span>
-                        <span class="text-slate-400 text-lg" x-text="` / ${questions.length}`"></span>
-                    </h2>
-                    <div class="w-full bg-gray-200 rounded-full h-2.5 mt-2 sm:w-64">
-                        <div class="bg-blue-600 h-2.5 rounded-full transition-all duration-500"
-                             :style="`width: ${((currentQuestionIndex + 1) / questions.length) * 100}%`"></div>
-                    </div>
-                </div>
+    <!-- MAIN CONTAINER -->
+    <div class="w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start relative z-10">
 
-                <button @click="getAiHint()"
-                        class="group flex items-center px-4 py-2 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-100 hover:shadow-sm transition-all"
-                        :disabled="isHintLoading">
-                    <span class="material-icons text-xl mr-2 group-hover:text-amber-600"
-                          :class="{'animate-spin': isHintLoading}">
-                        lightbulb
-                    </span>
-                    <span class="font-semibold" x-text="isHintLoading ? 'Đang suy nghĩ...' : 'Bật kênh cố vấn AI'"></span>
-                </button>
-            </div>
+        <!-- LEFT COLUMN: QUESTION CONTENT (Scrollable naturally) -->
+        <main class="lg:col-span-8 xl:col-span-9 flex flex-col gap-6">
 
-            <div class="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden">
-                <div class="p-6 sm:p-8 border-b border-slate-100">
-                    <div class="prose prose-slate max-w-none text-lg text-slate-800 leading-relaxed"
-                         x-html="escapeHtml(currentQuestion.content)">
-                    </div>
-                </div>
+            <!-- (ĐÃ XÓA HEADER TIẾN ĐỘ CŨ Ở ĐÂY) -->
 
-                <div class="p-6 sm:p-8 bg-slate-50/50 space-y-4">
-                    <template x-for="option in currentQuestion.answerOptions" :key="option.id">
-                        <label class="quiz-option block cursor-pointer group relative">
-                            <input type="radio"
-                                   :name="`q_${currentQuestion.id}`"
-                                   :value="option.id"
-                                   @change="saveAnswer(currentQuestion.id, option.id)"
-                                   x-model.number="selectedAnswers[currentQuestion.id]"
-                                   class="peer sr-only"> <div class="p-5 rounded-lg border border-slate-200 bg-white transition-all hover:border-blue-300 hover:shadow-md flex items-start">
-                            <div class="radio-indicator flex-shrink-0 h-6 w-6 rounded-full border-2 border-slate-300 mr-4 mt-0.5 transition-all bg-white"></div>
+            <!-- QUESTION CARD -->
+            <div class="relative" x-data="{ changing: false }">
+                <div class="bg-white rounded-[2rem] shadow-xl shadow-slate-200/40 border border-white relative overflow-hidden flex flex-col min-h-[400px]"
+                     :class="{'animate-fade-in-up': !changing, 'opacity-50 blur-[1px] scale-[0.99]': changing}">
 
-                            <div class="text-slate-700 text-lg select-none" x-html="escapeHtml(option.content)"></div>
+                    <!-- Decor Line -->
+                    <div class="h-1.5 w-full transition-colors duration-500"
+                         :class="selectedAnswers[currentQuestion.id] !== undefined ? 'bg-gradient-to-r from-emerald-400 to-teal-500' : 'bg-gradient-to-r from-brand-400 via-purple-400 to-pink-400'"></div>
+
+                    <!-- Question Content Area -->
+                    <div class="p-6 md:p-10 border-b border-slate-100 bg-slate-50/30 flex-grow relative">
+
+                        <!-- Header bên trong câu hỏi: Số thứ tự + Nút AI -->
+                        <div class="flex justify-between items-start mb-6">
+                            <!-- Badge Trạng thái -->
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-white border border-slate-200 text-brand-600 flex items-center justify-center font-bold text-lg shadow-sm">
+                                    <span x-text="currentQuestionIndex + 1"></span>
+                                </div>
+                                <div class="flex flex-col">
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Câu hỏi</span>
+                                    <span x-show="selectedAnswers[currentQuestion.id] !== undefined"
+                                          class="text-xs font-bold text-emerald-600 flex items-center gap-1">
+                                        <i class="fa-solid fa-check-circle"></i> Đã trả lời
+                                    </span>
+                                    <span x-show="selectedAnswers[currentQuestion.id] === undefined"
+                                          class="text-xs font-bold text-slate-500 flex items-center gap-1">
+                                        <i class="fa-regular fa-circle"></i> Chưa làm
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Nút AI (Được dời vào đây) -->
+                            <button @click="getAiHint()"
+                                    :disabled="isHintLoading"
+                                    class="group flex items-center gap-2 px-3 py-1.5 bg-white border border-amber-200 text-amber-700 rounded-lg hover:bg-amber-50 hover:shadow-sm transition-all text-xs font-bold disabled:opacity-50">
+                                <i class="fa-solid fa-lightbulb text-amber-500 text-sm transition-transform group-hover:scale-110" :class="{'animate-pulse': isHintLoading}"></i>
+                                <span x-text="isHintLoading ? 'Đang nghĩ...' : 'Gợi ý'"></span>
+                            </button>
                         </div>
-                        </label>
-                    </template>
-                </div>
 
-                <div class="bg-white px-6 py-4 border-t border-slate-200 flex justify-between items-center">
-                    <button @click="prevQuestion()"
-                            :disabled="currentQuestionIndex === 0"
-                            class="flex items-center px-5 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-slate-900 disabled:opacity-40 disabled:hover:bg-transparent transition-colors font-medium">
-                        <span class="material-icons mr-2">arrow_back</span>
-                        Trước
-                    </button>
+                        <!-- Nội dung câu hỏi -->
+                        <div class="prose prose-lg prose-slate max-w-none font-medium text-slate-800 leading-relaxed"
+                             x-html="escapeHtml(currentQuestion.content)">
+                        </div>
+                    </div>
 
-                    <button @click="nextQuestion()"
-                            x-show="currentQuestionIndex < questions.length - 1"
-                            class="flex items-center px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 hover:shadow-lg hover:-translate-y-0.5 transition-all font-medium shadow-md">
-                        Sau
-                        <span class="material-icons ml-2">arrow_forward</span>
-                    </button>
+                    <!-- Options Area -->
+                    <div class="p-6 md:p-10 bg-white space-y-4">
+                        <template x-for="option in currentQuestion.answerOptions" :key="option.id">
+                            <label class="option-card block cursor-pointer group relative select-none">
+                                <input type="radio"
+                                       :name="`q_${currentQuestion.id}`"
+                                       :value="option.id"
+                                       @change="saveAnswer(currentQuestion.id, option.id)"
+                                       x-model.number="selectedAnswers[currentQuestion.id]"
+                                       class="peer sr-only">
+                                <div class="option-card-inner p-5 rounded-2xl border-2 border-slate-100 bg-white flex items-start gap-4
+                                          hover:border-brand-200 hover:bg-slate-50
+                                          peer-checked:border-brand-600 peer-checked:bg-brand-50/50 peer-checked:shadow-lg peer-checked:shadow-brand-500/10
+                                          peer-focus:ring-2 peer-focus:ring-brand-500/20">
+                                    <div class="shrink-0 mt-1 relative w-6 h-6">
+                                        <div class="absolute inset-0 rounded-full border-2 border-slate-300 group-hover:border-brand-300 transition-colors peer-checked:border-brand-600"></div>
+                                        <div class="absolute inset-0 rounded-full bg-brand-600 scale-0 peer-checked:scale-100 transition-transform duration-200 flex items-center justify-center">
+                                            <div class="w-2 h-2 bg-white rounded-full"></div>
+                                        </div>
+                                    </div>
+                                    <div class="text-slate-600 font-medium text-lg peer-checked:text-brand-800 transition-colors" x-html="escapeHtml(option.content)"></div>
+                                </div>
+                            </label>
+                        </template>
+                    </div>
 
-                    <button @click="submitQuiz()"
-                            x-show="currentQuestionIndex === questions.length - 1"
-                            :disabled="isSubmitting"
-                            class="flex items-center px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 hover:shadow-lg hover:-translate-y-0.5 transition-all font-medium shadow-md">
-                        <span x-text="isSubmitting ? 'Đang xử lý...' : 'Nộp bài'"></span>
-                        <span class="material-icons ml-2" x-show="!isSubmitting">check_circle</span>
-                        <span class="material-icons ml-2 animate-spin" x-show="isSubmitting">refresh</span>
-                    </button>
+                    <!-- Footer Nav -->
+                    <div class="px-6 py-5 bg-slate-50/80 border-t border-slate-200 backdrop-blur-sm flex justify-between items-center sticky bottom-0 z-20">
+                        <button @click="changeQuestion(-1)"
+                                :disabled="currentQuestionIndex === 0"
+                                class="px-5 py-2.5 rounded-xl text-slate-500 font-bold hover:bg-white hover:text-slate-800 hover:shadow-sm border border-transparent hover:border-slate-200 transition-all disabled:opacity-30 flex items-center gap-2 group">
+                            <i class="fa-solid fa-arrow-left transition-transform group-hover:-translate-x-1"></i>
+                            <span class="hidden sm:inline">Trước</span>
+                        </button>
+                        <div>
+                            <button @click="changeQuestion(1)"
+                                    x-show="currentQuestionIndex < questions.length - 1"
+                                    class="px-8 py-3 bg-brand-600 text-white font-bold rounded-xl hover:bg-brand-700 hover:shadow-lg hover:shadow-brand-500/30 transition-all transform hover:-translate-y-0.5 flex items-center gap-2 group">
+                                <span class="hidden sm:inline">Câu tiếp</span>
+                                <span class="sm:hidden">Tiếp</span>
+                                <i class="fa-solid fa-arrow-right transition-transform group-hover:translate-x-1"></i>
+                            </button>
+                            <button @click="submitQuiz()"
+                                    x-show="currentQuestionIndex === questions.length - 1"
+                                    :disabled="isSubmitting"
+                                    class="px-8 py-3 bg-gradient-to-r from-emerald-500 to-green-600 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-green-500/30 transition-all transform hover:-translate-y-0.5 flex items-center gap-2 relative overflow-hidden">
+                                <span x-show="!isSubmitting" class="relative">Nộp bài <i class="fa-solid fa-check ml-1"></i></span>
+                                <span x-show="isSubmitting" class="relative"><i class="fa-solid fa-circle-notch fa-spin mr-1"></i> Xử lý...</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>
 
-        <aside class="lg:col-span-4 xl:col-span-3">
-            <div class="sticky top-6 space-y-6">
+        <!-- RIGHT COLUMN: SIDEBAR (Sticky) -->
+        <aside class="lg:col-span-4 xl:col-span-3 space-y-6 hidden lg:block">
+            <!-- Container Sticky: Top-[90px] để không bị che bởi Header chính -->
+            <div class="lg:sticky lg:top-[90px] space-y-6">
 
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 text-center relative overflow-hidden">
-                    <div class="absolute top-0 left-0 w-full h-1 bg-slate-100">
-                        <div class="h-full bg-red-500 transition-all duration-1000"
-                             :style="`width: ${(timeLeftSeconds / (durationMinutes * 60)) * 100}%`"></div>
+                <!-- 1. TIMER CARD -->
+                <div class="bg-white/70 backdrop-blur-xl rounded-2xl shadow-glass border border-white/60 p-6 text-center relative overflow-hidden group hover:shadow-floating transition-shadow duration-500">
+                    <h3 class="text-xs font-extrabold text-slate-400 uppercase tracking-widest mb-3 flex items-center justify-center gap-2">
+                        <i class="fa-regular fa-clock"></i> Thời gian
+                    </h3>
+                    <div class="text-5xl font-black tracking-tighter tabular-nums font-mono"
+                         :class="timeLeftSeconds < 300 ? 'text-red-500 animate-pulse' : 'text-slate-800'"
+                         x-text="timerDisplay">00:00</div>
+                </div>
+
+                <!-- 2. PROGRESS CARD (MỚI - Đã chuyển từ Main sang đây) -->
+                <div class="bg-white/70 backdrop-blur-xl rounded-2xl shadow-glass border border-white/60 p-5">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider">Tiến độ làm bài</h3>
+                        <span class="text-xs font-black text-brand-600" x-text="Math.round(((Object.keys(selectedAnswers).length) / questions.length) * 100) + '%'"></span>
                     </div>
-                    <p class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Thời gian còn lại</p>
-                    <div class="text-4xl font-black tracking-tight"
-                         :class="timeLeftSeconds < 300 ? 'text-red-600 animate-pulse' : 'text-slate-800'"
-                         x-text="timerDisplay">
-                        00:00
+                    <div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden border border-slate-100">
+                        <div class="h-full bg-gradient-to-r from-brand-400 to-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)] transition-all duration-500 ease-out"
+                             :style="`width: ${((Object.keys(selectedAnswers).length) / questions.length) * 100}%`"></div>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col max-h-[60vh]">
-                    <div class="p-4 border-b border-slate-100 bg-slate-50 rounded-t-xl flex justify-between items-center">
-                        <h3 class="font-semibold text-slate-700">Danh sách câu hỏi</h3>
-                        <span class="text-xs font-medium px-2 py-1 bg-blue-100 text-blue-700 rounded-full"
-                              x-text="Object.keys(selectedAnswers).length + '/' + questions.length + ' đã làm'"></span>
+                <!-- 3. PALETTE CARD -->
+                <div class="bg-white/70 backdrop-blur-xl rounded-2xl shadow-glass border border-white/60 flex flex-col max-h-[400px] overflow-hidden">
+                    <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+                        <h3 class="font-bold text-slate-700 text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-brand-500"></i> Danh sách
+                        </h3>
+                        <span class="text-[10px] font-bold px-2 py-1 bg-white border border-slate-200 text-slate-500 rounded-md uppercase tracking-wider"
+                              x-text="Object.keys(selectedAnswers).length + ' / ' + questions.length"></span>
                     </div>
-
                     <div class="p-4 overflow-y-auto custom-scrollbar flex-1">
-                        <div class="grid grid-cols-5 gap-2">
+                        <div class="grid grid-cols-5 gap-2.5">
                             <template x-for="(question, index) in questions" :key="question.id">
                                 <button @click="goToQuestion(index)"
-                                        class="question-palette-btn w-full aspect-square flex items-center justify-center text-sm font-medium rounded border transition-all duration-200"
+                                        class="aspect-square flex items-center justify-center text-sm font-bold rounded-xl transition-all duration-200 border-2 relative group isolate"
                                         :class="{
-                                            'answered': selectedAnswers[question.id] !== undefined,
-                                            'ring-2 ring-offset-2 ring-blue-500 border-transparent': currentQuestionIndex === index,
-                                            'bg-white text-slate-600 border-slate-200 hover:bg-slate-100 hover:border-slate-300': selectedAnswers[question.id] === undefined && currentQuestionIndex !== index
-                                        }"
-                                        x-text="index + 1">
+                                            'bg-brand-600 text-white border-brand-600 shadow-md': selectedAnswers[question.id] !== undefined && currentQuestionIndex !== index,
+                                            'ring-2 ring-brand-500 ring-offset-2 border-brand-500 z-10 scale-110': currentQuestionIndex === index,
+                                            'bg-white text-brand-700': currentQuestionIndex === index && selectedAnswers[question.id] === undefined,
+                                            'bg-brand-700 text-white': currentQuestionIndex === index && selectedAnswers[question.id] !== undefined,
+                                            'bg-slate-50 text-slate-400 border-transparent hover:bg-white hover:border-slate-200': selectedAnswers[question.id] === undefined && currentQuestionIndex !== index
+                                        }">
+                                    <span x-text="index + 1"></span>
+                                    <div x-show="selectedAnswers[question.id] !== undefined"
+                                         class="absolute -top-1.5 -right-1.5 w-4 h-4 bg-green-500 border-2 border-white rounded-full flex items-center justify-center shadow-sm z-20">
+                                        <i class="fa-solid fa-check text-[8px] text-white"></i>
+                                    </div>
                                 </button>
                             </template>
                         </div>
                     </div>
-
-                    <div class="p-4 border-t border-slate-100 bg-slate-50 rounded-b-xl">
+                    <div class="p-4 border-t border-slate-100 bg-slate-50/30">
                         <button @click="submitQuiz()"
                                 :disabled="isSubmitting"
-                                class="w-full py-3 bg-white border-2 border-green-600 text-green-700 font-bold rounded-lg hover:bg-green-50 transition-colors shadow-sm flex items-center justify-center">
-                            Nộp bài ngay
+                                class="w-full py-3 bg-white border border-slate-200 text-slate-500 font-bold rounded-xl hover:border-red-400 hover:text-red-500 hover:bg-red-50 transition-all shadow-sm flex items-center justify-center gap-2 group text-sm">
+                            <i class="fa-solid fa-stopwatch group-hover:animate-pulse"></i> Nộp bài sớm
                         </button>
                     </div>
                 </div>
@@ -184,34 +311,42 @@
         </aside>
     </div>
 
-    <div x-show="showHintModal" x-transition.opacity
-         class="fixed inset-0 bg-slate-900/75 backdrop-blur-sm flex items-center justify-center p-4 z-50" x-cloak>
-        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden transform transition-all"
-             @click.away="showHintModal = false">
-            <div class="bg-gradient-to-r from-amber-100 to-orange-50 p-6 border-b border-amber-100 flex items-center gap-3">
-                <div class="p-2 bg-white rounded-full shadow-sm text-amber-500">
-                    <span class="material-icons text-2xl">lightbulb</span>
+    <!-- MOBILE DRAWER & AI MODAL (Giữ nguyên) -->
+    <div x-show="showMobilePalette" class="fixed inset-0 z-50 flex flex-col justify-end lg:hidden" x-cloak>
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="showMobilePalette = false"></div>
+        <div class="bg-white rounded-t-3xl shadow-2xl relative w-full max-h-[80vh] flex flex-col"
+             x-transition:enter="transition ease-out duration-300" x-transition:enter-start="translate-y-full" x-transition:enter-end="translate-y-0">
+            <div class="p-2 flex justify-center"><div class="w-12 h-1.5 bg-slate-200 rounded-full"></div></div>
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center">
+                <h3 class="font-bold text-lg text-slate-800">Danh sách câu hỏi</h3>
+                <button @click="showMobilePalette = false" class="p-2 bg-slate-100 rounded-full text-slate-500 hover:bg-slate-200"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="p-5 overflow-y-auto custom-scrollbar">
+                <div class="grid grid-cols-5 gap-3">
+                    <template x-for="(question, index) in questions" :key="question.id">
+                        <button @click="goToQuestion(index); showMobilePalette = false"
+                                class="aspect-square flex items-center justify-center text-sm font-bold rounded-xl border-2 relative"
+                                :class="{ 'bg-brand-600 text-white border-brand-600': selectedAnswers[question.id] !== undefined && currentQuestionIndex !== index, 'ring-2 ring-brand-500 ring-offset-2 border-brand-500 scale-105': currentQuestionIndex === index, 'bg-slate-50 text-slate-400 border-transparent': selectedAnswers[question.id] === undefined && currentQuestionIndex !== index }">
+                            <span x-text="index + 1"></span>
+                        </button>
+                    </template>
                 </div>
-                <h3 class="text-xl font-bold text-amber-900">Bật kênh cố vấn AI</h3>
-            </div>
-            <div class="p-8">
-                <div class="prose prose-slate max-w-none text-slate-600" x-text="hintContent"></div>
-            </div>
-            <div class="bg-slate-50 p-6 flex justify-end border-t border-slate-100">
-                <button @click="showHintModal = false"
-                        class="px-6 py-2 bg-slate-800 text-white font-medium rounded-lg hover:bg-slate-900 transition-colors">
-                    Đã hiểu
-                </button>
             </div>
         </div>
     </div>
 
+    <div x-show="showHintModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4" x-cloak>
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" @click="showHintModal = false"></div>
+        <div class="relative bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden">
+            <div class="bg-slate-900 p-6 flex items-center gap-4 relative"><div class="absolute inset-0 opacity-20 bg-[radial-gradient(#4f46e5_1px,transparent_1px)] bg-[size:10px_10px]"></div><div class="w-10 h-10 rounded-full bg-gradient-to-tr from-amber-400 to-orange-500 flex items-center justify-center text-white relative z-10"><i class="fa-solid fa-wand-magic-sparkles"></i></div><div class="relative z-10 text-white"><h3 class="text-lg font-bold">Gợi ý AI</h3></div><button @click="showHintModal = false" class="ml-auto text-white relative z-10"><i class="fa-solid fa-xmark"></i></button></div>
+            <div class="p-8 max-h-[60vh] overflow-y-auto custom-scrollbar prose prose-sm max-w-none text-slate-600" x-html="hintContent"></div>
+        </div>
+    </div>
 </div>
 
 <div th:replace="~{fragments/footer :: footer}"></div>
 
 <script th:inline="javascript">
-    // Cấu hình CSRF
     const csrfHeaderName = document.querySelector('meta[name="_csrf_header"]')?.content;
     const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
     const httpHeaders = { 'Content-Type': 'application/json' };
@@ -219,37 +354,13 @@
 
     function quizApp() {
         return {
-            attemptId: 0,
-            questions: [],
-            savedAnswers: {},
-            startTime: null,
-            durationMinutes: 0,
+            attemptId: 0, questions: [], savedAnswers: {}, startTime: null, durationMinutes: 0,
+            currentQuestionIndex: 0, selectedAnswers: {}, timerDisplay: '00:00', timeLeftSeconds: 0, timerInterval: null,
+            isSubmitting: false, isHintLoading: false, showHintModal: false, showMobilePalette: false, hintContent: '',
+            changing: false, showMobileHeader: true, lastScrollTop: 0,
 
-            currentQuestionIndex: 0,
-            selectedAnswers: {},
-            timerDisplay: '00:00',
-            timeLeftSeconds: 0, // Thêm biến này để làm thanh progress thời gian
-            timerInterval: null,
-            isSubmitting: false,
-            isHintLoading: false,
-            showHintModal: false,
-            hintContent: '',
-
-            escapeHtml(str) {
-                if (!str) return '';
-                return str
-                    .replace(/&/g, '&amp;')
-                    .replace(/</g, '&lt;')
-                    .replace(/>/g, '&gt;')
-                    .replace(/"/g, '&quot;')
-                    .replace(/'/g, '&#039;');
-            },
-
-            get currentQuestion() {
-                if (!this.questions || this.questions.length === 0)
-                    return { id: 0, content: 'Đang tải...', answerOptions: [] };
-                return this.questions[this.currentQuestionIndex];
-            },
+            escapeHtml(str) { return str ? str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;') : ''; },
+            get currentQuestion() { return (this.questions && this.questions.length > 0) ? this.questions[this.currentQuestionIndex] : { id: 0, content: 'Đang tải...', answerOptions: [] }; },
 
             init() {
                 const el = this.$el;
@@ -260,96 +371,18 @@
                 this.startTime = new Date(el.dataset.startTime);
                 this.durationMinutes = parseInt(el.dataset.durationMinutes);
                 this.startTimer();
-
-                // Scroll to top on init if needed
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                this.setupScrollHandler();
+                this.changing = true; setTimeout(() => this.changing = false, 100);
             },
-
-            nextQuestion() {
-                if (this.currentQuestionIndex < this.questions.length - 1) {
-                    this.currentQuestionIndex++;
-                    this.scrollToTop();
-                }
-            },
-            prevQuestion() {
-                if (this.currentQuestionIndex > 0) {
-                    this.currentQuestionIndex--;
-                    this.scrollToTop();
-                }
-            },
-            goToQuestion(index) {
-                this.currentQuestionIndex = index;
-                this.scrollToTop();
-            },
-            scrollToTop() {
-                // Cuộn nhẹ lên đầu phần câu hỏi (không phải đầu trang web)
-                const main = document.querySelector('main');
-                if(main) {
-                    const y = main.getBoundingClientRect().top + window.scrollY - 100;
-                    window.scrollTo({top: y, behavior: 'smooth'});
-                }
-            },
-
-            startTimer() {
-                const endTime = this.startTime.getTime() + this.durationMinutes * 60 * 1000;
-
-                this.timerInterval = setInterval(() => {
-                    const now = new Date().getTime();
-                    const distance = endTime - now;
-                    this.timeLeftSeconds = Math.floor(distance / 1000); // Lưu giây còn lại
-
-                    if (distance < 0) {
-                        clearInterval(this.timerInterval);
-                        this.timerDisplay = "Hết giờ";
-                        this.timeLeftSeconds = 0;
-                        this.submitQuiz(true);
-                    } else {
-                        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-                        this.timerDisplay = String(minutes).padStart(2, '0') + ":" + String(seconds).padStart(2, '0');
-                    }
-                }, 1000);
-            },
-
-            async saveAnswer(questionId, answerId) {
-                this.selectedAnswers[questionId] = answerId;
-                try {
-                    await fetch('/learning/attempt/api/save-answer', {
-                        method: 'POST', headers: httpHeaders,
-                        body: JSON.stringify({ attemptId: this.attemptId, questionId: questionId, answerId: answerId })
-                    });
-                } catch (e) { console.error("Lỗi lưu:", e); }
-            },
-
-            async getAiHint() {
-                this.isHintLoading = true;
-                this.hintContent = 'AI đang hack não để trả lời câu này…';
-                this.showHintModal = true;
-                try {
-                    const res = await fetch(`/learning/attempt/api/hint/${this.attemptId}/${this.currentQuestion.id}`);
-                    const data = await res.json();
-                    this.hintContent = data.hint;
-                } catch (e) {
-                    this.hintContent = 'Lỗi kết nối AI.';
-                } finally { this.isHintLoading = false; }
-            },
-
-            async submitQuiz(isAutoSubmit = false) {
-                if (!isAutoSubmit && !confirm('Bạn có chắc chắn muốn nộp bài?')) return;
-                this.isSubmitting = true;
-                clearInterval(this.timerInterval);
-                try {
-                    const res = await fetch('/learning/attempt/api/submit', {
-                        method: 'POST', headers: httpHeaders,
-                        body: JSON.stringify({ attemptId: this.attemptId })
-                    });
-                    const data = await res.json();
-                    window.location.href = data.reviewUrl;
-                } catch (e) {
-                    alert('Lỗi nộp bài.');
-                    this.isSubmitting = false;
-                }
-            }
+            setupScrollHandler() { window.addEventListener('scroll', () => { let st = window.pageYOffset || document.documentElement.scrollTop; this.showMobileHeader = st <= 100 || st < this.lastScrollTop; this.lastScrollTop = st <= 0 ? 0 : st; }, { passive: true }); },
+            async changeQuestion(delta) { const newIndex = this.currentQuestionIndex + delta; if (newIndex >= 0 && newIndex < this.questions.length) this.triggerTransition(() => { this.currentQuestionIndex = newIndex; this.scrollToQuestionBox(); }); },
+            goToQuestion(index) { if (index !== this.currentQuestionIndex) this.triggerTransition(() => { this.currentQuestionIndex = index; this.scrollToQuestionBox(); }); },
+            triggerTransition(callback) { this.changing = true; setTimeout(() => { callback(); setTimeout(() => { this.changing = false; }, 50); }, 200); },
+            scrollToQuestionBox() { const main = document.querySelector('main'); if(main && window.innerWidth < 1024) { const y = main.getBoundingClientRect().top + window.scrollY - 120; window.scrollTo({top: y, behavior: 'smooth'}); } },
+            startTimer() { const endTime = this.startTime.getTime() + this.durationMinutes * 60 * 1000; const update = () => { const now = new Date().getTime(); const distance = endTime - now; this.timeLeftSeconds = Math.floor(distance / 1000); if (distance < 0) { clearInterval(this.timerInterval); this.timerDisplay = "00:00"; this.timeLeftSeconds = 0; this.submitQuiz(true); } else { const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)); const seconds = Math.floor((distance % (1000 * 60)) / 1000); this.timerDisplay = String(minutes).padStart(2, '0') + ":" + String(seconds).padStart(2, '0'); } }; update(); this.timerInterval = setInterval(update, 1000); },
+            async saveAnswer(qid, aid) { this.selectedAnswers[qid] = aid; try { await fetch('/learning/attempt/api/save-answer', { method: 'POST', headers: httpHeaders, body: JSON.stringify({ attemptId: this.attemptId, questionId: qid, answerId: aid }) }); } catch (e) {} },
+            async getAiHint() { this.isHintLoading = true; this.showHintModal = true; this.hintContent = '<div class="text-center py-8"><i class="fa-solid fa-spinner fa-spin text-2xl text-brand-500"></i></div>'; try { const res = await fetch(`/learning/attempt/api/hint/${this.attemptId}/${this.currentQuestion.id}`); if(res.ok) { const data = await res.json(); this.hintContent = data.hint.replace(/\n/g, '<br>'); } else this.hintContent = 'Lỗi kết nối AI'; } catch (e) { this.hintContent = 'Lỗi mạng'; } finally { this.isHintLoading = false; } },
+            async submitQuiz(auto = false) { if (!auto && !confirm('Nộp bài?')) return; this.isSubmitting = true; clearInterval(this.timerInterval); try { const res = await fetch('/learning/attempt/api/submit', { method: 'POST', headers: httpHeaders, body: JSON.stringify({ attemptId: this.attemptId }) }); const data = await res.json(); setTimeout(() => window.location.href = data.reviewUrl, 500); } catch (e) { alert('Lỗi nộp bài'); this.isSubmitting = false; } }
         }
     }
 </script>

@@ -4,175 +4,277 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- CSRF Token -->
     <meta name="_csrf" th:content="${_csrf.token}" th:if="${_csrf}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}" th:if="${_csrf}"/>
 
-    <title>Bài học: <span th:text="${currentLesson.name}"></span></title>
+    <title>Bài học: [[${currentLesson.name}]] | CodeCampus</title>
 
-    <!-- Tailwind CSS & Config (Đồng bộ với Home/Lab) -->
+    <!-- ================= FONTS & ICONS ================= -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- ================= ANIMATION & ALPINE ================= -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="//unpkg.com/alpinejs" defer></script>
+
+    <!-- ================= TAILWIND & CONFIG ================= -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <link rel="icon" th:href="@{/images/logo.png}" />
+
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Manrope', 'sans-serif'],
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
                         mono: ['JetBrains Mono', 'monospace'],
                     },
                     colors: {
-                        light: { bg: '#f8fafc', card: '#ffffff', text: '#0f172a', muted: '#64748b' },
-                        brand: { primary: '#4f46e5', secondary: '#7c3aed' }
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            200: '#c7d2fe',
+                            300: '#a5b4fc',
+                            400: '#818cf8',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            800: '#3730a3',
+                            900: '#312e81',
+                        }
                     },
                     boxShadow: {
-                        'soft-xl': '0 20px 40px -10px rgba(0, 0, 0, 0.08), 0 10px 20px -10px rgba(79, 70, 229, 0.05)',
-                        'glow-light': '0 0 20px rgba(79, 70, 229, 0.15)',
-                        'float': '0 10px 30px -5px rgba(0, 0, 0, 0.1)',
-                    }
+                        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.05)',
+                        'glow': '0 0 40px -10px rgba(99, 102, 241, 0.5)',
+                        'card-hover': '0 20px 40px -5px rgba(99, 102, 241, 0.15), 0 10px 20px -5px rgba(0, 0, 0, 0.04)',
+                    },
+                    animation: {
+                        'blob': 'blob 10s infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    },
+                    typography: (theme) => ({
+                        DEFAULT: {
+                            css: {
+                                color: '#334155',
+                                maxWidth: '100%',
+                                h1: { color: '#1e293b', fontWeight: '800' },
+                                h2: { color: '#1e293b', fontWeight: '700' },
+                                strong: { color: '#4f46e5', fontWeight: '700' },
+                                a: { color: '#4f46e5', textDecoration: 'none', '&:hover': { color: '#4338ca' } },
+                                code: { color: '#ec4899', backgroundColor: '#fdf2f8', padding: '0.2em 0.4em', borderRadius: '0.25rem', fontWeight: '600', fontFamily: 'JetBrains Mono' },
+                                pre: { backgroundColor: '#1e293b', color: '#e2e8f0', borderRadius: '1rem' },
+                            },
+                        },
+                    }),
                 }
             }
         }
     </script>
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-
     <style>
-        body { font-family: 'Manrope', sans-serif; }
+        /* --- GLOBAL BACKGROUND --- */
+        body {
+            background-color: #f8fafc;
+            background-image:
+                    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
+                    radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.05) 0px, transparent 50%),
+                    radial-gradient(at 100% 100%, rgba(56, 189, 248, 0.08) 0px, transparent 50%);
+            background-attachment: fixed;
+            background-size: 100% 100%;
+            color: #1e293b;
+        }
+
         .video-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; background: #000; }
         .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
 
-        /* Lesson Content Styles */
-        .lesson-content h1 { font-size: 1.5em; font-weight: bold; margin-top: 1em;}
-        .lesson-content h2 { font-size: 1.25em; font-weight: bold; margin-top: 0.8em;}
-        .lesson-content p { margin-bottom: 1em; line-height: 1.6;}
-        .lesson-content code { background-color: #f4f4f4; padding: 2px 4px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; }
-        .lesson-content pre { background-color: #2d2d2d; color: #f8f8f2; padding: 1em; border-radius: 8px; overflow-x: auto; font-family: 'JetBrains Mono', monospace; }
-
-        /* Chat & UI Styles */
-        .chat-link { color: #2563eb; text-decoration: underline; font-weight: 500; word-break: break-all; }
-        .chat-link:hover { color: #1d4ed8; }
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-        /* Animations */
-        @keyframes floating { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-8px); } }
-        .animate-float { animation: floating 4s ease-in-out infinite; }
-
-        /* Tab Styles */
-        [x-cloak] { display: none; }
-        .tab-button.active { border-color: #4f46e5; color: #4f46e5; font-weight: 700; }
+        [x-cloak] { display: none !important; }
+        .tab-enter { animation: tabSlideIn 0.3s ease-out forwards; }
+        @keyframes tabSlideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
-    <script src="//unpkg.com/alpinejs" defer></script>
 </head>
 
-<div th:replace="~{fragments/header :: header}"></div>
+<body class="antialiased font-sans flex flex-col min-h-screen">
 
-<body class="bg-gray-50 text-slate-800">
+<!-- HEADER (Fixed) -->
+<div class="sticky top-0 z-50 shrink-0">
+    <div th:replace="~{fragments/header :: header}"></div>
+</div>
 
-<div class="flex h-screen">
+<!-- MAIN LAYOUT (Flex Row - Standard Scroll) -->
+<div class="flex flex-1 relative items-start">
 
-    <aside class="w-full md:w-80 bg-white border-r border-gray-200 flex-shrink-0 md:h-screen md:sticky md:top-0 flex flex-col z-20 shadow-sm">
-        <div class="p-5 border-b border-gray-100 bg-white">
-            <a th:href="@{/my-courses}" class="text-sm text-gray-500 hover:text-indigo-600 flex items-center mb-3 transition-colors font-semibold">
-                <span class="material-icons text-sm mr-1">arrow_back</span>
+    <!-- SIDEBAR: LESSON LIST (Sticky under header) -->
+    <aside class="w-full md:w-80 bg-white/80 backdrop-blur-xl border-r border-slate-200/60 flex-shrink-0 hidden md:flex flex-col z-20 sticky top-[74px] h-[calc(100vh-74px)] shadow-xl">
+        <!-- Course Header -->
+        <div class="p-5 border-b border-slate-100 bg-white/50 backdrop-blur-sm shrink-0">
+            <a th:href="@{/my-courses}" class="text-xs font-bold text-slate-500 hover:text-brand-600 flex items-center mb-3 transition-colors uppercase tracking-wider group">
+                <i class="fa-solid fa-arrow-left mr-2 transition-transform group-hover:-translate-x-1"></i>
                 Quay lại khóa học
             </a>
-            <h2 class="text-lg font-extrabold text-slate-900 leading-tight" th:text="${course.name}">Tên Khóa học</h2>
+            <h2 class="text-lg font-extrabold text-slate-900 leading-tight line-clamp-2" th:text="${course.name}">Tên Khóa học</h2>
+
+            <!-- Progress -->
+            <div class="mt-3 w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                <div class="bg-gradient-to-r from-brand-500 to-purple-500 h-full rounded-full" style="width: 45%"></div>
+            </div>
         </div>
 
-        <nav class="flex-1 overflow-y-auto custom-scrollbar p-3">
-            <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 px-3">Nội dung khóa học</div>
-            <ul class="space-y-1">
+        <!-- Lessons List (Scrollable inside sticky sidebar) -->
+        <nav class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-1">
+            <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 px-3 mt-2">Nội dung khóa học</div>
+
+            <ul class="space-y-1.5 pb-4">
                 <li th:each="lesson : ${allLessons}">
                     <a th:href="@{/learning/{courseId}/{lessonId}(courseId=${course.id}, lessonId=${lesson.id})}"
-                       class="flex items-center p-3 rounded-xl transition-all duration-200 group"
-                       th:classappend="${lesson.id == currentLesson.id} ? 'bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200 font-bold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'">
-                        <span class="material-icons mr-3 text-xl transition-colors"
-                              th:classappend="${lesson.id == currentLesson.id} ? 'text-indigo-600' : 'text-slate-400 group-hover:text-slate-600'"
-                              th:switch="${lesson.lessonType?.name}">
-                            <span th:case="'Video'">play_circle</span>
-                            <span th:case="'Quiz'">assignment</span>
-                            <span th:case="'Lab'">science</span>
-                            <span th:case="*">description</span>
-                        </span>
+                       class="flex items-center p-3 rounded-xl transition-all duration-200 group relative overflow-hidden"
+                       th:classappend="${lesson.id == currentLesson.id}
+                                ? 'bg-gradient-to-r from-brand-50 to-white text-brand-700 shadow-sm ring-1 ring-brand-200 font-bold'
+                                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'">
+
+                        <div th:if="${lesson.id == currentLesson.id}" class="absolute left-0 top-0 bottom-0 w-1 bg-brand-500 rounded-l-xl"></div>
+
+                        <span class="mr-3 text-lg flex items-center justify-center w-6 h-6 rounded-full transition-colors"
+                              th:classappend="${lesson.id == currentLesson.id} ? 'text-brand-600 bg-brand-100' : 'text-slate-400 bg-slate-100 group-hover:text-slate-600'">
+                                <i class="material-icons text-sm" th:switch="${lesson.lessonType?.name}">
+                                    <span th:case="'Video'">play_arrow</span>
+                                    <span th:case="'Quiz'">quiz</span>
+                                    <span th:case="'Lab'">code</span>
+                                    <span th:case="*">article</span>
+                                </i>
+                            </span>
+
                         <span class="flex-1 text-sm truncate" th:text="${lesson.name}">Bài học</span>
-                        <span th:if="${lesson.id == currentLesson.id}" class="w-2 h-2 rounded-full bg-indigo-500 ml-2 animate-pulse"></span>
+                        <i th:if="${lesson.id == currentLesson.id}" class="fa-solid fa-chart-simple text-brand-500 text-xs animate-pulse ml-2"></i>
                     </a>
                 </li>
             </ul>
         </nav>
     </aside>
 
-    <main class="flex-1 h-screen overflow-y-auto bg-gray-50 custom-scrollbar">
-        <div class="p-8 max-w-4xl mx-auto pb-24"> <!-- Thêm pb-24 để tránh nội dung bị che bởi chat -->
-            <h1 class="text-3xl font-black text-slate-900 mb-6 leading-tight" th:text="${currentLesson.name}"></h1>
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-1 bg-slate-50/50 min-h-[calc(100vh-74px)]">
+        <!-- Background Decor -->
+        <div class="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none -z-10">
+            <div class="absolute top-20 right-20 w-[500px] h-[500px] bg-brand-400/5 rounded-full blur-[100px]"></div>
+            <div class="absolute bottom-20 left-20 w-[500px] h-[500px] bg-purple-400/5 rounded-full blur-[100px]"></div>
+        </div>
 
-            <div x-data="{ activeTab: 'content' }">
-                <div class="border-b border-gray-200 mb-6">
-                    <nav class="-mb-px flex space-x-8">
-                        <button @click="activeTab = 'content'"
-                                :class="{ 'active': activeTab === 'content' }"
-                                class="tab-button py-3 px-1 border-b-2 border-transparent text-gray-500 hover:text-indigo-600 hover:border-gray-300 transition-colors text-sm font-medium uppercase tracking-wide">
-                            Nội dung bài học
-                        </button>
-                        <button @click="activeTab = 'notes'; loadNotes()"
-                                :class="{ 'active': activeTab === 'notes' }"
-                                class="tab-button py-3 px-1 border-b-2 border-transparent text-gray-500 hover:text-indigo-600 hover:border-gray-300 transition-colors text-sm font-medium uppercase tracking-wide">
-                            Ghi chú của tôi
-                        </button>
-                    </nav>
+        <div class="max-w-5xl mx-auto p-4 md:p-8 pb-32">
+
+            <!-- Lesson Title -->
+            <h1 class="text-2xl md:text-3xl font-black text-slate-900 mb-6 leading-tight flex items-start gap-3" data-aos="fade-down">
+                <span class="text-brand-600 mt-1"><i class="fa-regular fa-circle-play"></i></span>
+                <span th:text="${currentLesson.name}">Tên bài học</span>
+            </h1>
+
+            <!-- Tabs & Content -->
+            <div x-data="{ activeTab: 'content' }" class="flex flex-col gap-6">
+
+                <!-- Navigation -->
+                <div class="flex space-x-2 border-b border-slate-200/60 pb-1" data-aos="fade-right">
+                    <button @click="activeTab = 'content'"
+                            :class="activeTab === 'content'
+                                    ? 'text-brand-600 border-b-2 border-brand-600 bg-brand-50/50'
+                                    : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50 border-transparent'"
+                            class="px-6 py-2.5 rounded-t-lg font-bold text-sm transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-book-open"></i> Bài học
+                    </button>
+                    <button @click="activeTab = 'notes'; loadNotes()"
+                            :class="activeTab === 'notes'
+                                    ? 'text-brand-600 border-b-2 border-brand-600 bg-brand-50/50'
+                                    : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50 border-transparent'"
+                            class="px-6 py-2.5 rounded-t-lg font-bold text-sm transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-note-sticky"></i> Ghi chú
+                    </button>
                 </div>
 
-                <div x-show="activeTab === 'content'" x-cloak>
+                <!-- TAB 1: CONTENT -->
+                <div x-show="activeTab === 'content'" x-cloak class="tab-enter space-y-8">
+
+                    <!-- Video -->
                     <div th:if="${currentLesson.videoUrl != null and !currentLesson.videoUrl.isEmpty()}"
-                         class="video-container rounded-xl overflow-hidden shadow-lg border border-gray-200">
-                        <iframe th:src="${currentLesson.videoUrl}" frameborder="0" allowfullscreen></iframe>
+                         class="rounded-2xl overflow-hidden shadow-2xl shadow-brand-900/20 border border-slate-200 bg-black relative group">
+                        <div class="video-container">
+                            <iframe th:src="${currentLesson.videoUrl}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                        </div>
                     </div>
+
+                    <!-- HTML Content -->
                     <div th:if="${currentLesson.htmlContent != null and !currentLesson.htmlContent.isEmpty()}"
-                         class="lesson-content mt-6 p-8 bg-white rounded-xl shadow-sm border border-gray-100 text-slate-700"
+                         class="prose prose-lg prose-slate max-w-none bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100"
                          th:utext="${currentLesson.htmlContent}">
                     </div>
                 </div>
 
-                <div x-show="activeTab === 'notes'" x-cloak>
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                        <h3 class="text-xl font-bold mb-4 text-slate-800">Ghi chú cá nhân</h3>
+                <!-- TAB 2: NOTES -->
+                <div x-show="activeTab === 'notes'" x-cloak class="tab-enter">
+                    <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 p-6 md:p-8">
+                        <h3 class="text-xl font-bold mb-4 text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-pen-to-square text-brand-500"></i> Ghi chú của bạn
+                        </h3>
 
-                        <div>
-                            <textarea id="note-content" rows="6" class="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 focus:outline-none transition-all bg-slate-50 text-sm"
-                                      placeholder="Viết ghi chú của bạn ở đây..."></textarea>
+                        <div class="space-y-4">
+                                <textarea id="note-content" rows="5"
+                                          class="w-full p-4 rounded-xl border-slate-200 bg-slate-50 text-slate-700 text-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 outline-none transition-all resize-none shadow-inner placeholder-slate-400 font-medium"
+                                          placeholder="Viết ghi chú tại đây..."></textarea>
 
-                            <div class="flex justify-between items-center mt-4">
+                            <div class="flex flex-col sm:flex-row justify-between items-center gap-3">
                                 <button id="btn-ai-summary" onclick="getAiSummary()"
-                                        class="inline-flex items-center px-4 py-2 text-sm font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors">
-                                    <span class="material-icons mr-2 text-sm">auto_awesome</span>
-                                    AI Tóm tắt bài học
+                                        class="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2.5 text-xs font-bold text-brand-600 bg-brand-50 border border-brand-100 hover:bg-brand-100 rounded-xl transition-all gap-2">
+                                    <i class="fa-solid fa-wand-magic-sparkles"></i> AI Tóm tắt bài học
                                 </button>
                                 <button id="btn-save-note" onclick="saveNote()"
-                                        class="px-6 py-2 bg-indigo-600 text-white font-bold text-sm rounded-lg hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-transform transform hover:-translate-y-0.5">
-                                    Lưu Ghi chú
+                                        class="w-full sm:w-auto px-6 py-2.5 bg-brand-600 text-white font-bold text-xs rounded-xl hover:bg-brand-700 shadow-lg shadow-brand-500/30 transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-floppy-disk"></i> Lưu Ghi chú
                                 </button>
                             </div>
                         </div>
 
-                        <div class="mt-8 border-t border-gray-100 pt-6">
-                            <h4 class="text-lg font-bold mb-4 text-slate-700">Các ghi chú đã lưu</h4>
+                        <div class="mt-8 border-t border-slate-100 pt-6">
+                            <h4 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Danh sách ghi chú</h4>
                             <div id="notes-list" class="space-y-4">
-                                <p id="notes-loading" class="text-slate-400 text-sm">Đang tải ghi chú...</p>
+                                <div class="animate-pulse flex space-x-4">
+                                    <div class="flex-1 space-y-2 py-1">
+                                        <div class="h-2 bg-slate-200 rounded"></div>
+                                        <div class="h-2 bg-slate-200 rounded w-5/6"></div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="mt-12 flex justify-between items-center pt-6 border-t border-gray-200">
+            <!-- Footer Nav -->
+            <div class="mt-12 flex justify-between items-center pt-8 border-t border-slate-200">
                 <div th:if="${prevLesson != null}">
                     <a th:href="@{/learning/{courseId}/{lessonId}(courseId=${course.id}, lessonId=${prevLesson.id})}"
-                       class="group flex items-center px-5 py-3 bg-white border border-gray-200 rounded-xl shadow-sm text-slate-600 hover:text-indigo-600 hover:border-indigo-200 hover:shadow-md transition-all duration-200">
-                        <span class="material-icons mr-3 text-slate-400 group-hover:text-indigo-500 transition-colors">arrow_back</span>
-                        <div class="text-left">
+                       class="group flex items-center gap-4 px-5 py-3 bg-white border border-slate-200 rounded-2xl shadow-sm hover:border-brand-200 hover:shadow-md transition-all">
+                        <div class="w-10 h-10 rounded-full bg-slate-50 text-slate-400 flex items-center justify-center group-hover:bg-brand-50 group-hover:text-brand-600 transition-colors">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </div>
+                        <div class="text-left hidden sm:block">
                             <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Bài trước</div>
-                            <div class="text-sm font-bold" th:text="${prevLesson.name}">Tên bài trước</div>
+                            <div class="text-sm font-bold text-slate-700 group-hover:text-brand-700 max-w-[150px] truncate" th:text="${prevLesson.name}">Name</div>
                         </div>
                     </a>
                 </div>
@@ -180,121 +282,91 @@
 
                 <div th:if="${nextLesson != null}">
                     <a th:href="@{/learning/{courseId}/{lessonId}(courseId=${course.id}, lessonId=${nextLesson.id})}"
-                       class="group flex items-center px-5 py-3 bg-white border border-gray-200 rounded-xl shadow-sm text-slate-600 hover:text-indigo-600 hover:border-indigo-200 hover:shadow-md transition-all duration-200">
-                        <div class="text-right mr-3">
-                            <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Bài tiếp</div>
-                            <div class="text-sm font-bold" th:text="${nextLesson.name}">Tên bài sau</div>
+                       class="group flex items-center gap-4 px-5 py-3 bg-white border border-slate-200 rounded-2xl shadow-sm hover:border-brand-200 hover:shadow-md transition-all">
+                        <div class="text-right hidden sm:block">
+                            <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Bài tiếp theo</div>
+                            <div class="text-sm font-bold text-slate-700 group-hover:text-brand-700 max-w-[150px] truncate" th:text="${nextLesson.name}">Name</div>
                         </div>
-                        <span class="material-icons text-slate-400 group-hover:text-indigo-500 transition-colors">arrow_forward</span>
+                        <div class="w-10 h-10 rounded-full bg-slate-50 text-slate-400 flex items-center justify-center group-hover:bg-brand-600 group-hover:text-white transition-colors">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </div>
                     </a>
                 </div>
             </div>
-
         </div>
     </main>
 </div>
 
-<!-- ================= AI CHAT WIDGET (POPUP STYLE - UNIFIED) ================= -->
+<!-- FOOTER (Standard Position) -->
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<!-- ================= AI CHAT WIDGET (Glass Popup) ================= -->
 <div class="fixed bottom-6 right-6 z-50 flex flex-col items-end pointer-events-none">
-
-    <!-- Chat Window Popup -->
-    <div id="ai-chat-window" class="pointer-events-auto bg-white w-[380px] h-[600px] rounded-2xl shadow-2xl border border-slate-200 mb-4 transform transition-all duration-300 translate-y-10 opacity-0 invisible flex flex-col overflow-hidden ring-1 ring-black/5 font-sans">
-        <!-- Header -->
-        <div class="bg-white px-5 py-4 flex items-center justify-between border-b border-slate-100 cursor-pointer" id="header-chat">
+    <!-- Chat Window -->
+    <div id="ai-chat-window" class="pointer-events-auto bg-white/90 backdrop-blur-xl w-[380px] h-[550px] rounded-[1.5rem] shadow-2xl border border-white/50 mb-4 transform transition-all duration-300 translate-y-10 opacity-0 invisible flex flex-col overflow-hidden ring-1 ring-slate-900/5 font-sans origin-bottom-right">
+        <div class="bg-gradient-to-r from-brand-600 to-indigo-600 px-5 py-4 flex items-center justify-between cursor-pointer shadow-md" id="header-chat">
             <div class="flex items-center space-x-3">
-                <div class="w-9 h-9 rounded-full bg-emerald-100 flex items-center justify-center border border-emerald-200 text-lg shadow-sm">
-                    🤖
-                </div>
+                <div class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-lg backdrop-blur-sm border border-white/20 shadow-inner">🤖</div>
                 <div>
-                    <h4 class="font-bold text-sm text-slate-800">Trợ lý CodeCampus</h4>
+                    <h4 class="font-bold text-sm text-white">Trợ lý CodeCampus</h4>
                     <div class="flex items-center space-x-1.5">
-                        <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                        <span class="text-[11px] text-slate-500 font-medium">Hỗ trợ bài học</span>
+                        <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse shadow-[0_0_5px_rgba(52,211,153,0.8)]"></span>
+                        <span class="text-[10px] text-white/90 font-medium">Hỗ trợ bài học</span>
                     </div>
                 </div>
             </div>
-            <div class="flex items-center space-x-1">
-                <button id="closeChatBtn" class="text-slate-400 hover:text-slate-700 hover:bg-slate-100 p-2 rounded-lg transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                </button>
-            </div>
+            <button id="closeChatBtn" class="text-white/70 hover:text-white hover:bg-white/10 p-1.5 rounded-lg transition-colors"><i class="fa-solid fa-xmark"></i></button>
         </div>
-
-        <!-- Messages Area -->
-        <div id="chatHistory" class="flex-1 bg-white p-4 overflow-y-auto custom-scrollbar space-y-5 scroll-smooth">
-            <!-- Intro Message -->
+        <div id="chatHistory" class="flex-1 bg-slate-50/50 p-4 overflow-y-auto custom-scrollbar space-y-4 scroll-smooth">
             <div class="flex items-start gap-3">
-                <div class="w-8 h-8 rounded-full bg-emerald-100 border border-emerald-200 flex items-center justify-center text-xs shrink-0 text-emerald-700 mt-1">🤖</div>
-                <div class="flex flex-col space-y-1 max-w-[90%] items-start">
-                    <div class="bg-slate-100 text-slate-800 px-4 py-3 rounded-2xl rounded-tl-sm shadow-sm border border-slate-200/50 text-[14px] leading-relaxed">
-                        Chào bạn! 👋 Mình là AI hỗ trợ học tập.<br>
-                        Nếu có thắc mắc về nội dung bài học, đừng ngần ngại hỏi mình nhé!
-                    </div>
+                <div class="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-xs shrink-0 text-slate-700 shadow-sm">🤖</div>
+                <div class="flex flex-col space-y-1 max-w-[85%]">
+                    <div class="bg-white text-slate-700 px-4 py-3 rounded-2xl rounded-tl-none text-sm shadow-sm border border-slate-100 font-medium">Chào bạn! Mình là AI hỗ trợ học tập.</div>
                 </div>
             </div>
         </div>
-
-        <!-- Input Area -->
-        <div class="p-4 bg-white border-t border-slate-100 shrink-0">
-            <div class="relative flex items-end gap-2">
-                <div class="relative w-full">
-                    <input type="text" id="chatInput" placeholder="Nhập câu hỏi về bài học..."
-                           class="w-full bg-slate-50 text-slate-800 text-sm rounded-xl py-3.5 pl-4 pr-10 focus:outline-none focus:ring-1 focus:ring-slate-300 focus:bg-white transition-all placeholder-slate-400 border border-slate-200 shadow-inner">
-                </div>
-                <button id="chatSendBtn" class="p-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
-                    <svg class="w-4 h-4 transform rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
-                </button>
-            </div>
-            <div class="text-center mt-2">
-                <span class="text-[10px] text-slate-400">AI có thể trả lời sai. Hãy kiểm tra lại thông tin quan trọng.</span>
+        <div class="p-3 bg-white border-t border-slate-100 shrink-0">
+            <div class="relative flex items-center gap-2">
+                <input type="text" id="chatInput" placeholder="Hỏi về bài học..."
+                       class="w-full bg-slate-100 text-slate-800 text-sm rounded-xl py-3 pl-4 pr-10 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:bg-white transition-all placeholder-slate-400">
+                <button id="chatSendBtn" class="p-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl transition-all shadow-md hover:shadow-lg disabled:opacity-50"><i class="fa-solid fa-paper-plane text-xs"></i></button>
             </div>
         </div>
     </div>
-
-    <!-- Floating Toggle Button -->
-    <button id="aiFloatButton" class="pointer-events-auto group relative flex items-center justify-center w-14 h-14 bg-indigo-600 text-white rounded-full shadow-2xl hover:shadow-indigo-500/40 transition-all duration-300 animate-float border border-white/20 hover:scale-110">
-        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
-        <span class="absolute top-0 right-0 flex h-3.5 w-3.5">
-          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-          <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-red-500 border-2 border-white"></span>
-        </span>
+    <!-- Button -->
+    <button id="aiFloatButton" class="pointer-events-auto group relative flex items-center justify-center w-14 h-14 bg-gradient-to-br from-brand-600 to-indigo-600 text-white rounded-full shadow-lg hover:shadow-brand-500/50 transition-all duration-300 animate-float hover:scale-110 border-2 border-white z-50">
+        <i class="fa-solid fa-wand-magic-sparkles text-xl"></i>
+        <span class="absolute top-0 right-0 flex h-3.5 w-3.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-red-500 border-2 border-white"></span></span>
     </button>
 </div>
 
-<div th:replace="~{fragments/footer :: footer}"></div>
-
+<!-- ================= SCRIPTS ================= -->
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 <script th:inline="javascript">
-    /* Lấy các biến từ Thymeleaf */
+    AOS.init({ once: true, offset: 50, duration: 800 });
+
+    /* VARIABLES */
     const LESSON_ID = /*[[${currentLesson.id}]]*/ null;
-    const USER_ID = /*[[${currentUserId}]]*/ null;
-
-    /* Lấy CSRF token */
-    const csrfHeaderName = document.querySelector('meta[name="_csrf_header"]')?.content;
+    const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
     const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
-
     const headers = { 'Content-Type': 'application/json' };
-    if (csrfHeaderName && csrfToken) { headers[csrfHeaderName] = csrfToken; }
+    if (csrfHeader && csrfToken) headers[csrfHeader] = csrfToken;
 
-    // ================= CHAT LOGIC (VANILLA JS) =================
-
-    // 1. UI Elements
+    /* CHAT LOGIC */
     const aiBtn = document.getElementById('aiFloatButton');
     const chatWindow = document.getElementById('ai-chat-window');
-    const closeBtn = document.getElementById('closeChatBtn');
+    const closeChat = document.getElementById('closeChatBtn');
     const headerChat = document.getElementById('header-chat');
     const chatInput = document.getElementById('chatInput');
-    const chatSendBtn = document.getElementById('chatSendBtn');
+    const sendBtn = document.getElementById('chatSendBtn');
     const chatHistory = document.getElementById('chatHistory');
 
-    // 2. Toggle Chat
     function toggleChat() {
         if (chatWindow.classList.contains('invisible')) {
-            // Open
             chatWindow.classList.remove('invisible', 'opacity-0', 'translate-y-10');
             aiBtn.classList.add('opacity-0', 'scale-0');
             setTimeout(() => chatInput.focus(), 300);
         } else {
-            // Close
             chatWindow.classList.add('opacity-0', 'translate-y-10');
             aiBtn.classList.remove('opacity-0', 'scale-0');
             setTimeout(() => chatWindow.classList.add('invisible'), 300);
@@ -302,221 +374,118 @@
     }
 
     aiBtn.onclick = toggleChat;
-    closeBtn.onclick = toggleChat;
-    headerChat.addEventListener('click', (e) => {
-        if (e.target === headerChat || e.target.closest('#header-chat')) {
-            if (!chatWindow.classList.contains('invisible')) toggleChat();
-        }
-    });
+    closeChat.onclick = toggleChat;
+    headerChat.onclick = (e) => { if(!e.target.closest('button')) toggleChat() };
 
-    // 3. Helper Functions
-    function formatMessageContent(text) {
-        if(!text) return '';
-        let safeText = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        const urlRegex = /(https?:\/\/[^\s]+)/g;
-        safeText = safeText.replace(urlRegex, function(url) {
-            return `<a href="${url}" target="_blank" class="chat-link">${url}</a>`;
-        });
-        safeText = safeText.replace(/\n/g, '<br>');
-        return safeText;
-    }
-
-    function appendLoading() {
+    function addMessage(text, isUser) {
         const div = document.createElement('div');
-        div.id = 'ai-loading';
-        div.className = 'flex items-start gap-3 message-enter';
-        div.innerHTML = `
-            <div class="w-8 h-8 rounded-full bg-emerald-100 border border-emerald-200 flex items-center justify-center text-xs shrink-0 text-emerald-700 mt-1">🤖</div>
-            <div class="bg-slate-100 p-3 rounded-2xl rounded-tl-sm shadow-sm border border-slate-200/50 flex space-x-1 items-center h-10">
-                <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"></span>
-                <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></span>
-                <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></span>
-            </div>`;
+        div.className = `flex items-start gap-3 ${isUser ? 'flex-row-reverse' : ''} message-enter`;
+        const avatar = isUser ? '' : `<div class="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-xs shrink-0 text-slate-700 shadow-sm mt-1">🤖</div>`;
+        const bubble = isUser ? 'bg-brand-600 text-white rounded-2xl rounded-tr-none shadow-md shadow-brand-500/20' : 'bg-white text-slate-700 rounded-2xl rounded-tl-none shadow-sm border border-slate-200/60 font-medium';
+        div.innerHTML = `${avatar}<div class="max-w-[85%]"><div class="${bubble} px-4 py-2.5 text-sm leading-relaxed">${text}</div></div>`;
         chatHistory.appendChild(div);
         chatHistory.scrollTop = chatHistory.scrollHeight;
     }
 
-    function addBubble(text, isUser) {
-        const div = document.createElement('div');
-        div.className = `flex items-start gap-3 ${isUser ? 'flex-row-reverse' : ''}`;
-        const avatar = isUser ? '' : `<div class="w-8 h-8 rounded-full bg-emerald-100 border border-emerald-200 flex items-center justify-center text-xs shrink-0 text-emerald-700 mt-1">🤖</div>`;
-        const bubbleClass = isUser
-            ? 'bg-indigo-600 text-white rounded-2xl rounded-tr-sm shadow-md'
-            : 'bg-slate-100 text-slate-800 rounded-2xl rounded-tl-sm shadow-sm border border-slate-200/50';
-
-        const formattedContent = formatMessageContent(text);
-        div.innerHTML = `
-            ${avatar}
-            <div class="flex flex-col space-y-1 max-w-[90%] ${isUser ? 'items-end' : 'items-start'}">
-                <div class="${bubbleClass} px-4 py-3 text-[14px] leading-relaxed break-words">
-                    ${formattedContent}
-                </div>
-            </div>`;
-        chatHistory.appendChild(div);
-        chatHistory.scrollTop = chatHistory.scrollHeight;
-    }
-
-    // 4. Send Message Logic
-    const sendChat = async () => {
+    async function sendChat() {
         const msg = chatInput.value.trim();
         if (!msg) return;
-
-        addBubble(msg, true);
+        addMessage(msg, true);
         chatInput.value = '';
-        chatSendBtn.disabled = true;
-        appendLoading();
+        sendBtn.disabled = true;
+
+        // Loading
+        const loadingId = 'loading-' + Date.now();
+        const loadingDiv = document.createElement('div');
+        loadingDiv.id = loadingId;
+        loadingDiv.className = 'flex items-start gap-3 message-enter';
+        loadingDiv.innerHTML = `<div class="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-xs">🤖</div><div class="bg-white p-3 rounded-2xl rounded-tl-none shadow-sm flex gap-1"><span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"></span><span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce delay-75"></span><span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce delay-150"></span></div>`;
+        chatHistory.appendChild(loadingDiv);
+        chatHistory.scrollTop = chatHistory.scrollHeight;
 
         try {
-            const response = await fetch('/learning/api/ask-ai', {
-                method: 'POST',
-                headers: headers,
-                body: JSON.stringify({
-                    lessonId: LESSON_ID,
-                    question: msg
-                })
-            });
+            const res = await fetch('/learning/api/ask-ai', { method: 'POST', headers, body: JSON.stringify({ lessonId: LESSON_ID, question: msg }) });
+            document.getElementById(loadingId).remove();
+            if (res.ok) {
+                const data = await res.json();
+                addMessage(data.answer, false);
+            } else { addMessage("Lỗi kết nối.", false); }
+        } catch (e) {
+            document.getElementById(loadingId).remove();
+            addMessage("Lỗi mạng.", false);
+        } finally { sendBtn.disabled = false; }
+    }
+    sendBtn.onclick = sendChat;
+    chatInput.onkeydown = (e) => { if(e.key === 'Enter') sendChat() };
 
-            document.getElementById('ai-loading')?.remove();
-
-            if (!response.ok) {
-                addBubble("Xin lỗi, tôi gặp lỗi khi kết nối với AI.", false);
-            } else {
-                const data = await response.json();
-                addBubble(data.answer, false); // Backend trả về { answer: ... }
-            }
-        } catch (error) {
-            console.error("Lỗi gọi API /api/ask-ai:", error);
-            document.getElementById('ai-loading')?.remove();
-            addBubble("Lỗi mạng. Vui lòng kiểm tra kết nối.", false);
-        } finally {
-            chatSendBtn.disabled = false;
-        }
-    };
-
-    chatSendBtn.onclick = sendChat;
-    chatInput.addEventListener('keydown', e => e.key === 'Enter' && sendChat());
-
-
-    // ================= NOTES LOGIC (GIỮ NGUYÊN) =================
-
-    /** TẢI DANH SÁCH GHI CHÚ */
+    /* NOTES LOGIC */
     async function loadNotes() {
-        const listDiv = document.getElementById('notes-list');
-        listDiv.innerHTML = '<p id="notes-loading" class="text-slate-500 text-sm">Đang tải ghi chú...</p>';
-
+        const list = document.getElementById('notes-list');
+        list.innerHTML = '<div class="text-center py-4 text-slate-400 text-sm italic">Đang tải ghi chú...</div>';
         try {
-            const response = await fetch(`/learning/api/notes/${LESSON_ID}`);
-            const notes = await response.json();
-
-            listDiv.innerHTML = '';
-            if (notes.length === 0) {
-                listDiv.innerHTML = '<p class="text-slate-400 text-sm">Bạn chưa có ghi chú nào cho bài học này.</p>';
-            } else {
+            const res = await fetch(`/learning/api/notes/${LESSON_ID}`);
+            const notes = await res.json();
+            list.innerHTML = '';
+            if (notes.length === 0) list.innerHTML = '<div class="text-center py-6 border-2 border-dashed border-slate-100 rounded-xl"><p class="text-slate-400 text-sm">Chưa có ghi chú nào.</p></div>';
+            else {
                 notes.forEach(note => {
-                    const noteEl = document.createElement('div');
-                    noteEl.id = `note-container-${note.id}`;
-                    noteEl.className = 'p-4 bg-slate-50 border border-gray-200 rounded-xl';
-
-                    noteEl.innerHTML = `
-                        <div id="note-view-${note.id}">
-                            <p class="text-slate-700 text-sm leading-relaxed" style="white-space: pre-wrap;">${escapeHTML(note.note)}</p>
-                            <div class="flex justify-end space-x-3 mt-3">
-                                <button onclick="showEditMode(${note.id})" class="text-xs font-bold text-indigo-600 hover:text-indigo-800">Sửa</button>
-                                <button onclick="deleteNote(${note.id})" class="text-xs font-bold text-red-500 hover:text-red-700">Xóa</button>
+                    const el = document.createElement('div');
+                    el.id = `note-${note.id}`;
+                    el.className = 'group bg-slate-50 p-4 rounded-xl border border-slate-100 hover:bg-white hover:shadow-sm hover:border-brand-100 transition-all';
+                    el.innerHTML = `
+                            <div class="note-view">
+                                <p class="text-slate-700 text-sm whitespace-pre-wrap leading-relaxed">${escapeHtml(note.note)}</p>
+                                <div class="flex justify-end gap-3 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button onclick="editNote(${note.id})" class="text-xs font-bold text-brand-600 hover:text-brand-800 flex items-center gap-1"><i class="fa-solid fa-pen"></i> Sửa</button>
+                                    <button onclick="deleteNote(${note.id})" class="text-xs font-bold text-red-500 hover:text-red-700 flex items-center gap-1"><i class="fa-solid fa-trash"></i> Xóa</button>
+                                </div>
                             </div>
-                        </div>
-                        <div id="note-edit-${note.id}" style="display:none;">
-                            <textarea id="note-textarea-${note.id}" rows="4" class="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-1 focus:ring-indigo-500">${escapeHTML(note.note)}</textarea>
-                            <div class="flex justify-end space-x-2 mt-3">
-                                <button onclick="cancelEdit(${note.id})" class="text-xs font-medium text-gray-500 hover:text-gray-700">Hủy</button>
-                                <button onclick="updateNote(${note.id})" class="text-xs font-bold px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Lưu</button>
-                            </div>
-                        </div>
-                    `;
-                    listDiv.appendChild(noteEl);
+                            <div class="note-edit hidden space-y-2">
+                                <textarea class="w-full p-3 text-sm border border-brand-200 rounded-lg focus:ring-2 focus:ring-brand-500/20 outline-none bg-white" rows="3">${escapeHtml(note.note)}</textarea>
+                                <div class="flex justify-end gap-2">
+                                    <button onclick="cancelEditNote(${note.id})" class="px-3 py-1.5 text-xs font-bold text-slate-500 bg-slate-100 rounded-lg hover:bg-slate-200">Hủy</button>
+                                    <button onclick="saveEditNote(${note.id})" class="px-3 py-1.5 text-xs font-bold text-white bg-brand-600 rounded-lg hover:bg-brand-700 shadow-sm">Lưu</button>
+                                </div>
+                            </div>`;
+                    list.appendChild(el);
                 });
             }
-        } catch (error) {
-            console.error('Lỗi tải ghi chú:', error);
-            listDiv.innerHTML = '<p class="text-red-500 text-sm">Không thể tải ghi chú.</p>';
-        }
+        } catch (e) { list.innerHTML = '<p class="text-red-500 text-sm text-center">Lỗi tải ghi chú.</p>'; }
     }
 
-    /** LƯU GHI CHÚ MỚI */
     async function saveNote() {
-        const content = document.getElementById('note-content').value;
-        if (!content.trim()) { alert('Vui lòng nhập nội dung ghi chú.'); return; }
+        const content = document.getElementById('note-content').value.trim();
+        if (!content) return;
         try {
-            const response = await fetch('/learning/api/notes/save', {
-                method: 'POST', headers: headers,
-                body: JSON.stringify({ lessonId: LESSON_ID, content: content })
-            });
-            if (response.ok) {
-                document.getElementById('note-content').value = '';
-                loadNotes();
-            } else { alert('Lỗi lưu ghi chú.'); }
-        } catch (error) { console.error('Lỗi lưu ghi chú:', error); }
+            const res = await fetch('/learning/api/notes/save', { method: 'POST', headers, body: JSON.stringify({ lessonId: LESSON_ID, content }) });
+            if (res.ok) { document.getElementById('note-content').value = ''; loadNotes(); }
+        } catch (e) { alert('Lỗi lưu ghi chú'); }
     }
 
-    /** LẤY TÓM TẮT TỪ AI */
     async function getAiSummary() {
         const btn = document.getElementById('btn-ai-summary');
-        const noteTextarea = document.getElementById('note-content');
+        const area = document.getElementById('note-content');
         btn.disabled = true;
-        btn.innerHTML = '<span class="material-icons mr-2 text-sm animate-spin">refresh</span> Đang tóm tắt...';
-
+        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang tóm tắt...';
         try {
-            const response = await fetch(`/learning/api/summarize/${LESSON_ID}`);
-            const data = await response.json();
-            noteTextarea.value = data.summary;
-        } catch (error) {
-            console.error('Lỗi lấy tóm tắt AI:', error);
-            alert('Không thể lấy tóm tắt từ AI.');
-        } finally {
-            btn.disabled = false;
-            btn.innerHTML = '<span class="material-icons mr-2 text-sm">auto_awesome</span> AI Tóm tắt bài học';
-        }
+            const res = await fetch(`/learning/api/summarize/${LESSON_ID}`);
+            const data = await res.json();
+            area.value = data.summary;
+        } catch (e) { alert('Lỗi AI'); }
+        finally { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> AI Tóm tắt bài học'; }
     }
 
-    /** HELPER FUNCTIONS */
-    function showEditMode(noteId) {
-        document.getElementById(`note-view-${noteId}`).style.display = 'none';
-        document.getElementById(`note-edit-${noteId}`).style.display = 'block';
+    function editNote(id) { document.getElementById(`note-${id}`).querySelector('.note-view').classList.add('hidden'); document.getElementById(`note-${id}`).querySelector('.note-edit').classList.remove('hidden'); }
+    function cancelEditNote(id) { document.getElementById(`note-${id}`).querySelector('.note-view').classList.remove('hidden'); document.getElementById(`note-${id}`).querySelector('.note-edit').classList.add('hidden'); }
+    async function saveEditNote(id) {
+        const content = document.getElementById(`note-${id}`).querySelector('textarea').value;
+        try { const res = await fetch(`/learning/api/notes/update/${id}`, { method: 'PUT', headers, body: JSON.stringify({ content }) }); if (res.ok) loadNotes(); } catch (e) { alert('Lỗi cập nhật'); }
     }
-    function cancelEdit(noteId) {
-        document.getElementById(`note-view-${noteId}`).style.display = 'block';
-        document.getElementById(`note-edit-${noteId}`).style.display = 'none';
+    async function deleteNote(id) {
+        if (!confirm('Xóa ghi chú?')) return;
+        try { const res = await fetch(`/learning/api/notes/${id}`, { method: 'DELETE', headers }); if (res.ok) document.getElementById(`note-${id}`).remove(); } catch (e) { alert('Lỗi xóa'); }
     }
-    async function deleteNote(noteId) {
-        if (!confirm('Bạn có chắc chắn muốn xóa ghi chú này không?')) return;
-        try {
-            const response = await fetch(`/learning/api/notes/${noteId}`, { method: 'DELETE', headers: headers });
-            if (response.ok) {
-                document.getElementById(`note-container-${noteId}`).remove();
-                const listDiv = document.getElementById('notes-list');
-                if (!listDiv.hasChildNodes()) listDiv.innerHTML = '<p class="text-slate-400 text-sm">Bạn chưa có ghi chú nào cho bài học này.</p>';
-            } else { alert('Lỗi: Không thể xóa ghi chú.'); }
-        } catch (error) { console.error('Lỗi khi xóa ghi chú:', error); }
-    }
-    async function updateNote(noteId) {
-        const newContent = document.getElementById(`note-textarea-${noteId}`).value;
-        if (!newContent.trim()) { alert('Nội dung ghi chú không được để trống.'); return; }
-        try {
-            const response = await fetch(`/learning/api/notes/update/${noteId}`, {
-                method: 'PUT', headers: headers, body: JSON.stringify({ content: newContent })
-            });
-            if (response.ok) {
-                const updatedNote = await response.json();
-                document.querySelector(`#note-view-${noteId} p`).textContent = updatedNote.note;
-                cancelEdit(noteId);
-            } else { alert('Lỗi: Không thể cập nhật ghi chú.'); }
-        } catch (error) { console.error('Lỗi khi cập nhật ghi chú:', error); }
-    }
-    function escapeHTML(str) {
-        if (!str) return '';
-        return str.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    }
+    function escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : ''; }
 </script>
-
 </body>
 </html>

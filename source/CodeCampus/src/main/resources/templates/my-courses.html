@@ -4,153 +4,339 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Khóa học của tôi</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <title>Khóa học của tôi - CodeCampus</title>
+
+    <!-- ================= FONTS & ICONS ================= -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <!-- ================= ANIMATION (AOS) ================= -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <!-- ================= TAILWIND & CONFIG ================= -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" th:href="@{/images/logo.png}" />
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            200: '#c7d2fe',
+                            300: '#a5b4fc',
+                            400: '#818cf8',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            800: '#3730a3',
+                            900: '#312e81',
+                        }
+                    },
+                    boxShadow: {
+                        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.05)',
+                        'glow': '0 0 40px -10px rgba(99, 102, 241, 0.5)',
+                        'card-hover': '0 20px 40px -5px rgba(99, 102, 241, 0.15), 0 10px 20px -5px rgba(0, 0, 0, 0.04)',
+                    },
+                    animation: {
+                        'blob': 'blob 10s infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* --- GLOBAL BACKGROUND --- */
+        body {
+            background-color: #f8fafc;
+            background-image:
+                    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
+                    radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.08) 0px, transparent 50%),
+                    radial-gradient(at 100% 100%, rgba(56, 189, 248, 0.1) 0px, transparent 50%),
+                    radial-gradient(at 0% 100%, rgba(168, 85, 247, 0.08) 0px, transparent 50%);
+            background-attachment: fixed;
+            background-size: 100% 100%;
+            color: #1e293b;
+        }
+
+        /* --- GLASS CARD --- */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+            transition: all 0.3s ease;
+        }
+
+        /* Custom Scrollbar for Table */
+        .custom-scrollbar::-webkit-scrollbar { height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
 </head>
-<body class="bg-gray-100 font-sans">
 
-<div th:replace="~{fragments/header :: header}"></div>
+<body class="antialiased font-sans selection:bg-brand-500 selection:text-white min-h-screen flex flex-col">
 
-<div class="max-w-7xl mx-auto px-6 py-12 md:flex">
+<!-- Header Sticky -->
+<div class="sticky top-0 z-50">
+    <div th:replace="~{fragments/header :: header}"></div>
+</div>
 
-    <main class="w-full md:w-3/4 md:pr-8">
-        <h1 class="text-3xl font-bold mb-6 text-gray-800">Khóa học của tôi</h1>
+<div class="relative w-full max-w-[1500px] mx-auto py-10 px-4 sm:px-6 lg:px-8 flex-grow">
 
-        <div th:if="${successMessage}"
-             class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6 text-center flex items-center justify-center">
-            <i class="material-icons mr-2">check_circle</i>
-            <span th:text="${successMessage}"></span>
-        </div>
-        <div th:if="${errorMessage}"
-             class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6 text-center flex items-center justify-center">
-            <i class="material-icons mr-2">error</i>
-            <span th:text="${errorMessage}"></span>
-        </div>
+    <!-- ================= DECOR BACKGROUND ================= -->
+    <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+        <div class="absolute top-20 left-10 w-[600px] h-[600px] bg-brand-400/15 rounded-full blur-[120px] mix-blend-multiply animate-blob"></div>
+        <div class="absolute bottom-20 right-10 w-[600px] h-[600px] bg-purple-300/15 rounded-full blur-[120px] mix-blend-multiply animate-blob animation-delay-2000"></div>
+    </div>
 
-        <div class="bg-white shadow-xl rounded-lg overflow-x-auto">
-            <table class="min-w-full">
-                <thead class="bg-gray-200">
-                <tr>
-                    <th class="py-3 px-4 text-left text-gray-600 uppercase text-sm">ID</th>
-                    <th class="py-3 px-4 text-left text-gray-600 uppercase text-sm">Khóa học (Subject)</th>
-                    <th class="py-3 px-4 text-left text-gray-600 uppercase text-sm">Gói (Package)</th>
-                    <th class="py-3 px-4 text-left text-gray-600 uppercase text-sm">Học phí</th>
-                    <th class="py-3 px-4 text-left text-gray-600 uppercase text-sm">Trạng thái</th>
-                    <th class="py-3 px-4 text-left text-gray-600 uppercase text-sm">Hiệu lực</th>
-                    <th class="py-3 px-4 text-left text-gray-600 uppercase text-sm">Hành động</th>
-                </tr>
-                </thead>
-                <tbody class="text-gray-700">
+    <div class="flex flex-col lg:flex-row gap-8">
 
-                <tr th:each="item : ${myCourses}" class="border-b border-gray-200 hover:bg-gray-50">
+        <!-- ================= MAIN CONTENT (Left) ================= -->
+        <main class="w-full lg:w-3/4 lg:pr-4 flex flex-col gap-8">
 
-                    <td class="py-4 px-4 text-sm" th:text="${item.registration.id}"></td>
+            <!-- Page Header -->
+            <div class="flex items-center justify-between" data-aos="fade-down">
+                <div>
+                    <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Khóa học của tôi</h1>
+                    <p class="text-slate-500 mt-1 text-sm font-medium">Quản lý tiến độ học tập và các khóa học đã đăng ký.</p>
+                </div>
+                <div class="hidden sm:block">
+                    <span class="px-4 py-2 bg-white/60 rounded-full text-xs font-bold text-brand-600 border border-white shadow-sm">
+                        <i class="fa-solid fa-book-open mr-1"></i> <span th:text="${#lists.size(myCourses)}">0</span> Khóa học
+                    </span>
+                </div>
+            </div>
 
-                    <td class="py-4 px-4 font-medium">
-                        <div class="text-blue-900 text-lg" th:text="${item.registration.course.name}">Tên khóa học</div>
-                        <div class="text-xs text-gray-500 mb-2"
-                             th:text="'ĐK lúc: ' + ${#temporals.format(item.registration.registrationTime, 'HH:mm dd/MM/yy')}">
+            <!-- Alerts -->
+            <div th:if="${successMessage}" class="glass-card bg-emerald-50/80 border-l-4 border-emerald-500 text-emerald-700 p-4 rounded-xl flex items-center gap-3 animate-fade-in shadow-sm" data-aos="fade-up">
+                <i class="fa-solid fa-circle-check text-xl"></i>
+                <span class="font-medium" th:text="${successMessage}"></span>
+            </div>
+            <div th:if="${errorMessage}" class="glass-card bg-red-50/80 border-l-4 border-red-500 text-red-700 p-4 rounded-xl flex items-center gap-3 animate-fade-in shadow-sm" data-aos="fade-up">
+                <i class="fa-solid fa-circle-exclamation text-xl"></i>
+                <span class="font-medium" th:text="${errorMessage}"></span>
+            </div>
+
+            <!-- TABLE CARD -->
+            <div class="glass-card rounded-[1.5rem] overflow-hidden border border-white/60 shadow-lg" data-aos="fade-up" data-aos-delay="100">
+                <div class="overflow-x-auto custom-scrollbar">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                        <tr class="bg-slate-50/80 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500 font-bold">
+                            <th class="px-6 py-4">ID</th>
+                            <th class="px-6 py-4 min-w-[250px]">Thông tin khóa học</th>
+                            <th class="px-6 py-4 whitespace-nowrap">Gói</th>
+                            <th class="px-6 py-4 whitespace-nowrap">Học phí</th>
+                            <th class="px-6 py-4 whitespace-nowrap">Trạng thái</th>
+                            <th class="px-6 py-4 whitespace-nowrap">Thời hạn</th>
+                            <th class="px-6 py-4 text-center">Hành động</th>
+                        </tr>
+                        </thead>
+                        <tbody class="text-sm font-medium text-slate-600">
+
+                        <!-- Row Loop -->
+                        <tr th:each="item : ${myCourses}" class="group hover:bg-white/60 transition-colors border-b border-slate-100 last:border-0">
+
+                            <!-- ID -->
+                            <td class="px-6 py-5 text-slate-400 font-mono text-xs" th:text="'#' + ${item.registration.id}"></td>
+
+                            <!-- Course Info & Progress -->
+                            <td class="px-6 py-5">
+                                <div class="flex flex-col gap-2">
+                                    <a th:href="@{'/courses/' + ${item.registration.course.id}}"
+                                       class="text-base font-bold text-slate-800 hover:text-brand-600 transition-colors line-clamp-1"
+                                       th:text="${item.registration.course.name}">Tên khóa học</a>
+
+                                    <div class="text-[11px] text-slate-400 flex items-center gap-1">
+                                        <i class="fa-regular fa-clock"></i>
+                                        <span>ĐK: </span>
+                                        <span th:text="${#temporals.format(item.registration.registrationTime, 'HH:mm dd/MM/yy')}"></span>
+                                    </div>
+
+                                    <!-- Progress Bar (Only if Active) -->
+                                    <!-- FIX: Xóa .name() vì status là String -->
+                                    <div th:if="${item.registration.status == 'COMPLETED'}" class="mt-1 w-full max-w-[200px]">
+                                        <div class="flex justify-between text-[10px] font-bold text-slate-500 mb-1">
+                                            <span>Tiến độ</span>
+                                            <span class="text-brand-600" th:text="${#numbers.formatDecimal(item.progressPercent, 0, 0) + '%'}">0%</span>
+                                        </div>
+                                        <div class="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
+                                            <div class="h-full bg-gradient-to-r from-brand-500 to-emerald-400 rounded-full transition-all duration-500"
+                                                 th:style="'width: ' + ${item.progressPercent} + '%'"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <!-- Package -->
+                            <td class="px-6 py-5">
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200"
+                                          th:text="${item.registration.pricePackage.name}">Gói học</span>
+                            </td>
+
+                            <!-- Price -->
+                            <td class="px-6 py-5 font-mono font-bold text-slate-700"
+                                th:text="${#numbers.formatDecimal(item.registration.totalCost, 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                            </td>
+
+                            <!-- Status -->
+                            <td class="px-6 py-5">
+                                <!-- FIX: Xóa .name() trong tất cả các điều kiện status -->
+                                <span th:if="${item.registration.status == 'PENDING'}"
+                                      class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-yellow-50 text-yellow-600 border border-yellow-200">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></span> Chờ duyệt
+                                    </span>
+                                <span th:if="${item.registration.status == 'COMPLETED'}"
+                                      class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-600 border border-emerald-200">
+                                        <i class="fa-solid fa-check text-[10px]"></i> Đã kích hoạt
+                                    </span>
+                                <span th:if="${item.registration.status == 'CANCELLED'}"
+                                      class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-red-50 text-red-600 border border-red-200">
+                                        <i class="fa-solid fa-xmark text-[10px]"></i> Đã hủy
+                                    </span>
+                            </td>
+
+                            <!-- Validity -->
+                            <td class="px-6 py-5 text-xs text-slate-500">
+                                <div th:if="${item.registration.validFrom != null}" class="flex flex-col gap-0.5">
+                                    <span class="font-medium text-emerald-600" th:text="${#temporals.format(item.registration.validFrom, 'dd/MM/yyyy')}"></span>
+                                    <span class="text-[10px] text-slate-400 text-center mx-auto block w-fit">▼</span>
+                                    <span class="font-medium text-rose-500" th:text="${#temporals.format(item.registration.validTo, 'dd/MM/yyyy')}"></span>
+                                </div>
+                                <div th:unless="${item.registration.validFrom != null}" class="text-slate-400 italic">
+                                    --
+                                </div>
+                            </td>
+
+                            <!-- Actions -->
+                            <td class="px-6 py-5 text-center">
+                                <!-- FIX: Xóa .name() -->
+                                <div th:if="${item.registration.status == 'COMPLETED'}" class="flex justify-center">
+
+                                    <!-- Continue Learning -->
+                                    <a th:if="${item.lastLessonId != null}"
+                                       th:href="@{/learning/{courseId}/{lessonId}(courseId=${item.registration.course.id}, lessonId=${item.lastLessonId})}"
+                                       class="group/btn relative inline-flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-brand-600 to-indigo-600 text-white text-xs font-bold rounded-xl shadow-md hover:shadow-lg hover:shadow-brand-500/30 transition-all hover:-translate-y-0.5">
+                                        <i class="fa-solid fa-play"></i> Học tiếp
+                                    </a>
+
+                                    <!-- Start Learning -->
+                                    <a th:if="${item.lastLessonId == null}"
+                                       th:href="@{/learning/{courseId}(courseId=${item.registration.course.id})}"
+                                       class="group/btn relative inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 text-xs font-bold rounded-xl shadow-sm hover:bg-brand-50 hover:text-brand-600 hover:border-brand-200 transition-all">
+                                        <i class="fa-solid fa-rocket"></i> Bắt đầu
+                                    </a>
+                                </div>
+
+                                <!-- FIX: Xóa .name() -->
+                                <div th:if="${item.registration.status == 'PENDING'}" class="flex flex-col gap-2 min-w-[110px]">
+                                    <a th:href="@{/registration/pending/{orderCode}(orderCode=${item.registration.orderCode})}"
+                                       class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-yellow-50 text-yellow-600 border border-yellow-200 rounded-lg text-[11px] font-bold hover:bg-yellow-100 transition-all">
+                                        <i class="fa-solid fa-money-bill-wave"></i> Thanh toán
+                                    </a>
+
+                                    <div class="flex gap-2">
+                                        <a th:href="@{/courses/{id}(id=${item.registration.course.id})}"
+                                           class="flex-1 inline-flex items-center justify-center px-2 py-1.5 bg-slate-50 text-slate-500 border border-slate-200 rounded-lg text-[11px] font-bold hover:bg-slate-100 hover:text-slate-700 transition-all" title="Xem/Sửa gói">
+                                            <i class="fa-solid fa-gear"></i>
+                                        </a>
+
+                                        <form th:action="@{/registration/cancel/{id}(id=${item.registration.id})}" method="POST"
+                                              class="flex-1"
+                                              onsubmit="return confirm('Bạn có chắc muốn hủy đăng ký này?');">
+                                            <button type="submit"
+                                                    class="w-full inline-flex items-center justify-center px-2 py-1.5 bg-red-50 text-red-500 border border-red-100 rounded-lg text-[11px] font-bold hover:bg-red-100 hover:border-red-200 transition-all" title="Hủy đăng ký">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <!-- FIX: Xóa .name() -->
+                                <div th:if="${item.registration.status == 'CANCELLED'}">
+                                    <a th:href="@{'/courses/' + ${item.registration.course.id}}" class="text-xs font-bold text-slate-400 hover:text-brand-600 hover:underline">Xem chi tiết</a>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Empty State -->
+                        <tr th:if="${#lists.isEmpty(myCourses)}">
+                            <td colspan="7" class="px-6 py-16 text-center">
+                                <div class="flex flex-col items-center justify-center">
+                                    <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 text-slate-300 shadow-inner">
+                                        <i class="fa-solid fa-box-open text-3xl"></i>
+                                    </div>
+                                    <p class="text-slate-500 font-medium mb-4">Bạn chưa đăng ký khóa học nào.</p>
+                                    <a href="/courses" class="inline-flex items-center gap-2 px-6 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/30">
+                                        <i class="fa-solid fa-magnifying-glass"></i> Tìm khóa học ngay
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+
+        <!-- ================= SIDEBAR (Right) ================= -->
+        <aside class="w-full lg:w-1/4 shrink-0 space-y-8">
+            <!-- Sticky Container (Sửa lỗi h-fit) -->
+            <div class="sticky top-28 space-y-8" data-aos="fade-left" data-aos-delay="200">
+                <!-- Fragment Sidebar -->
+                <div th:replace="~{fragments/my-courses-sidebar :: my-courses-sidebar}"></div>
+
+                <!-- Support Widget -->
+                <div class="glass-card rounded-[1.5rem] p-6 text-center border border-white/60 shadow-sm relative overflow-hidden group">
+                    <div class="absolute inset-0 bg-gradient-to-br from-emerald-50 to-teal-50 opacity-50"></div>
+                    <div class="relative z-10">
+                        <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto mb-3 text-emerald-500 shadow-sm border border-emerald-100 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-headset text-lg"></i>
                         </div>
+                        <h4 class="font-bold text-slate-800 mb-1">Cần trợ giúp?</h4>
+                        <p class="text-xs text-slate-500 mb-4">Liên hệ với đội ngũ Mentor hoặc Admin để được hỗ trợ.</p>
+                        <button class="w-full py-2 bg-white border border-emerald-200 text-emerald-600 text-xs font-bold rounded-lg hover:bg-emerald-600 hover:text-white transition-all shadow-sm">
+                            Gửi yêu cầu
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </aside>
 
-                        <div th:if="${item.registration.status == 'COMPLETED'}" class="w-40">
-                            <div class="flex justify-between mb-1">
-                                <span class="text-[10px] font-bold text-blue-600 uppercase">Tiến độ</span>
-                                <span class="text-[10px] font-bold text-blue-600"
-                                      th:text="${#numbers.formatDecimal(item.progressPercent, 0, 0) + '%'}">0%</span>
-                            </div>
-                            <div class="w-full bg-gray-200 rounded-full h-2">
-                                <div class="bg-green-500 h-2 rounded-full transition-all duration-500 ease-out"
-                                     th:style="'width: ' + ${item.progressPercent} + '%'"></div>
-                            </div>
-                        </div>
-                    </td>
-
-                    <td class="py-4 px-4" th:text="${item.registration.pricePackage.name}">Gói học</td>
-
-                    <td class="py-4 px-4 font-semibold text-gray-800"
-                        th:text="${#numbers.formatDecimal(item.registration.totalCost, 0, 'COMMA', 0, 'POINT')} + ' đ'">
-                    </td>
-
-                    <td class="py-4 px-4">
-                        <span th:if="${item.registration.status == 'PENDING'}"
-                              class="px-3 py-1 text-xs font-semibold text-yellow-800 bg-yellow-200 rounded-full border border-yellow-300">
-                            Chờ xét duyệt
-                        </span>
-                        <span th:if="${item.registration.status == 'COMPLETED'}"
-                              class="px-3 py-1 text-xs font-semibold text-green-800 bg-green-200 rounded-full border border-green-300">
-                            Đã kích hoạt
-                        </span>
-                        <span th:if="${item.registration.status == 'CANCELLED'}"
-                              class="px-3 py-1 text-xs font-semibold text-red-800 bg-red-200 rounded-full border border-red-300">
-                            Đã hủy
-                        </span>
-                    </td>
-
-                    <td class="py-4 px-4 text-sm">
-                        <div th:if="${item.registration.validFrom != null}">
-                            <div class="text-gray-600" th:text="${#temporals.format(item.registration.validFrom, 'dd/MM/yy')}"></div>
-                            <div class="text-center text-xs text-gray-400">đến</div>
-                            <div class="text-gray-600" th:text="${#temporals.format(item.registration.validTo, 'dd/MM/yy')}"></div>
-                        </div>
-                        <div th:unless="${item.registration.validFrom != null}" class="text-gray-400 italic text-xs">
-                            (Chưa kích hoạt)
-                        </div>
-                    </td>
-
-                    <td class="py-4 px-4 text-xs align-middle">
-                        <div th:if="${item.registration.status == 'COMPLETED'}" class="flex flex-col space-y-2">
-
-                            <a th:if="${item.lastLessonId != null}"
-                               th:href="@{/learning/{courseId}/{lessonId}(courseId=${item.registration.course.id}, lessonId=${item.lastLessonId})}"
-                               class="text-center block w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded shadow transition duration-200 flex items-center justify-center">
-                                <i class="material-icons text-sm mr-1">play_circle_filled</i> Học tiếp
-                            </a>
-
-                            <a th:if="${item.lastLessonId == null}"
-                               th:href="@{/learning/{courseId}(courseId=${item.registration.course.id})}"
-                               class="text-center block w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-3 rounded shadow transition duration-200 flex items-center justify-center">
-                                <i class="material-icons text-sm mr-1">school</i> Bắt đầu
-                            </a>
-                        </div>
-
-                        <div th:if="${item.registration.status == 'PENDING'}" class="flex flex-col space-y-2" style="min-width: 120px;">
-                            <a th:href="@{/registration/pending/{orderCode}(orderCode=${item.registration.orderCode})}"
-                               class="text-center bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-3 rounded shadow">
-                                Xem thanh toán
-                            </a>
-
-                            <a th:href="@{/courses/{id}(id=${item.registration.course.id})}"
-                               class="text-center bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-3 rounded shadow">
-                                Sửa gói
-                            </a>
-
-                            <form th:action="@{/registration/cancel/{id}(id=${item.registration.id})}" method="POST"
-                                  onsubmit="return confirm('Bạn có chắc muốn hủy đăng ký này?');">
-                                <button type="submit"
-                                        class="w-full text-center bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-3 rounded shadow">
-                                    Hủy
-                                </button>
-                            </form>
-                        </div>
-                    </td>
-                </tr>
-
-                <tr th:if="${#lists.isEmpty(myCourses)}">
-                    <td colspan="7" class="text-center py-12 text-gray-500">
-                        <i class="material-icons text-4xl text-gray-300 block mb-2">sentiment_dissatisfied</i>
-                        Bạn chưa đăng ký khóa học nào. <a href="/courses" class="text-blue-500 hover:underline">Xem danh sách khóa học</a>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-    </main>
-
-    <div th:replace="~{fragments/my-courses-sidebar :: my-courses-sidebar}"></div>
+    </div>
 </div>
 
 <div th:replace="~{fragments/footer :: footer}"></div>
+
+<!-- ================= SCRIPTS ================= -->
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        AOS.init({ once: true, offset: 50, duration: 800, easing: 'ease-out-cubic' });
+    });
+</script>
 
 </body>
 </html>

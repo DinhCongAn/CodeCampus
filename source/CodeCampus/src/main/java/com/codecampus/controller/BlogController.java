@@ -53,19 +53,19 @@ public class BlogController {
     @GetMapping("/blog/{id}")
     public String showBlogDetails(@PathVariable("id") Integer id, Model model) {
         try {
-            // 1. Lấy chi tiết bài viết
             Blog blog = blogService.getPublishedBlogById(id);
 
-            // 2. Lấy dữ liệu cho Sidebar
-            List<BlogCategory> categories = blogService.getAllActiveCategories();
-            List<Blog> latestPosts = blogService.getLatestPosts();
+            // Lấy 2 bài viết liên quan cùng Category
+            List<Blog> relatedPosts = blogService.getRelatedBlogs(blog.getCategory().getId(), id);
 
-            // 3. Gửi dữ liệu sang View
             model.addAttribute("blog", blog);
-            model.addAttribute("categories", categories);
-            model.addAttribute("latestPosts", latestPosts);
+            model.addAttribute("categories", blogService.getAllActiveCategories());
+            model.addAttribute("latestPosts", blogService.getLatestPosts());
 
-            return "blog-details"; // Trả về templates/blog-details.html
+            // Gửi danh sách bài viết liên quan sang view
+            model.addAttribute("relatedPosts", relatedPosts);
+
+            return "blog-details";
         } catch (RuntimeException e) {
             return "redirect:/blog?error=notFound";
         }

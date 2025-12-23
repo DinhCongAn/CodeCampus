@@ -85,6 +85,13 @@ public class BlogService {
         return categoryRepository.findByIsActive(true);
     }
 
+    public List<Blog> getRelatedBlogs(Integer categoryId, Integer currentId) {
+        // 'PUBLISHED' là trạng thái bài viết đã công khai (tùy theo DB của bạn)
+        return blogRepository.findTop2ByCategoryIdAndIdNotAndStatusOrderByCreatedAtDesc(
+                categoryId, currentId, STATUS_PUBLISHED
+        );
+    }
+
 
     // ==================================================================
     // PHẦN 2: QUẢN TRỊ (ADMIN & USER DASHBOARD)
