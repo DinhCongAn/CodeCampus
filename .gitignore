@@ -1,5 +1,7 @@
 # === BẢO MẬT TÀI KHOẢN ===
 # Bỏ qua file cấu hình chứa mật khẩu DB, Mail, Google Keys
+.env
+*.env
 /source/CodeCampus/src/main/resources/application.properties
 
 # === FILE HỆ THỐNG VÀ BUILD ===
