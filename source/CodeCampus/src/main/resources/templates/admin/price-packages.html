@@ -15,21 +15,45 @@
 <div th:replace="~{fragments/sidebar-menu-admin :: sidebar('subjects')}"></div>
 
 <div class="main-content" id="mainContent">
+    <!-- Topbar -->
     <div class="topbar d-flex align-items-center justify-content-between">
-<!--        <div class="alert alert-warning border-warning shadow-sm m-3">-->
-<!--            <strong>DEBUG INFO:</strong> <br>-->
-<!--            User: <span class="fw-bold" th:text="${#authentication.name}"></span> <br>-->
-<!--            Authorities: <span class="fw-bold text-danger" th:text="${#authentication.authorities}"></span>-->
-<!--        </div>-->
         <div class="d-flex align-items-center">
-            <div class="toggle-btn me-4" onclick="toggleSidebar()"><i class="fas fa-bars"></i></div>
-            <h4 class="mb-0 fw-bold text-dark">Gói giá: <span class="text-primary" th:text="${course.name}">Java Basic</span></h4>
+            <div class="toggle-btn me-4" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </div>
+            <h4 class="mb-0 fw-bold text-dark">
+                Gói giá:
+                <span class="text-primary" th:text="${course.name}">Java Basic</span>
+            </h4>
         </div>
+
         <div class="d-flex align-items-center gap-3">
-            <span class="text-muted small">Xin chào, <strong th:text="${#authentication?.name}">Admin</strong></span>
-            <img th:src="@{https://ui-avatars.com/api/?name=Admin&background=4361ee&color=fff}" width="40" class="rounded-circle">
+
+            <!-- Nút Trang chủ -->
+            <a href="/home" target="_blank"
+               class="btn btn-outline-primary btn-sm rounded-pill d-flex align-items-center gap-2 shadow-sm px-3"
+               title="Mở trang chủ trong tab mới">
+                <i class="fas fa-home"></i>
+                <span class="d-none d-md-inline fw-medium">Trang chủ</span>
+                <i class="fas fa-external-link-alt small opacity-50 ms-1" style="font-size: 0.75em;"></i>
+            </a>
+
+            <!-- Chào user -->
+            <span class="text-muted small">
+            Xin chào, Admin
+            <strong th:text="${fullName}">Admin</strong>
+        </span>
+
+            <!-- Avatar -->
+            <img
+                    th:src="${avatarUrl != null
+                ? avatarUrl
+                : 'https://ui-avatars.com/api/?name=' + fullName + '&background=4361ee&color=fff'}"
+                    width="40"
+                    class="rounded-circle">
         </div>
     </div>
+
 
     <div class="container-fluid py-4">
         <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">

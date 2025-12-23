@@ -30,18 +30,44 @@
             </div>
             <h4 class="mb-0 fw-bold text-dark">Dashboard Tổng quan</h4>
         </div>
+
         <div class="d-flex align-items-center gap-3">
-            <span class="text-muted small">Xin chào, <strong th:text="${#authentication?.name}">Admin</strong></span>
-            <div class="dropdown">
-                <a class="dropdown-toggle d-flex align-items-center text-decoration-none" data-bs-toggle="dropdown">
-                    <img th:src="@{https://ui-avatars.com/api/?name=Admin&background=4361ee&color=fff}"
-                         alt="avatar" width="40" height="40" class="rounded-circle">
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end shadow">
-                    <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Thông tin cá nhân</a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item text-danger" th:href="@{/logout}"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</a></li>
-                </ul>
+
+            <!-- Button Quay về trang chủ -->
+            <a href="/home" target="_blank"
+               class="btn btn-outline-primary btn-sm rounded-pill d-flex align-items-center gap-2 shadow-sm px-3"
+               title="Mở trang chủ trong tab mới">
+                <i class="fas fa-home"></i>
+                <span class="d-none d-md-inline fw-medium">Trang chủ</span>
+                <i class="fas fa-external-link-alt small opacity-50 ms-1" style="font-size: 0.75em;"></i>
+            </a>
+
+            <!-- Email ẩn để JS dùng -->
+            <span id="currentUserEmail" class="d-none" th:text="${email}"></span>
+
+            <!-- Lời chào + Tên -->
+            <span class="text-muted small">
+            Xin chào, Admin
+            <strong th:text="${fullName}">Admin</strong>
+        </span>
+
+            <!-- Avatar -->
+            <div class="avatar-wrapper">
+                <!-- Có avatar trong DB -->
+                <img th:if="${avatarUrl}"
+                     th:src="${avatarUrl}"
+                     width="40"
+                     height="40"
+                     class="rounded-circle object-fit-cover"
+                     alt="Avatar">
+
+                <!-- Không có avatar → fallback theo tên -->
+                <img th:unless="${avatarUrl}"
+                     th:src="@{'https://ui-avatars.com/api/?name=' + ${fullName} + '&background=4361ee&color=fff'}"
+                     width="40"
+                     height="40"
+                     class="rounded-circle object-fit-cover"
+                     alt="Avatar">
             </div>
         </div>
     </div>
