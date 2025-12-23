@@ -315,19 +315,23 @@
                     </div>
                 </div>
             </div>
-            <button id="closeChatBtn" class="text-white/70 hover:text-white hover:bg-white/10 p-1.5 rounded-lg transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            <button id="closeChatBtn" class="text-white/70 hover:text-white hover:bg-white/10 p-2 rounded-lg transition-colors">
+                <i class="fa-solid fa-chevron-down"></i>
+            </button>
         </div>
         <div id="chatHistory" class="flex-1 bg-slate-50/50 p-4 overflow-y-auto custom-scrollbar space-y-4 scroll-smooth">
             <div class="flex items-start gap-3">
                 <div class="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-xs shrink-0 text-slate-700 shadow-sm">🤖</div>
                 <div class="flex flex-col space-y-1 max-w-[85%]">
-                    <div class="bg-white text-slate-700 px-4 py-3 rounded-2xl rounded-tl-none text-sm shadow-sm border border-slate-100 font-medium">Chào bạn! Mình là AI hỗ trợ học tập.</div>
+                    <div class="bg-white text-slate-700 px-4 py-3 rounded-2xl rounded-tl-none text-sm shadow-sm border border-slate-100 font-medium leading-relaxed">
+                        Chào bạn! 👋 Mình là AI hỗ trợ học tập.<br>Nếu gặp khó khăn hoặc cần gợi ý, cứ hỏi mình nhé!
+                    </div>
                 </div>
             </div>
         </div>
         <div class="p-3 bg-white border-t border-slate-100 shrink-0">
             <div class="relative flex items-center gap-2">
-                <input type="text" id="chatInput" placeholder="Hỏi về bài học..."
+                <input type="text" id="chatInput" placeholder="Hỏi về bài học..." autocomplete="off" spellcheck="false" aria-label="Chat Input"
                        class="w-full bg-slate-100 text-slate-800 text-sm rounded-xl py-3 pl-4 pr-10 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:bg-white transition-all placeholder-slate-400">
                 <button id="chatSendBtn" class="p-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl transition-all shadow-md hover:shadow-lg disabled:opacity-50"><i class="fa-solid fa-paper-plane text-xs"></i></button>
             </div>
@@ -336,7 +340,8 @@
     <!-- Button -->
     <button id="aiFloatButton" class="pointer-events-auto group relative flex items-center justify-center w-14 h-14 bg-gradient-to-br from-brand-600 to-indigo-600 text-white rounded-full shadow-lg hover:shadow-brand-500/50 transition-all duration-300 animate-float hover:scale-110 border-2 border-white z-50">
         <i class="fa-solid fa-wand-magic-sparkles text-xl"></i>
-        <span class="absolute top-0 right-0 flex h-3.5 w-3.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-red-500 border-2 border-white"></span></span>
+        <span class="absolute top-0 right-0 flex h-3.5 w-3.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-red-500 border-2 border-white"></span></span>
     </button>
 </div>
 

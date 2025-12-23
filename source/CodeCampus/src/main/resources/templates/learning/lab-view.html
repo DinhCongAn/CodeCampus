@@ -42,11 +42,25 @@
                             text: '#cccccc'
                         }
                     },
+                    boxShadow: {
+                        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.05)',
+                        'glow': '0 0 40px -10px rgba(99, 102, 241, 0.5)',
+                        'card-hover': '0 20px 40px -5px rgba(99, 102, 241, 0.15), 0 10px 20px -5px rgba(0, 0, 0, 0.04)',
+                    },
                     animation: {
+                        'blob': 'blob 10s infinite',
                         'float': 'float 6s ease-in-out infinite',
                         'slide-up': 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'shimmer': 'shimmer 2s infinite',
+                        'fade-in-up': 'fadeInUp 0.5s ease-out forwards',
                     },
                     keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        },
                         float: {
                             '0%, 100%': { transform: 'translateY(0)' },
                             '50%': { transform: 'translateY(-10px)' },
@@ -54,6 +68,13 @@
                         slideUp: {
                             '0%': { transform: 'translateY(100%)', opacity: '0' },
                             '100%': { transform: 'translateY(0)', opacity: '1' },
+                        },
+                        shimmer: {
+                            '100%': { transform: 'translateX(100%)' }
+                        },
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
                         }
                     },
                     typography: (theme) => ({
@@ -88,9 +109,25 @@
             background-color: #f8fafc;
             background-image:
                     radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
-                    radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.05) 0px, transparent 50%);
+                    radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.05) 0px, transparent 50%),
+                    radial-gradient(at 100% 100%, rgba(56, 189, 248, 0.08) 0px, transparent 50%);
             background-attachment: fixed;
             background-size: 100% 100%;
+            color: #1e293b;
+        }
+
+        /* Glass Card Styles */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.95);
+            border-color: rgba(99, 102, 241, 0.3);
+            box-shadow: var(--tw-shadow-card-hover);
         }
 
         /* Scrollbar styles */
@@ -110,13 +147,20 @@
 
         /* Editor Container Styles */
         #ide-overlay {
-            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease-in-out;
         }
         #ide-overlay.hidden-overlay {
             transform: translateY(100%);
             opacity: 0;
             pointer-events: none;
         }
+
+        /* Chat Animations */
+        @keyframes messagePop {
+            0% { transform: scale(0.9); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .message-enter { animation: messagePop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
     </style>
 </head>
 <body class="antialiased font-sans flex flex-col min-h-screen text-slate-800">
@@ -129,7 +173,7 @@
 <div class="flex flex-1 relative items-start">
 
     <!-- SIDEBAR: LESSON LIST (Sticky) -->
-    <aside class="w-full md:w-80 bg-white/80 backdrop-blur-xl border-r border-slate-200/60 flex-shrink-0 hidden md:flex flex-col z-20 sticky top-[74px] h-[calc(100vh-74px)] shadow-xl">
+    <aside class="w-full md:w-80 bg-white/80 backdrop-blur-xl border-r border-slate-200/60 flex-shrink-0 hidden md:flex flex-col z-20 sticky top-[74px] h-[calc(100vh-74px)] shadow-xl transition-all">
         <!-- Course Header -->
         <div class="p-5 border-b border-slate-100 bg-white/50 backdrop-blur-sm shrink-0">
             <a th:href="@{/my-courses}" class="text-xs font-bold text-slate-500 hover:text-brand-600 flex items-center mb-3 transition-colors uppercase tracking-wider group">
@@ -176,52 +220,65 @@
     </aside>
 
     <!-- MAIN DASHBOARD CONTENT (View Only) -->
-    <div class="flex-1 bg-slate-50/50 flex flex-col min-h-[calc(100vh-74px)]">
+    <div class="flex-1 bg-slate-50/50 flex flex-col min-h-[calc(100vh-74px)] relative overflow-hidden">
+        <!-- Background Decor (Blobs) -->
+        <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none -z-10">
+            <div class="absolute top-20 right-20 w-[500px] h-[500px] bg-brand-400/5 rounded-full blur-[100px] animate-blob"></div>
+            <div class="absolute bottom-20 left-20 w-[500px] h-[500px] bg-purple-400/5 rounded-full blur-[100px] animate-blob" style="animation-delay: 2s"></div>
+        </div>
+
         <!-- Expanded Width Container -->
-        <div class="max-w-7xl mx-auto w-full p-6 md:p-10 flex-1">
+        <div class="max-w-7xl mx-auto w-full p-6 md:p-10 flex-1 z-10">
 
             <!-- Header Card & Stats -->
-            <div class="bg-white rounded-[2rem] shadow-xl shadow-brand-900/5 border border-white p-8 md:p-10 mb-8 relative overflow-hidden group">
-                <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-brand-100/50 to-purple-100/50 rounded-full blur-3xl -mr-16 -mt-16 transition-all group-hover:scale-110"></div>
+            <div class="glass-card rounded-[2rem] overflow-hidden border border-white/60 shadow-lg p-8 md:p-12 mb-8 relative group">
+                <!-- Decorative Blob inside card -->
+                <div class="absolute -top-24 -right-24 w-64 h-64 bg-brand-500/10 rounded-full blur-[60px]"></div>
 
-                <span class="inline-flex items-center gap-2 px-3 py-1 bg-brand-50 text-brand-700 text-xs font-bold uppercase tracking-wider rounded-full mb-4 border border-brand-100">
-                    <i class="fa-solid fa-code"></i> Coding Lab
-                </span>
-                <h1 class="text-3xl md:text-5xl font-black text-slate-900 mb-6 leading-tight" th:text="${lab.name}">Tên bài Lab</h1>
-                <p class="text-slate-500 text-lg md:text-xl max-w-3xl leading-relaxed">Hoàn thành bài tập thực hành này để củng cố kiến thức. Môi trường IDE chuyên nghiệp đã sẵn sàng cho bạn.</p>
+                <div class="relative z-10">
+                    <span class="inline-flex items-center gap-2 px-3 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-extrabold uppercase tracking-widest border border-indigo-100 mb-6">
+                         <i class="fa-solid fa-code"></i> Coding Lab
+                    </span>
+                    <h1 class="text-3xl md:text-5xl font-black text-slate-900 mb-6 leading-tight" th:text="${lab.name}">Tên bài Lab</h1>
+                    <p class="text-slate-600 text-lg md:text-xl max-w-3xl leading-relaxed">Hoàn thành bài tập thực hành này để củng cố kiến thức. Môi trường IDE chuyên nghiệp đã sẵn sàng cho bạn.</p>
 
-                <div class="mt-10">
-                    <div class="flex flex-wrap gap-4 items-center mb-5">
-                        <button onclick="openIDE()" class="px-8 py-5 bg-slate-900 text-white font-bold rounded-2xl shadow-lg hover:shadow-2xl hover:bg-slate-800 hover:-translate-y-1 transition-all flex items-center gap-3 text-lg group-btn">
-                            <span>Mở Trình biên tập Code</span>
-                            <i class="fa-solid fa-arrow-right-long transition-transform group-btn-hover:translate-x-1"></i>
-                        </button>
+                    <div class="mt-10">
+                        <div class="flex flex-wrap gap-4 items-center mb-5">
+                            <button onclick="openIDE()" class="group relative px-8 py-5 bg-gradient-to-r from-slate-900 to-slate-800 text-white font-bold rounded-2xl shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all flex items-center gap-3 text-lg overflow-hidden">
+                                <span class="relative z-10">Mở Trình biên tập Code</span>
+                                <i class="fa-solid fa-arrow-right-long relative z-10 transition-transform group-hover:translate-x-1"></i>
+                                <!-- Shine Effect -->
+                                <div class="absolute top-0 -left-full w-1/2 h-full bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-12 group-hover:animate-shimmer"></div>
+                            </button>
 
-                        <!-- Score Box -->
-                        <div th:if="${attempt.aiGrade != null}" class="px-6 py-5 bg-white border border-slate-200 rounded-2xl flex items-center gap-3 shadow-sm">
-                            <div class="text-xs font-bold text-slate-400 uppercase">Kết quả gần nhất:</div>
-                            <div class="font-black text-xl" th:classappend="${attempt.aiGrade >= 70 ? 'text-emerald-600' : 'text-red-600'}" th:text="${attempt.aiGrade} + '/100'"></div>
+                            <!-- Score Box -->
+                            <div th:if="${attempt.aiGrade != null}" class="px-6 py-5 bg-white/80 backdrop-blur border border-slate-200 rounded-2xl flex items-center gap-3 shadow-sm">
+                                <div class="text-xs font-bold text-slate-400 uppercase">Kết quả gần nhất:</div>
+                                <div class="font-black text-xl" th:classappend="${attempt.aiGrade >= 70 ? 'text-emerald-600' : 'text-red-600'}" th:text="${attempt.aiGrade} + '/100'"></div>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- AI Feedback Box (Ngay dưới điểm số) -->
-                    <div th:if="${attempt.aiGrade != null and attempt.aiFeedback != null}" class="bg-white/60 backdrop-blur-md border border-slate-200/60 p-5 rounded-2xl max-w-4xl text-slate-700 leading-relaxed shadow-sm relative overflow-hidden">
-                        <div class="absolute left-0 top-0 bottom-0 w-1" th:classappend="${attempt.aiGrade >= 70 ? 'bg-emerald-400' : 'bg-red-400'}"></div>
-                        <div class="flex items-start gap-3">
-                            <i class="fa-solid fa-wand-magic-sparkles mt-1" th:classappend="${attempt.aiGrade >= 70 ? 'text-emerald-500' : 'text-red-500'}"></i>
-                            <div>
-                                <span class="font-bold text-slate-900 block mb-1">Nhận xét của AI:</span>
-                                <span th:text="${attempt.aiFeedback}"></span>
+                        <!-- AI Feedback Box -->
+                        <div th:if="${attempt.aiGrade != null and attempt.aiFeedback != null}" class="bg-white/70 backdrop-blur-xl border border-white/60 p-5 rounded-2xl max-w-4xl text-slate-700 leading-relaxed shadow-sm relative overflow-hidden mt-6 animate-fade-in-up">
+                            <div class="absolute left-0 top-0 bottom-0 w-1" th:classappend="${attempt.aiGrade >= 70 ? 'bg-emerald-400' : 'bg-red-400'}"></div>
+                            <div class="flex items-start gap-3">
+                                <div class="p-2 rounded-full" th:classappend="${attempt.aiGrade >= 70 ? 'bg-emerald-50 text-emerald-500' : 'bg-red-50 text-red-500'}">
+                                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                </div>
+                                <div>
+                                    <span class="font-bold text-slate-900 block mb-1">Nhận xét của AI:</span>
+                                    <span th:text="${attempt.aiFeedback}"></span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Description Preview (Full Width - Removed Lab Info Box) -->
+            <!-- Description Preview -->
             <div class="mb-16">
                 <h3 class="font-bold text-xl text-slate-900 mb-4 flex items-center gap-2"><i class="fa-solid fa-book-open text-brand-500"></i> Mô tả bài tập</h3>
-                <div th:utext="${lab.description}" class="prose prose-lg prose-slate max-w-none bg-white p-8 rounded-2xl border border-slate-200 shadow-sm"></div>
+                <div th:utext="${lab.description}" class="glass-card prose prose-lg prose-slate max-w-none p-8 rounded-2xl border border-white/60 shadow-sm"></div>
             </div>
 
             <!-- Navigation Buttons (Prev/Next) -->
@@ -350,42 +407,65 @@
     </div>
 </div>
 
-<!-- ================= AI CHAT WIDGET ================= -->
+<!-- ================= AI CHAT WIDGET (IMPROVED) ================= -->
 <div class="fixed bottom-6 right-6 z-[110] flex flex-col items-end pointer-events-none">
-    <div id="ai-chat-window" class="pointer-events-auto bg-white/90 backdrop-blur-xl w-[380px] h-[550px] rounded-[1.5rem] shadow-2xl border border-white/50 mb-4 transform transition-all duration-300 translate-y-10 opacity-0 invisible flex flex-col overflow-hidden ring-1 ring-slate-900/5 font-sans origin-bottom-right">
-        <div class="bg-gradient-to-r from-brand-600 to-indigo-600 px-5 py-4 flex items-center justify-between cursor-pointer shadow-md" id="header-chat">
+    <!-- Chat Window -->
+    <div id="ai-chat-window" class="pointer-events-auto bg-white/95 backdrop-blur-xl w-[380px] h-[550px] rounded-[1.5rem] shadow-2xl border border-white/60 mb-4 transform transition-all duration-300 translate-y-10 opacity-0 invisible flex flex-col overflow-hidden ring-1 ring-slate-900/5 font-sans origin-bottom-right">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-brand-600 to-indigo-600 px-5 py-4 flex items-center justify-between cursor-pointer shadow-md shrink-0" id="header-chat">
             <div class="flex items-center space-x-3">
-                <div class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-lg backdrop-blur-sm border border-white/20 shadow-inner">🤖</div>
+                <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-xl backdrop-blur-sm border border-white/20 shadow-inner">
+                    🤖
+                </div>
                 <div>
-                    <h4 class="font-bold text-sm text-white">Trợ lý Lab AI</h4>
+                    <h4 class="font-bold text-sm text-white">Trợ lý CodeCampus</h4>
                     <div class="flex items-center space-x-1.5">
-                        <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse shadow-[0_0_5px_rgba(52,211,153,0.8)]"></span>
-                        <span class="text-[10px] text-white/90 font-medium">Đang trực tuyến</span>
+                        <span class="relative flex h-2 w-2">
+                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                          <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                        <span class="text-[10px] text-white/90 font-medium">Hỗ trợ thực hành</span>
                     </div>
                 </div>
             </div>
-            <button id="closeChatBtn" class="text-white/70 hover:text-white hover:bg-white/10 p-1.5 rounded-lg transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            <button id="closeChatBtn" class="text-white/70 hover:text-white hover:bg-white/10 p-2 rounded-lg transition-colors">
+                <i class="fa-solid fa-chevron-down"></i>
+            </button>
         </div>
+
+        <!-- Chat History -->
         <div id="chatHistory" class="flex-1 bg-slate-50/50 p-4 overflow-y-auto custom-scrollbar space-y-4 scroll-smooth">
-            <div class="flex items-start gap-3">
+            <!-- AI Welcome Message -->
+            <div class="flex items-start gap-3 animate-fade-in-up">
                 <div class="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-xs shrink-0 text-slate-700 shadow-sm">🤖</div>
                 <div class="flex flex-col space-y-1 max-w-[85%]">
-                    <div class="bg-white text-slate-700 px-4 py-3 rounded-2xl rounded-tl-none text-sm shadow-sm border border-slate-100 font-medium">
+                    <div class="bg-white text-slate-700 px-4 py-3 rounded-2xl rounded-tl-none text-sm shadow-sm border border-slate-100 font-medium leading-relaxed">
                         Chào bạn! 👋 Mình là AI hỗ trợ bài lab này.<br>Nếu code gặp lỗi hoặc cần gợi ý, cứ hỏi mình nhé!
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Input Area -->
         <div class="p-3 bg-white border-t border-slate-100 shrink-0">
             <div class="relative flex items-center gap-2">
-                <input type="text" id="chatInput" placeholder="Hỏi về lỗi code..."
-                       class="w-full bg-slate-100 text-slate-800 text-sm rounded-xl py-3 pl-4 pr-10 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:bg-white transition-all placeholder-slate-400 font-medium">
-                <button id="chatSendBtn" class="p-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl transition-all shadow-md hover:shadow-lg disabled:opacity-50"><i class="fa-solid fa-paper-plane text-xs"></i></button>
+                <input type="text" id="chatInput" placeholder="Hỏi về bài thực hành..." autocomplete="off" spellcheck="false" aria-label="Chat Input"
+                       class="w-full bg-slate-100 text-slate-800 text-sm rounded-xl py-3.5 pl-4 pr-12 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:bg-white transition-all placeholder-slate-400 font-medium">
+                <button id="chatSendBtn" class="absolute right-2 p-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-all shadow-md hover:shadow-lg flex items-center justify-center w-8 h-8">
+                    <i class="fa-solid fa-paper-plane text-xs"></i>
+                </button>
             </div>
         </div>
     </div>
+
+    <!-- Floating Button -->
     <button id="aiFloatButton" class="pointer-events-auto group relative flex items-center justify-center w-14 h-14 bg-gradient-to-br from-brand-600 to-indigo-600 text-white rounded-full shadow-lg hover:shadow-brand-500/50 transition-all duration-300 animate-float hover:scale-110 border-2 border-white z-50">
         <i class="fa-solid fa-wand-magic-sparkles text-xl"></i>
+        <!-- Ping Effect -->
+        <span class="absolute top-0 right-0 -mr-1 -mt-1 flex h-4 w-4">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+           <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-red-500 border-2 border-white"></span></span>
+        </span>
     </button>
 </div>
 
@@ -528,7 +608,7 @@
         };
     });
 
-    // === 5. Chat UI Logic ===
+    // === 5. Chat UI Logic (Improved) ===
     const aiBtn = document.getElementById('aiFloatButton');
     const chatWindow = document.getElementById('ai-chat-window');
     const closeChatBtn = document.getElementById('closeChatBtn');
@@ -551,20 +631,76 @@
 
     aiBtn.onclick = toggleChat;
     closeChatBtn.onclick = toggleChat;
+    // Allow clicking header to close, but not the buttons inside
     headerChat.onclick = (e) => { if(!e.target.closest('button')) toggleChat() };
 
     const sendChat = () => {
         const msg = chatInput.value.trim();
         if (!msg) return;
-        const div = document.createElement('div');
-        div.className = `flex items-start gap-3 flex-row-reverse message-enter`;
-        div.innerHTML = `<div class="bg-brand-600 text-white rounded-2xl rounded-tr-none shadow-md px-4 py-2.5 text-sm">${formatMessageContent(msg)}</div>`;
-        chatHistory.appendChild(div);
+
+        // 1. User Message (Right side)
+        const userDiv = document.createElement('div');
+        userDiv.className = `flex items-end gap-3 flex-row-reverse message-enter`;
+        userDiv.innerHTML = `
+
+            <div class="flex flex-col space-y-1 max-w-[85%]">
+                <div class="bg-brand-600 text-white px-4 py-2.5 rounded-2xl rounded-tr-none text-sm shadow-md font-medium">
+                    ${formatMessageContent(msg)}
+                </div>
+            </div>
+        `;
+        chatHistory.appendChild(userDiv);
         chatInput.value = '';
         chatHistory.scrollTop = chatHistory.scrollHeight;
+
+        // 2. Simulate AI Typing (Loading bubble)
+        const loadingDiv = document.createElement('div');
+        loadingDiv.id = 'ai-typing-indicator';
+        loadingDiv.className = `flex items-end gap-3 message-enter mt-3`;
+        loadingDiv.innerHTML = `
+             <div class="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-xs shrink-0 text-slate-700 shadow-sm">🤖</div>
+             <div class="bg-white px-4 py-3 rounded-2xl rounded-tl-none border border-slate-100 shadow-sm w-16">
+                 <div class="flex space-x-1 h-2 items-center justify-center">
+                    <div class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"></div>
+                    <div class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                    <div class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                 </div>
+             </div>
+        `;
+        chatHistory.appendChild(loadingDiv);
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+
+        // 3. Mock AI Response (Delayed)
+        setTimeout(() => {
+            // Remove loading
+            const loader = document.getElementById('ai-typing-indicator');
+            if(loader) loader.remove();
+
+            // Add AI Message
+            const aiDiv = document.createElement('div');
+            aiDiv.className = `flex items-start gap-3 message-enter`;
+            aiDiv.innerHTML = `
+                <div class="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-xs shrink-0 text-slate-700 shadow-sm">🤖</div>
+                <div class="flex flex-col space-y-1 max-w-[85%]">
+                    <div class="bg-white text-slate-700 px-4 py-3 rounded-2xl rounded-tl-none text-sm shadow-sm border border-slate-100 font-medium leading-relaxed">
+                        Cảm ơn câu hỏi của bạn! Vì đây là bản Demo nên mình chỉ trả lời mẫu thôi nhé. Code bạn viết trông rất hứa hẹn! 🚀
+                    </div>
+                </div>
+             `;
+            chatHistory.appendChild(aiDiv);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }, 1500);
     };
+
     chatSendBtn.onclick = sendChat;
-    chatInput.addEventListener('keydown', e => e.key === 'Enter' && sendChat());
+
+    // Handle Enter Key
+    chatInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault(); // Prevent default if inside a form or textarea (future proof)
+            sendChat();
+        }
+    });
 </script>
 </body>
 </html>
