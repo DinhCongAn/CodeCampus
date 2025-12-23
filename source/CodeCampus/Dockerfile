@@ -1,10 +1,10 @@
-# Build dự án bằng Maven
-FROM maven:3.8.5-openjdk-17 AS build
+# 1. Dùng Maven với JDK 21 để build
+FROM maven:3.9.6-eclipse-temurin-21 AS build
 COPY . .
 RUN mvn clean package -DskipTests
 
-# Chạy dự án
-FROM openjdk:17.0.1-jdk-slim
+# 2. Dùng OpenJDK 21 để chạy
+FROM eclipse-temurin:21-jdk-alpine
 COPY --from=build /target/CodeCampus-0.0.1-SNAPSHOT.jar demo.jar
 EXPOSE 8080
 ENTRYPOINT ["java","-jar","demo.jar"]
