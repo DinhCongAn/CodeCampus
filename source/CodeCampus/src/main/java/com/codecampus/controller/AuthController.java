@@ -32,35 +32,10 @@ public class AuthController {
         return "login"; // templates/login.html
     }
 
-//    @PostMapping("/login")
-//    public String processLogin(@RequestParam String email,
-//                               @RequestParam String password,
-//                               HttpServletRequest request,
-//                               RedirectAttributes redirectAttributes) {
-//
-//        User authenticatedUser = userService.authenticate(email, password);
-//
-//        if (authenticatedUser != null) {
-//            // Đăng nhập thành công -> Tạo session
-//            HttpSession session = request.getSession(true);
-//            session.setAttribute("loggedInUserId", authenticatedUser.getId());
-//            session.setAttribute("loggedInUserEmail", authenticatedUser.getEmail());
-//            session.setAttribute("loggedInUserFullName", authenticatedUser.getFullName());
-//            session.setAttribute("loggedInUserRole", authenticatedUser.getRole().getName());
-//
-//            session.setMaxInactiveInterval(30 * 60); // 30 phút
-//
-//            return "redirect:/dashboard";
-//        } else {
-//            // Đăng nhập thất bại
-//            redirectAttributes.addFlashAttribute("loginError",
-//                    "Email, mật khẩu không đúng hoặc tài khoản chưa được kích hoạt.");
-//            return "redirect:/login";
-//        }
-//    }
 
     @GetMapping("/register")
-    public String showRegistrationForm(Model model) {
+    public String showRegistrationForm(Model model, HttpServletRequest request) {
+        request.getSession(true);
         model.addAttribute("userDto", new RegistrationDto());
         return "register"; // templates/register.html
     }
@@ -108,14 +83,6 @@ public class AuthController {
         return "redirect:/login";
     }
 
-//    @GetMapping("/logout")
-//    public String logout(HttpServletRequest request) {
-//        HttpSession session = request.getSession(false);
-//        if (session != null) {
-//            session.invalidate(); // Hủy session
-//        }
-//        return "redirect:/login?logout=true";
-//    }
     // --- CÁC ENDPOINT MỚI CHO QUÊN MẬT KHẨU ---
 
     @GetMapping("/forgot-password")

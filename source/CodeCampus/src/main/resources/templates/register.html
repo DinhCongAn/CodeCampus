@@ -124,7 +124,7 @@
             </div>
 
             <form th:action="@{/register}" th:object="${userDto}" method="post" class="space-y-5" onsubmit="return validateFinal()">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+<!--                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />-->
 
                 <!-- Name -->
                 <div>
