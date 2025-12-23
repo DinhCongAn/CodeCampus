@@ -149,11 +149,11 @@
                                 <div class="w-8 h-8 rounded-lg bg-slate-50 text-slate-500 flex items-center justify-center mr-3 group-hover:bg-white group-hover:text-brand-600 group-hover:shadow-sm transition-all"><i class="fa-solid fa-graduation-cap text-xs"></i></div>
                                 <span class="font-semibold text-sm">Việc học của tôi</span>
                             </a>
-                            <a th:href="@{/user/my-blogs}" class="flex items-center px-3 py-2.5 text-slate-600 rounded-xl hover:bg-brand-50 hover:text-brand-700 transition-all group" sec:authorize="hasAuthority('TEACHER') or hasAuthority('ADMIN') or hasAuthority('STUDENT')">
+                            <a th:href="@{/user/my-blogs}" class="flex items-center px-3 py-2.5 text-slate-600 rounded-xl hover:bg-brand-50 hover:text-brand-700 transition-all group">
                                 <div class="w-8 h-8 rounded-lg bg-slate-50 text-slate-500 flex items-center justify-center mr-3 group-hover:bg-white group-hover:text-brand-600 group-hover:shadow-sm transition-all"><i class="fa-solid fa-pen-nib text-xs"></i></div>
-                                <span class="font-semibold text-sm">Quản lý bài viết</span>
+                                <span class="font-semibold text-sm">Bài viết của tôi</span>
                             </a>
-                            <a th:href="@{/admin/dashboard}" class="flex items-center px-3 py-2.5 text-slate-600 rounded-xl hover:bg-red-50 hover:text-red-700 transition-all group" sec:authorize="hasAuthority('ADMIN')">
+                            <a th:href="@{/admin/dashboard}" class="flex items-center px-3 py-2.5 text-slate-600 rounded-xl hover:bg-red-50 hover:text-red-700 transition-all group" sec:authorize="hasAuthority('ROLE_ADMIN')">
                                 <div class="w-8 h-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center mr-3 group-hover:bg-white group-hover:text-red-600 group-hover:shadow-sm transition-all"><i class="fa-solid fa-chart-pie text-xs"></i></div>
                                 <span class="font-semibold text-sm text-red-600">Trang quản trị</span>
                             </a>

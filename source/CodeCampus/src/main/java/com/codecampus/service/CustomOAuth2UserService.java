@@ -8,6 +8,7 @@ import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.util.Collections;
 import java.util.Map;
@@ -30,27 +31,23 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String name = (String) attributes.get("name");
         String avatarUrl = (String) attributes.get("picture");
 
-        // Xử lý lưu/cập nhật DB
         User user = userService.processOAuthPostLogin(email, name, avatarUrl);
 
         if ("blocked".equals(user.getStatus())) {
-            // Tạo một OAuth2Error với mã lỗi là "blocked"
-            OAuth2Error oauth2Error = new OAuth2Error("blocked");
-            throw new OAuth2AuthenticationException(oauth2Error, "blocked");
+            throw new OAuth2AuthenticationException(new OAuth2Error("blocked"), "blocked");
         }
-
         if ("pending".equals(user.getStatus())) {
-            OAuth2Error oauth2Error = new OAuth2Error("pending");
-            throw new OAuth2AuthenticationException(oauth2Error, "pending");
+            throw new OAuth2AuthenticationException(new OAuth2Error("pending"), "pending");
         }
 
+        // Xử lý Role
         String roleName = user.getRole().getName();
         if (!roleName.startsWith("ROLE_")) {
             roleName = "ROLE_" + roleName;
         }
 
         return new DefaultOAuth2User(
-                Collections.singletonList(new org.springframework.security.core.authority.SimpleGrantedAuthority(roleName)),
+                Collections.singletonList(new SimpleGrantedAuthority(roleName)),
                 attributes,
                 "email"
         );
