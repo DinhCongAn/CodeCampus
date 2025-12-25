@@ -51,7 +51,7 @@ public class AdminLessonController {
         model.addAttribute("lessonPage", lessonPage);
         model.addAttribute("course", courseService.getCourseById(courseId));
         model.addAttribute("types", lessonTypeRepository.findAll());
-        model.addAttribute("packages", pricePackageRepository.findByCourseId(courseId));
+        model.addAttribute("packages", pricePackageRepository.findByCourseId(Math.toIntExact(courseId)));
         model.addAttribute("testTypes", testTypeRepository.findAll());
         model.addAttribute("quizLevels", questionLevelRepository.findAll());// Ép kiểu .intValue() nếu courseId là Integer trong Repo
 

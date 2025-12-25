@@ -17,7 +17,7 @@ public class PricePackageService {
     @Autowired private CourseRepository courseRepository; // Để lấy thông tin khóa học
 
     public List<PricePackage> getPackagesByCourse(Long courseId) {
-        return pricePackageRepository.findByCourseId(courseId);
+        return pricePackageRepository.findByCourseId(Math.toIntExact(courseId));
     }
 
     public PricePackage getPackageById(Integer id) {
