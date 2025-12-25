@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thông báo | CodeCampus</title>
+
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- Animation -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" th:href="@{/images/logo.png}" />
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: { 50: '#eef2ff', 100: '#e0e7ff', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca', 900: '#312e81' }
+                    },
+                    animation: {
+                        'blob': 'blob 10s infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        },
+                        float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-10px)' } }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #f8fafc;
+            background-image:
+                    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
+                    radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.05) 0px, transparent 50%),
+                    radial-gradient(at 100% 100%, rgba(56, 189, 248, 0.08) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: #1e293b;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.95);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.1);
+            border-color: rgba(99, 102, 241, 0.2);
+        }
+
+        /* Unread Dot Animation */
+        .unread-dot {
+            animation: pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
+        }
+    </style>
+</head>
+<body class="antialiased font-sans min-h-screen flex flex-col">
+
+<!-- HEADER -->
+<div class="sticky top-0 z-50">
+    <div th:replace="~{fragments/header :: header}"></div>
+</div>
+
+<!-- MAIN CONTENT -->
+<main class="flex-grow w-full relative">
+
+    <!-- Decor Background -->
+    <div class="fixed inset-0 -z-10 pointer-events-none">
+        <div class="absolute top-20 left-20 w-[600px] h-[600px] bg-brand-400/10 rounded-full blur-[100px] mix-blend-multiply animate-blob"></div>
+        <div class="absolute bottom-20 right-20 w-[600px] h-[600px] bg-purple-300/10 rounded-full blur-[100px] mix-blend-multiply animate-blob animation-delay-2000"></div>
+    </div>
+
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 py-12">
+
+        <!-- Page Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8" data-aos="fade-down">
+            <div>
+                <h1 class="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+                    Thông báo
+                    <span class="inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-red-500 rounded-full animate-bounce" th:if="${unreadCount > 0}" th:text="${unreadCount}">3</span>
+                </h1>
+                <p class="text-slate-500 mt-1 text-sm font-medium">Cập nhật mới nhất về khóa học và tài khoản của bạn.</p>
+            </div>
+
+            <div class="flex gap-2">
+                <button class="px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-brand-600 transition-all shadow-sm">
+                    <i class="fa-solid fa-check-double mr-1"></i> Đánh dấu đã đọc
+                </button>
+                <div class="relative group">
+                    <button class="px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 transition-all shadow-sm">
+                        <i class="fa-solid fa-filter mr-1"></i> Lọc
+                    </button>
+                    <!-- Dropdown Filter (Simple Hover) -->
+                    <div class="absolute right-0 mt-2 w-40 bg-white rounded-xl shadow-lg border border-slate-100 hidden group-hover:block z-10 p-1">
+                        <a href="#" class="block px-4 py-2 text-sm text-slate-600 hover:bg-brand-50 hover:text-brand-600 rounded-lg">Tất cả</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-slate-600 hover:bg-brand-50 hover:text-brand-600 rounded-lg">Chưa đọc</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-slate-600 hover:bg-brand-50 hover:text-brand-600 rounded-lg">Hệ thống</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-slate-600 hover:bg-brand-50 hover:text-brand-600 rounded-lg">Khuyến mãi</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notifications List -->
+        <div class="space-y-4">
+
+            <!-- Group: Hôm nay -->
+            <div data-aos="fade-up">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 ml-2">Hôm nay</h3>
+
+                <!-- Item 1: System (Unread) -->
+                <div class="glass-card p-4 rounded-2xl flex gap-4 cursor-pointer relative overflow-hidden group bg-white">
+                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-brand-500"></div> <!-- Unread Indicator Strip -->
+
+                    <div class="w-12 h-12 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center text-xl shrink-0 border border-brand-100 shadow-sm">
+                        <i class="fa-solid fa-bell"></i>
+                    </div>
+
+                    <div class="flex-grow min-w-0">
+                        <div class="flex justify-between items-start">
+                            <h4 class="font-bold text-slate-900 text-sm mb-1 group-hover:text-brand-600 transition-colors">Chào mừng đến với CodeCampus!</h4>
+                            <span class="text-[10px] font-bold text-brand-600 bg-brand-50 px-2 py-0.5 rounded-full whitespace-nowrap">Mới</span>
+                        </div>
+                        <p class="text-sm text-slate-500 line-clamp-2">Cảm ơn bạn đã đăng ký tài khoản. Hãy bắt đầu hành trình chinh phục lập trình ngay hôm nay với các khóa học miễn phí.</p>
+                        <span class="text-xs text-slate-400 mt-2 block font-medium">2 giờ trước</span>
+                    </div>
+                </div>
+
+                <!-- Item 2: Course (Unread) -->
+                <div class="glass-card p-4 rounded-2xl flex gap-4 cursor-pointer relative overflow-hidden group mt-3 bg-white">
+                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500"></div>
+
+                    <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shrink-0 border border-emerald-100 shadow-sm">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    </div>
+
+                    <div class="flex-grow min-w-0">
+                        <div class="flex justify-between items-start">
+                            <h4 class="font-bold text-slate-900 text-sm mb-1 group-hover:text-emerald-600 transition-colors">Hoàn thành bài học: HTML Cơ bản</h4>
+                            <span class="w-2 h-2 rounded-full bg-red-500 unread-dot"></span>
+                        </div>
+                        <p class="text-sm text-slate-500 line-clamp-2">Chúc mừng bạn đã hoàn thành bài học đầu tiên. Tiếp tục phát huy nhé!</p>
+                        <span class="text-xs text-slate-400 mt-2 block font-medium">5 giờ trước</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Group: Hôm qua -->
+            <div class="pt-4" data-aos="fade-up" data-aos-delay="100">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 ml-2">Hôm qua</h3>
+
+                <!-- Item 3: Promo (Read) -->
+                <div class="glass-card p-4 rounded-2xl flex gap-4 cursor-pointer group bg-white/60 hover:bg-white transition-colors">
+                    <div class="w-12 h-12 rounded-xl bg-orange-50 text-orange-500 flex items-center justify-center text-xl shrink-0 border border-orange-100 shadow-sm opacity-80 group-hover:opacity-100 transition-opacity">
+                        <i class="fa-solid fa-gift"></i>
+                    </div>
+
+                    <div class="flex-grow min-w-0 opacity-80 group-hover:opacity-100 transition-opacity">
+                        <div class="flex justify-between items-start">
+                            <h4 class="font-bold text-slate-800 text-sm mb-1 group-hover:text-orange-600 transition-colors">Ưu đãi 50% khóa học Pro</h4>
+                        </div>
+                        <p class="text-sm text-slate-500 line-clamp-2">Chương trình khuyến mãi đặc biệt dành riêng cho thành viên mới. Áp dụng đến hết tuần này.</p>
+                        <span class="text-xs text-slate-400 mt-2 block font-medium">Hôm qua, 14:30</span>
+                    </div>
+                </div>
+
+                <!-- Item 4: Security (Read) -->
+                <div class="glass-card p-4 rounded-2xl flex gap-4 cursor-pointer group mt-3 bg-white/60 hover:bg-white transition-colors">
+                    <div class="w-12 h-12 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center text-xl shrink-0 border border-slate-200 shadow-sm opacity-80 group-hover:opacity-100 transition-opacity">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+
+                    <div class="flex-grow min-w-0 opacity-80 group-hover:opacity-100 transition-opacity">
+                        <div class="flex justify-between items-start">
+                            <h4 class="font-bold text-slate-800 text-sm mb-1 group-hover:text-slate-900 transition-colors">Cập nhật mật khẩu thành công</h4>
+                        </div>
+                        <p class="text-sm text-slate-500 line-clamp-2">Tài khoản của bạn vừa được thay đổi mật khẩu. Nếu không phải bạn thực hiện, vui lòng liên hệ ngay.</p>
+                        <span class="text-xs text-slate-400 mt-2 block font-medium">Hôm qua, 09:15</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empty State (Hidden by default, show if list empty) -->
+            <div th:if="${#lists.isEmpty(notifications)}" class="flex flex-col items-center justify-center py-16 text-center glass-card rounded-[2rem] bg-white/40 border-dashed border-2 border-slate-200">
+                <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm">
+                    <i class="fa-regular fa-bell-slash text-4xl text-slate-300"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-700">Không có thông báo mới</h3>
+                <p class="text-slate-500 text-sm mt-1 max-w-xs">Bạn đã cập nhật tất cả thông tin. Hãy quay lại học tập nhé!</p>
+                <a href="/my-courses" class="mt-6 px-6 py-2.5 bg-brand-600 text-white font-bold rounded-xl text-sm shadow-lg shadow-brand-500/30 hover:bg-brand-700 hover:-translate-y-0.5 transition-all">
+                    Về khóa học của tôi
+                </a>
+            </div>
+
+        </div>
+
+        <!-- Load More -->
+        <div class="mt-8 text-center" th:if="${!#lists.isEmpty(notifications)}">
+            <button class="px-6 py-2.5 bg-white border border-slate-200 text-slate-600 font-bold rounded-xl text-sm hover:bg-slate-50 hover:text-brand-600 transition-colors shadow-sm">
+                Xem thêm thông báo cũ
+            </button>
+        </div>
+
+    </div>
+</main>
+
+<!-- FOOTER -->
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<!-- SCRIPTS -->
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+    AOS.init({
+        once: true,
+        offset: 50,
+        duration: 800,
+        easing: 'ease-out-cubic'
+    });
+</script>
+</body>
+</html>

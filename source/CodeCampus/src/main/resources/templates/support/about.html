@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Về CodeCampus | Câu chuyện của Đinh Công An & Cộng sự</title>
+
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- Animation -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" th:href="@{/images/logo.png}" />
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: { 50: '#eef2ff', 100: '#e0e7ff', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca', 900: '#312e81' }
+                    },
+                    animation: {
+                        'blob': 'blob 10s infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                        'float-delayed': 'float 6s ease-in-out 3s infinite',
+                        'spin-slow': 'spin 12s linear infinite',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        },
+                        float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-20px)' } }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #f8fafc;
+            background-image:
+                    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
+                    radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.08) 0px, transparent 50%),
+                    radial-gradient(at 100% 100%, rgba(56, 189, 248, 0.1) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: #1e293b;
+            overflow-x: hidden;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+            transition: all 0.4s ease;
+        }
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.8);
+            border-color: rgba(99, 102, 241, 0.3);
+            box-shadow: 0 20px 40px -5px rgba(99, 102, 241, 0.15);
+            transform: translateY(-5px);
+        }
+        .text-gradient {
+            background: linear-gradient(135deg, #4f46e5 0%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        /* Custom timeline line */
+        .timeline-line::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 100%;
+            background: #e2e8f0;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body class="antialiased font-sans min-h-screen flex flex-col">
+
+<!-- HEADER -->
+<div class="sticky top-0 z-50">
+    <div th:replace="~{fragments/header :: header}"></div>
+</div>
+
+<!-- MAIN CONTENT -->
+<main class="flex-grow w-full relative">
+
+    <!-- Decor Background -->
+    <div class="fixed inset-0 -z-10 pointer-events-none">
+        <div class="absolute top-0 left-0 w-[800px] h-[800px] bg-brand-400/10 rounded-full blur-[120px] mix-blend-multiply animate-blob"></div>
+        <div class="absolute bottom-0 right-0 w-[800px] h-[800px] bg-purple-300/10 rounded-full blur-[120px] mix-blend-multiply animate-blob animation-delay-2000"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-pink-300/10 rounded-full blur-[120px] mix-blend-multiply animate-blob animation-delay-4000"></div>
+    </div>
+
+    <!-- 1. HERO SECTION -->
+    <section class="py-20 lg:py-32 px-4 sm:px-6 relative overflow-hidden">
+        <div class="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+
+            <!-- Text Content -->
+            <div data-aos="fade-right">
+                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/50 border border-brand-200 text-sm font-bold text-brand-600 mb-6 shadow-sm backdrop-blur-sm">
+                        <span class="relative flex h-2 w-2">
+                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
+                          <span class="relative inline-flex rounded-full h-2 w-2 bg-brand-500"></span>
+                        </span>
+                    Câu chuyện khởi nghiệp
+                </div>
+
+                <h1 class="text-5xl lg:text-7xl font-black text-slate-900 mb-6 leading-[1.1] tracking-tight">
+                    Kiến tạo tương lai từ <br>
+                    <span class="text-gradient">Những dòng Code</span>
+                </h1>
+
+                <p class="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl">
+                    "Lập trình không chỉ là nghề nghiệp, nó là ngôn ngữ của tương lai." – Tại CodeCampus, chúng tôi không chỉ dạy bạn viết code, chúng tôi giúp bạn tư duy, sáng tạo và làm chủ công nghệ để thay đổi thế giới.
+                </p>
+
+                <div class="flex gap-4">
+                    <a href="/courses" class="px-8 py-4 bg-brand-600 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/30 hover:bg-brand-700 hover:-translate-y-1 transition-all flex items-center gap-2">
+                        Khám phá khóa học <i class="fa-solid fa-arrow-right"></i>
+                    </a>
+                    <a href="#our-team" class="px-8 py-4 bg-white text-slate-700 font-bold rounded-2xl shadow-sm border border-white/50 hover:bg-slate-50 transition-all">
+                        Người sáng lập
+                    </a>
+                </div>
+            </div>
+
+            <!-- Visual Content -->
+            <div class="relative hidden lg:block" data-aos="fade-left">
+                <div class="relative w-full aspect-square max-w-lg mx-auto">
+                    <!-- Code Block Decoration -->
+                    <div class="absolute inset-4 bg-white/40 backdrop-blur-xl border border-white/60 rounded-[3rem] shadow-2xl p-8 flex flex-col justify-center items-center z-10 transform -rotate-3 hover:rotate-0 transition-transform duration-700">
+                        <div class="w-full h-8 bg-white/50 rounded-full mb-6 flex items-center px-4 gap-2">
+                            <div class="w-3 h-3 rounded-full bg-red-400"></div>
+                            <div class="w-3 h-3 rounded-full bg-yellow-400"></div>
+                            <div class="w-3 h-3 rounded-full bg-green-400"></div>
+                        </div>
+                        <div class="font-mono text-sm w-full space-y-2 text-slate-600">
+                            <p><span class="text-purple-600">class</span> <span class="text-amber-600">CodeCampus</span> {</p>
+                            <p class="pl-4"><span class="text-brand-600">Mission</span> mission = <span class="text-green-600">"Empower Developers"</span>;</p>
+                            <p class="pl-4"><span class="text-brand-600">Founder</span> founder = <span class="text-green-600">"Dinh Cong An"</span>;</p>
+                            <p class="pl-4"><span class="text-purple-600">void</span> <span class="text-blue-600">inspire</span>() {</p>
+                            <p class="pl-8">System.out.println(<span class="text-green-600">"Hello World!"</span>);</p>
+                            <p class="pl-4">}</p>
+                            <p>}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2. STATS SECTION -->
+    <section class="max-w-[1400px] mx-auto px-4 sm:px-6 mb-20" data-aos="zoom-in-up">
+        <div class="glass-card rounded-[2.5rem] p-10 bg-white/70">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center divide-x divide-slate-200/50">
+                <div class="group">
+                    <div class="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-br from-brand-600 to-purple-600 mb-2">15K+</div>
+                    <div class="text-sm font-bold text-slate-500 uppercase tracking-widest">Học viên</div>
+                </div>
+                <div class="group">
+                    <div class="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-br from-emerald-500 to-teal-500 mb-2">98%</div>
+                    <div class="text-sm font-bold text-slate-500 uppercase tracking-widest">Hài lòng</div>
+                </div>
+                <div class="group">
+                    <div class="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-br from-orange-500 to-red-500 mb-2">500+</div>
+                    <div class="text-sm font-bold text-slate-500 uppercase tracking-widest">Dự án hoàn thành</div>
+                </div>
+                <div class="group border-r-0">
+                    <div class="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-br from-blue-500 to-cyan-500 mb-2">5★</div>
+                    <div class="text-sm font-bold text-slate-500 uppercase tracking-widest">Chất lượng</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. TRIẾT LÝ GIÁO DỤC -->
+    <section class="py-16 max-w-[1200px] mx-auto px-4 sm:px-6 mb-12">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+            <div class="order-2 md:order-1 relative" data-aos="fade-right">
+                <div class="absolute inset-0 bg-brand-600 rounded-[2rem] rotate-3 opacity-20"></div>
+                <img src="https://images.unsplash.com/photo-1531482615713-2afd69097998?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                     class="relative rounded-[2rem] shadow-2xl w-full h-auto object-cover transform transition hover:-rotate-1 duration-500" alt="Education Philosophy">
+            </div>
+            <div class="order-1 md:order-2" data-aos="fade-left">
+                <span class="text-brand-600 font-extrabold uppercase tracking-widest text-xs mb-2 block">Triết lý giáo dục</span>
+                <h2 class="text-3xl md:text-4xl font-black text-slate-900 mb-6">Learning by Doing <br><span class="text-gradient">Thực học - Thực làm</span></h2>
+                <div class="space-y-4 text-slate-600 text-lg leading-relaxed text-justify">
+                    <p>
+                        Tại CodeCampus, chúng tôi tin rằng cách tốt nhất để học lập trình là bắt tay vào làm. Không lý thuyết suông, mọi bài giảng đều đi kèm với dự án thực tế.
+                    </p>
+                    <p>
+                        Mục tiêu của chúng tôi là xóa bỏ rào cản công nghệ, biến những dòng code khô khan trở thành công cụ sáng tạo trong tay bạn, giúp bạn tự tin bước vào thị trường lao động toàn cầu.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. HÀNH TRÌNH PHÁT TRIỂN (TIMELINE) -->
+    <section class="py-20 relative">
+        <div class="max-w-[1000px] mx-auto px-4 sm:px-6 relative timeline-line">
+            <div class="text-center mb-16 relative z-10" data-aos="fade-up">
+                <span class="bg-white px-4 text-purple-600 font-extrabold uppercase tracking-widest text-xs">Chặng đường phát triển</span>
+                <h2 class="text-3xl md:text-4xl font-black text-slate-900 mt-2 bg-white inline-block px-4">Dấu ấn CodeCampus</h2>
+            </div>
+
+            <!-- Item 1 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 relative z-10" data-aos="fade-up">
+                <div class="text-right md:pr-12">
+                    <h3 class="text-2xl font-bold text-brand-600">2020</h3>
+                    <p class="font-bold text-slate-800">Ý tưởng hình thành</p>
+                    <p class="text-slate-500 text-sm mt-2">Đinh Công An ấp ủ ý tưởng về một nền tảng học lập trình thực chiến, nơi mọi người đều có thể tiếp cận công nghệ.</p>
+                </div>
+                <div class="hidden md:block absolute left-1/2 -translate-x-1/2 w-4 h-4 bg-brand-500 rounded-full border-4 border-white shadow-md"></div>
+                <div class="md:pl-12"></div>
+            </div>
+
+            <!-- Item 2 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 relative z-10" data-aos="fade-up">
+                <div class="hidden md:block"></div>
+                <div class="hidden md:block absolute left-1/2 -translate-x-1/2 w-4 h-4 bg-purple-500 rounded-full border-4 border-white shadow-md"></div>
+                <div class="md:pl-12">
+                    <h3 class="text-2xl font-bold text-purple-600">2021</h3>
+                    <p class="font-bold text-slate-800">Ra mắt khóa học đầu tiên</p>
+                    <p class="text-slate-500 text-sm mt-2">Khóa học Java Spring Boot đầu tiên ra đời và nhận được sự đón nhận nồng nhiệt từ cộng đồng.</p>
+                </div>
+            </div>
+
+            <!-- Item 3 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 relative z-10" data-aos="fade-up">
+                <div class="text-right md:pr-12">
+                    <h3 class="text-2xl font-bold text-orange-600">2023</h3>
+                    <p class="font-bold text-slate-800">Cán mốc 10.000 học viên</p>
+                    <p class="text-slate-500 text-sm mt-2">Cộng đồng CodeCampus mở rộng nhanh chóng, trở thành điểm đến tin cậy cho lập trình viên trẻ.</p>
+                </div>
+                <div class="hidden md:block absolute left-1/2 -translate-x-1/2 w-4 h-4 bg-orange-500 rounded-full border-4 border-white shadow-md"></div>
+                <div class="md:pl-12"></div>
+            </div>
+
+            <!-- Item 4 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10" data-aos="fade-up">
+                <div class="hidden md:block"></div>
+                <div class="hidden md:block absolute left-1/2 -translate-x-1/2 w-4 h-4 bg-emerald-500 rounded-full border-4 border-white shadow-md"></div>
+                <div class="md:pl-12">
+                    <h3 class="text-2xl font-bold text-emerald-600">Hiện tại</h3>
+                    <p class="font-bold text-slate-800">Hệ sinh thái toàn diện</p>
+                    <p class="text-slate-500 text-sm mt-2">Mở rộng sang AI, DevOps và Blockchain, tiếp tục sứ mệnh phổ cập công nghệ.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. FOUNDER PROFILE (Special Highlight) -->
+    <section id="our-team" class="py-20 px-4 sm:px-6">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-16" data-aos="fade-up">
+                <h2 class="text-3xl md:text-4xl font-black text-slate-900">Đội ngũ lãnh đạo</h2>
+                <p class="text-slate-500 mt-3">Những người truyền lửa đam mê</p>
+            </div>
+
+            <!-- Founder Card -->
+            <div class="glass-card rounded-[3rem] p-8 md:p-12 relative overflow-hidden bg-white/80 border border-white" data-aos="zoom-in">
+                <!-- Background Decor inside card -->
+                <div class="absolute top-0 right-0 w-64 h-64 bg-brand-500/10 rounded-bl-[100px] -mr-10 -mt-10"></div>
+
+                <div class="flex flex-col md:flex-row items-center gap-10 md:gap-16 relative z-10">
+                    <!-- Image Container -->
+                    <div class="w-64 h-64 md:w-80 md:h-80 shrink-0 relative group">
+                        <div class="absolute inset-0 bg-brand-600 rounded-[2rem] rotate-6 opacity-20 group-hover:rotate-3 transition-transform duration-500"></div>
+                        <div class="absolute inset-0 bg-purple-600 rounded-[2rem] -rotate-3 opacity-20 group-hover:-rotate-1 transition-transform duration-500"></div>
+
+                        <!-- ẢNH ĐẠI DIỆN CỦA BẠN - HÃY THAY LINK ẢNH Ở ĐÂY -->
+                        <!-- Nếu chưa có ảnh, dùng placeholder bên dưới -->
+                        <img src="https://scontent.fhan2-3.fna.fbcdn.net/v/t39.30808-6/527667516_1792333094703123_5462235906738676490_n.jpg?_nc_cat=111&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=OS4aEaXImN0Q7kNvwHGAHQS&_nc_oc=Adnfmtl5F85Qkzbx4YTs-qbAZdRO7NVDNRvJG7jq5HE7UjbQeg-FabftcGD-3qBhsDbKVasAlVgJKkx6UmLAJGET&_nc_zt=23&_nc_ht=scontent.fhan2-3.fna&_nc_gid=4u3JkX5CEGcz5NHtJsc9GA&oh=00_AfnWAUrzYR49ENzHalNIRJlXiummYeDl8jRjuwYPiL7pHQ&oe=69534A16"
+                             class="relative w-full h-full object-cover rounded-[2rem] shadow-2xl border-4 border-white transform transition duration-500 group-hover:scale-105"
+                             alt="Đinh Công An - Founder CodeCampus">
+
+                        <!-- Quote Badge -->
+                        <div class="absolute -bottom-6 -right-6 bg-white p-4 rounded-xl shadow-lg animate-float-delayed hidden md:block">
+                            <span class="text-2xl">❝</span>
+                        </div>
+                    </div>
+
+                    <!-- Info Content -->
+                    <div class="text-center md:text-left">
+                        <span class="inline-block py-1 px-3 rounded-lg bg-brand-100 text-brand-700 text-xs font-extrabold uppercase tracking-widest mb-4">Founder & CEO</span>
+                        <h3 class="text-4xl font-black text-slate-900 mb-2">Đinh Công An</h3>
+                        <p class="text-slate-500 font-medium mb-6 italic">"Code your dream, Debug your life"</p>
+
+                        <div class="space-y-4 text-slate-600 text-lg leading-relaxed">
+                            <p>
+                                Là người sáng lập CodeCampus với hơn 10 năm kinh nghiệm chinh chiến trong ngành công nghệ phần mềm tại các tập đoàn lớn. Anh An không chỉ là một chuyên gia kỹ thuật mà còn là một người thầy tận tâm.
+                            </p>
+                            <p>
+                                Với khát vọng <strong>"Bình dân hóa"</strong> kiến thức lập trình, anh đã xây dựng CodeCampus để giúp thế hệ trẻ Việt Nam tiếp cận công nghệ một cách bài bản, thực tế và đầy cảm hứng. Anh tin rằng: <em>"Mỗi dòng code bạn viết ra hôm nay đều có thể là nền tảng cho một tương lai rực rỡ ngày mai."</em>
+                            </p>
+                        </div>
+
+                        <div class="mt-8 flex justify-center md:justify-start gap-4">
+                            <a href="https://zalo.me/0932383167" class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-[#0077b5] hover:text-white transition-all duration-300">
+                                <i class="fa-brands fa-linkedin-in text-lg"></i>
+                            </a>
+                            <a href="https://www.facebook.com/an.lee.33483903" class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-[#1877f2] hover:text-white transition-all duration-300">
+                                <i class="fa-brands fa-facebook-f text-lg"></i>
+                            </a>
+                            <a href="https://github.com/DinhCongAn" class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-black hover:text-white transition-all duration-300">
+                                <i class="fa-brands fa-github text-lg"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 6. CORE TEAM GRID (Smaller Cards) -->
+    <section class="pb-20 max-w-[1200px] mx-auto px-4 sm:px-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Member 2 -->
+            <div class="glass-card p-6 rounded-3xl text-center group bg-white/50" data-aos="fade-up" data-aos-delay="100">
+                <div class="w-24 h-24 mx-auto mb-4 relative">
+                    <img src="https://ui-avatars.com/api/?name=Tran+Thi+B&background=random&size=128" class="w-full h-full rounded-full object-cover border-2 border-white shadow-md group-hover:scale-110 transition-transform">
+                </div>
+                <h4 class="font-bold text-slate-800">Trần Thị B</h4>
+                <p class="text-xs text-brand-600 font-bold uppercase mb-2">Head of Education</p>
+                <p class="text-sm text-slate-500 line-clamp-2">Chịu trách nhiệm xây dựng lộ trình học tập chuẩn quốc tế.</p>
+            </div>
+
+            <!-- Member 3 -->
+            <div class="glass-card p-6 rounded-3xl text-center group bg-white/50" data-aos="fade-up" data-aos-delay="200">
+                <div class="w-24 h-24 mx-auto mb-4 relative">
+                    <img src="https://ui-avatars.com/api/?name=Le+Van+C&background=random&size=128" class="w-full h-full rounded-full object-cover border-2 border-white shadow-md group-hover:scale-110 transition-transform">
+                </div>
+                <h4 class="font-bold text-slate-800">Lê Văn C</h4>
+                <p class="text-xs text-brand-600 font-bold uppercase mb-2">CTO</p>
+                <p class="text-sm text-slate-500 line-clamp-2">Kiến trúc sư hệ thống, đảm bảo nền tảng vận hành mượt mà.</p>
+            </div>
+
+            <!-- Member 4 -->
+            <div class="glass-card p-6 rounded-3xl text-center group bg-white/50" data-aos="fade-up" data-aos-delay="300">
+                <div class="w-24 h-24 mx-auto mb-4 relative">
+                    <img src="https://ui-avatars.com/api/?name=Pham+Thi+D&background=random&size=128" class="w-full h-full rounded-full object-cover border-2 border-white shadow-md group-hover:scale-110 transition-transform">
+                </div>
+                <h4 class="font-bold text-slate-800">Phạm Thị D</h4>
+                <p class="text-xs text-brand-600 font-bold uppercase mb-2">Product Manager</p>
+                <p class="text-sm text-slate-500 line-clamp-2">Lắng nghe người dùng để phát triển tính năng tốt nhất.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 7. CTA BOTTOM -->
+    <section class="py-20 px-4">
+        <div class="max-w-4xl mx-auto glass-card rounded-[3rem] p-10 md:p-16 text-center relative overflow-hidden bg-slate-900 border-none group">
+            <!-- Background Animation inside card -->
+            <div class="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10"></div>
+            <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-brand-900/50 to-purple-900/50 mix-blend-overlay"></div>
+
+            <div class="relative z-10">
+                <h2 class="text-3xl md:text-5xl font-black text-white mb-6">Đừng chỉ ước mơ, hãy bắt đầu!</h2>
+                <p class="text-slate-300 text-lg mb-8 max-w-xl mx-auto">
+                    CodeCampus đã sẵn sàng đồng hành cùng bạn. Đăng ký ngay hôm nay để nhận ưu đãi đặc biệt.
+                </p>
+                <a href="/register" class="inline-flex items-center gap-3 px-8 py-4 bg-white text-slate-900 font-bold rounded-2xl hover:scale-105 transition-transform shadow-2xl">
+                    <span>Đăng ký tài khoản miễn phí</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- FOOTER -->
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<!-- SCRIPTS -->
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+    AOS.init({
+        once: true,
+        offset: 100,
+        duration: 800,
+        easing: 'ease-out-cubic'
+    });
+</script>
+</body>
+</html>

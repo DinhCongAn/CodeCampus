@@ -149,6 +149,33 @@
             </div>
         </div>
 
+        <div th:if="${not #strings.isEmpty(keyword)}"
+             class="glass-card group relative mb-8 flex items-center justify-between rounded-2xl border border-indigo-100 bg-indigo-50/50 p-4 text-indigo-800 shadow-sm transition-all hover:shadow-md"
+             data-aos="fade-up">
+
+            <div class="flex items-center gap-4">
+                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-indigo-100 ring-4 ring-indigo-50">
+                    <i class="fa-solid fa-magnifying-glass text-lg text-indigo-500"></i>
+                </div>
+
+                <div class="flex flex-col">
+            <span class="text-[10px] font-bold uppercase tracking-widest text-indigo-400">
+                Kết quả tìm kiếm
+            </span>
+                    <h3 class="font-bold text-lg leading-tight text-indigo-900">
+                        “<span th:text="${keyword}">Keyword</span>”
+                    </h3>
+                </div>
+            </div>
+
+            <a th:href="@{/courses}"
+               aria-label="Xóa tìm kiếm, quay lại trang courses"
+               title="Xóa tìm kiếm"
+               class="flex h-9 w-9 items-center justify-center rounded-full bg-white text-slate-400 shadow-sm transition-all duration-200 hover:bg-red-50 hover:text-red-500 hover:rotate-90 hover:shadow-md">
+                <i class="fa-solid fa-xmark"></i>
+            </a>
+        </div>
+
         <!-- Error / Alert Message -->
         <div th:if="${param.error == 'notFound'}"
              data-aos="fade-up"

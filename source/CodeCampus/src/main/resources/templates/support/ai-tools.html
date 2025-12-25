@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kho công cụ AI | CodeCampus</title>
+
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- Animation -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" th:href="@{/images/logo.png}" />
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: { 50: '#eef2ff', 100: '#e0e7ff', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca', 900: '#312e81' }
+                    },
+                    boxShadow: {
+                        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.05)',
+                        'glow': '0 0 40px -10px rgba(99, 102, 241, 0.5)',
+                    },
+                    animation: {
+                        'blob': 'blob 10s infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        },
+                        float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-10px)' } }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #f8fafc;
+            background-image:
+                    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
+                    radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.08) 0px, transparent 50%),
+                    radial-gradient(at 100% 100%, rgba(56, 189, 248, 0.1) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: #1e293b;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.9);
+            border-color: rgba(99, 102, 241, 0.3);
+            box-shadow: 0 20px 40px -5px rgba(99, 102, 241, 0.15);
+        }
+        .category-btn.active {
+            background: linear-gradient(to right, #4f46e5, #4338ca);
+            color: white;
+            box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.4);
+            border-color: transparent;
+        }
+        /* Custom Scrollbar for horizontal tabs */
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="antialiased font-sans min-h-screen flex flex-col">
+
+<!-- HEADER -->
+<div class="sticky top-0 z-50">
+    <div th:replace="~{fragments/header :: header}"></div>
+</div>
+
+<!-- MAIN CONTENT -->
+<main class="flex-grow w-full max-w-[1500px] mx-auto px-4 sm:px-6 py-12 relative">
+
+    <!-- Decor Background -->
+    <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+        <div class="absolute top-20 left-1/4 w-[600px] h-[600px] bg-brand-400/10 rounded-full blur-[120px] mix-blend-multiply animate-blob"></div>
+        <div class="absolute bottom-20 right-1/4 w-[600px] h-[600px] bg-purple-300/10 rounded-full blur-[120px] mix-blend-multiply animate-blob animation-delay-2000"></div>
+    </div>
+
+    <!-- Hero Section -->
+    <div class="text-center max-w-3xl mx-auto mb-16" data-aos="fade-down">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/60 border border-brand-100 text-xs font-bold text-brand-600 uppercase tracking-widest mb-4 backdrop-blur-md shadow-sm">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> AI Ecosystem
+        </div>
+        <h1 class="text-4xl md:text-5xl font-black text-slate-900 mb-6 tracking-tight leading-tight">
+            Khám phá kho <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-purple-600">Công cụ AI</span> hàng đầu
+        </h1>
+        <p class="text-slate-500 text-lg font-medium">
+            Tuyển tập các công cụ trí tuệ nhân tạo tốt nhất hỗ trợ lập trình, thiết kế, viết content và tăng năng suất công việc của bạn.
+        </p>
+
+        <!-- Search Bar -->
+        <div class="mt-8 relative max-w-lg mx-auto group">
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <i class="fa-solid fa-magnifying-glass text-slate-400 group-focus-within:text-brand-500 transition-colors"></i>
+            </div>
+            <input type="text" id="toolSearch" placeholder="Tìm kiếm công cụ AI (VD: GPT, Midjourney...)"
+                   class="w-full pl-11 pr-4 py-4 bg-white/80 backdrop-blur-xl border border-white/50 rounded-2xl shadow-lg shadow-brand-900/5 focus:outline-none focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all text-slate-700 font-medium placeholder-slate-400">
+        </div>
+    </div>
+
+    <!-- Categories (Tabs) -->
+    <div class="mb-12" data-aos="fade-up">
+        <div class="flex overflow-x-auto gap-3 pb-4 hide-scroll justify-start md:justify-center px-4" id="categoryContainer">
+            <!-- Categories will be injected by JS -->
+        </div>
+    </div>
+
+    <!-- Tools Grid -->
+    <div id="toolsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" data-aos="fade-up" data-aos-delay="100">
+        <!-- Tools will be injected by JS -->
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="hidden flex-col items-center justify-center py-20 text-center">
+        <div class="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mb-4 shadow-inner">
+            <i class="fa-solid fa-robot text-4xl text-slate-300"></i>
+        </div>
+        <h3 class="text-xl font-bold text-slate-700">Không tìm thấy công cụ nào</h3>
+        <p class="text-slate-500 mt-2">Thử tìm kiếm với từ khóa khác hoặc chọn danh mục khác.</p>
+    </div>
+
+</main>
+
+<!-- FOOTER -->
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<!-- ================= SCRIPTS ================= -->
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+    AOS.init({ once: true, duration: 800 });
+
+    // --- DATA ---
+    const categories = [
+        { id: 'all', name: 'Tất cả', icon: 'fa-layer-group' },
+        { id: 'chat', name: 'Chat & Content', icon: 'fa-comments' },
+        { id: 'code', name: 'Code & Dev', icon: 'fa-code' },
+        { id: 'image', name: 'Ảnh & Thiết kế', icon: 'fa-palette' },
+        { id: 'audio', name: 'Audio & Music', icon: 'fa-music' },
+        { id: 'video', name: 'Video AI', icon: 'fa-video' },
+        { id: 'business', name: 'Productivity', icon: 'fa-briefcase' },
+        { id: 'data', name: 'Data & Search', icon: 'fa-magnifying-glass-chart' },
+        { id: 'sales', name: 'Sales & CRM', icon: 'fa-handshake' },
+        { id: 'special', name: 'Chuyên ngành', icon: 'fa-graduation-cap' },
+        { id: 'opensource', name: 'Open Source', icon: 'fa-box-open' }
+    ];
+
+    const tools = [
+        // 1. Chat & Text
+        { cat: 'chat', name: 'ChatGPT', desc: 'Chat AI đa năng, viết content, code, phân tích.', link: 'https://chat.openai.com', icon: 'fa-robot', color: 'text-emerald-500' },
+        { cat: 'chat', name: 'Google Bard', desc: 'AI tổng hợp thông tin, kết nối Google Search.', link: 'https://bard.google.com', icon: 'fa-brands fa-google', color: 'text-blue-500' },
+        { cat: 'chat', name: 'Claude', desc: 'AI an toàn, xử lý văn bản dài cực tốt.', link: 'https://www.anthropic.com/claude', icon: 'fa-brain', color: 'text-orange-500' },
+        { cat: 'chat', name: 'Jasper AI', desc: 'Chuyên viết bài Marketing & Copywriting.', link: 'https://www.jasper.ai', icon: 'fa-pen-nib', color: 'text-purple-500' },
+        { cat: 'chat', name: 'Copy.ai', desc: 'Tạo nội dung mạng xã hội & Sales copy nhanh.', link: 'https://www.copy.ai', icon: 'fa-copy', color: 'text-yellow-500' },
+
+        // 2. Code
+        { cat: 'code', name: 'GitHub Copilot', desc: 'Trợ lý code AI phổ biến nhất trong VS Code.', link: 'https://github.com/features/copilot', icon: 'fa-brands fa-github', color: 'text-slate-800' },
+        { cat: 'code', name: 'Replit AI', desc: 'Code & Chat trực tiếp trên trình duyệt.', link: 'https://replit.com', icon: 'fa-terminal', color: 'text-orange-600' },
+        { cat: 'code', name: 'Tabnine', desc: 'Gợi ý code thông minh đa ngôn ngữ.', link: 'https://www.tabnine.com', icon: 'fa-laptop-code', color: 'text-blue-600' },
+        { cat: 'code', name: 'Codeium', desc: 'Giải pháp thay thế Copilot miễn phí mạnh mẽ.', link: 'https://codeium.com', icon: 'fa-code-branch', color: 'text-green-500' },
+
+        // 3. Image
+        { cat: 'image', name: 'Midjourney', desc: 'Tạo ảnh nghệ thuật chất lượng cao từ text.', link: 'https://www.midjourney.com', icon: 'fa-image', color: 'text-indigo-600' },
+        { cat: 'image', name: 'DALL·E 3', desc: 'Tạo ảnh AI tích hợp sẵn trong ChatGPT.', link: 'https://labs.openai.com', icon: 'fa-paintbrush', color: 'text-orange-400' },
+        { cat: 'image', name: 'Canva AI', desc: 'Thiết kế đồ họa tích hợp công cụ AI Magic.', link: 'https://www.canva.com', icon: 'fa-pen-ruler', color: 'text-cyan-500' },
+        { cat: 'image', name: 'Remove.bg', desc: 'Xóa nền ảnh tự động trong 1 click.', link: 'https://www.remove.bg', icon: 'fa-eraser', color: 'text-slate-500' },
+
+        // 4. Audio
+        { cat: 'audio', name: 'ElevenLabs', desc: 'Giọng đọc AI tự nhiên nhất hiện nay.', link: 'https://elevenlabs.io', icon: 'fa-microphone-lines', color: 'text-slate-700' },
+        { cat: 'audio', name: 'Murf.ai', desc: 'Tạo voice-over chuyên nghiệp cho video.', link: 'https://murf.ai', icon: 'fa-volume-high', color: 'text-pink-500' },
+        { cat: 'audio', name: 'AIVA', desc: 'Sáng tác nhạc nền bằng trí tuệ nhân tạo.', link: 'https://www.aiva.ai', icon: 'fa-music', color: 'text-blue-400' },
+
+        // 5. Video
+        { cat: 'video', name: 'Synthesia', desc: 'Tạo video với nhân vật ảo (Avatar) nói chuyện.', link: 'https://www.synthesia.io', icon: 'fa-video', color: 'text-green-600' },
+        { cat: 'video', name: 'RunwayML', desc: 'Chỉnh sửa video và tạo hiệu ứng AI cao cấp.', link: 'https://runwayml.com', icon: 'fa-film', color: 'text-purple-600' },
+        { cat: 'video', name: 'Pictory', desc: 'Tự động tạo video ngắn từ nội dung văn bản.', link: 'https://pictory.ai', icon: 'fa-photo-film', color: 'text-red-500' },
+
+        // 6. Business
+        { cat: 'business', name: 'Notion AI', desc: 'Viết, tóm tắt và quản lý ghi chú thông minh.', link: 'https://www.notion.so', icon: 'fa-book-open', color: 'text-slate-800' },
+        { cat: 'business', name: 'Otter.ai', desc: 'Ghi âm và tóm tắt cuộc họp tự động.', link: 'https://otter.ai', icon: 'fa-microphone', color: 'text-blue-500' },
+        { cat: 'business', name: 'Zapier', desc: 'Tự động hóa quy trình làm việc với AI.', link: 'https://zapier.com', icon: 'fa-bolt', color: 'text-orange-500' },
+
+        // 7. Data
+        { cat: 'data', name: 'Perplexity', desc: 'Tìm kiếm thông tin có trích dẫn nguồn uy tín.', link: 'https://www.perplexity.ai', icon: 'fa-magnifying-glass', color: 'text-teal-600' },
+        { cat: 'data', name: 'You.com', desc: 'Công cụ tìm kiếm tích hợp Chat AI.', link: 'https://you.com', icon: 'fa-globe', color: 'text-blue-600' },
+
+        // 8. Sales
+        { cat: 'sales', name: 'HubSpot AI', desc: 'Hỗ trợ viết email, content sales và CRM.', link: 'https://www.hubspot.com', icon: 'fa-bullhorn', color: 'text-orange-600' },
+        { cat: 'sales', name: 'Salesforce Einstein', desc: 'AI phân tích dữ liệu khách hàng CRM.', link: 'https://www.salesforce.com/einstein', icon: 'fa-cloud', color: 'text-blue-400' },
+
+        // 9. Specialized
+        { cat: 'special', name: 'Socratic', desc: 'Ứng dụng hỗ trợ giải bài tập của Google.', link: 'https://socratic.org', icon: 'fa-graduation-cap', color: 'text-green-500' },
+        { cat: 'special', name: 'Elicit', desc: 'Trợ lý nghiên cứu khoa học, tìm paper.', link: 'https://elicit.org', icon: 'fa-microscope', color: 'text-purple-500' },
+
+        // 10. Open Source
+        { cat: 'opensource', name: 'Hugging Face', desc: 'Hub chia sẻ model AI mã nguồn mở lớn nhất.', link: 'https://huggingface.co', icon: 'fa-face-smile', color: 'text-yellow-500' },
+        { cat: 'opensource', name: 'Stable Diffusion', desc: 'Model tạo ảnh AI chạy offline miễn phí.', link: 'https://stability.ai', icon: 'fa-images', color: 'text-indigo-500' },
+    ];
+
+    // --- LOGIC ---
+    const categoryContainer = document.getElementById('categoryContainer');
+    const toolsGrid = document.getElementById('toolsGrid');
+    const searchInput = document.getElementById('toolSearch');
+    const emptyState = document.getElementById('emptyState');
+
+    let activeCategory = 'all';
+
+    // 1. Render Categories
+    function renderCategories() {
+        categoryContainer.innerHTML = categories.map(cat => `
+                <button onclick="setCategory('${cat.id}')"
+                        class="category-btn whitespace-nowrap px-5 py-2.5 rounded-xl text-sm font-bold border transition-all duration-300 flex items-center gap-2
+                        ${activeCategory === cat.id
+            ? 'active bg-brand-600 text-white border-brand-600 shadow-lg shadow-brand-500/30'
+            : 'bg-white text-slate-600 border-slate-200 hover:border-brand-300 hover:text-brand-600 hover:bg-slate-50'}">
+                    <i class="fa-solid ${cat.icon}"></i> ${cat.name}
+                </button>
+            `).join('');
+    }
+
+    // 2. Render Tools
+    function renderTools() {
+        const keyword = searchInput.value.toLowerCase();
+        const filteredTools = tools.filter(tool => {
+            const matchesCat = activeCategory === 'all' || tool.cat === activeCategory;
+            const matchesSearch = tool.name.toLowerCase().includes(keyword) ||
+                tool.desc.toLowerCase().includes(keyword);
+            return matchesCat && matchesSearch;
+        });
+
+        if (filteredTools.length === 0) {
+            toolsGrid.innerHTML = '';
+            toolsGrid.classList.add('hidden');
+            emptyState.classList.remove('hidden');
+            emptyState.classList.add('flex');
+        } else {
+            toolsGrid.classList.remove('hidden');
+            emptyState.classList.add('hidden');
+            emptyState.classList.remove('flex');
+
+            toolsGrid.innerHTML = filteredTools.map((tool, index) => `
+                    <div class="glass-card rounded-2xl p-6 relative group border border-white/60 bg-white hover:bg-white/80 flex flex-col h-full animate-fade-in-up"
+                         style="animation-delay: ${index * 50}ms">
+
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center text-xl shadow-sm border border-slate-100 group-hover:scale-110 transition-transform duration-300 ${tool.color}">
+                                <i class="${tool.icon}"></i>
+                            </div>
+                            <a href="${tool.link}" target="_blank" class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-brand-600 hover:text-white transition-colors">
+                                <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
+                            </a>
+                        </div>
+
+                        <h3 class="text-lg font-bold text-slate-800 mb-2 group-hover:text-brand-600 transition-colors">${tool.name}</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed mb-4 flex-grow font-medium">${tool.desc}</p>
+
+                        <div class="pt-4 border-t border-slate-100 mt-auto">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                                ${categories.find(c => c.id === tool.cat).name}
+                            </span>
+                        </div>
+                    </div>
+                `).join('');
+        }
+    }
+
+    // 3. Actions
+    window.setCategory = (id) => {
+        activeCategory = id;
+        renderCategories();
+        renderTools();
+    };
+
+    searchInput.addEventListener('input', renderTools);
+
+    // Init
+    renderCategories();
+    renderTools();
+</script>
+
+</body>
+</html>

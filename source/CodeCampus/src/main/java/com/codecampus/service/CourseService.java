@@ -66,6 +66,10 @@ public class CourseService {
         return categoryRepository.findByIsActive(true);
     }
 
+    public List<Course> getFeaturedCoursesForFooter() {
+        return courseRepository.findTop5ByIsFeaturedTrueOrderByUpdatedAtDesc();
+    }
+
     public Course findCourseById(Integer id) {
         return courseRepository.findById(Long.valueOf(id))
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học với ID: " + id));
@@ -105,26 +109,27 @@ public class CourseService {
      * Logic kiểm tra trùng tên (Đã sửa để chấp nhận Integer ID và xử lý NULL)
      */
     private void checkDuplicateName(Integer id, String name) {
-        // Tìm xem có thằng nào tên giống vậy không
-        Course existingCourse = courseRepository.findByName(name)
-                .orElseThrow(() -> new RuntimeException("Course not found"));
+        Optional<Course> optionalCourse = courseRepository.findByName(name);
 
-        if (existingCourse != null) {
-            // TRƯỜNG HỢP 1: Thêm mới (id truyền vào là NULL)
-            // Tìm thấy tên trong DB -> CHẮC CHẮN TRÙNG (vì chưa có ID để so sánh)
+        if (optionalCourse.isPresent()) {
+            Course existingCourse = optionalCourse.get();
+
+            // THÊM MỚI
             if (id == null) {
-                throw new RuntimeException("Tên môn học '" + name + "' đã tồn tại. Vui lòng chọn tên khác.");
+                throw new RuntimeException(
+                        "Tên môn học '" + name + "' đã tồn tại. Vui lòng chọn tên khác."
+                );
             }
 
-            // TRƯỜNG HỢP 2: Cập nhật (id có giá trị)
-            // So sánh ID của thằng tìm thấy với ID thằng đang sửa.
-            // QUAN TRỌNG: Dùng .equals() để so sánh đối tượng Integer an toàn.
-            // Tuyệt đối không dùng != hoặc ép kiểu sang long/int ở đây.
+            // CẬP NHẬT
             if (!existingCourse.getId().equals(id)) {
-                throw new RuntimeException("Tên môn học '" + name + "' đã được sử dụng bởi khóa học khác.");
+                throw new RuntimeException(
+                        "Tên môn học '" + name + "' đã được sử dụng bởi khóa học khác."
+                );
             }
         }
     }
+
 
     // 4. Đổi trạng thái
     public void toggleCourseStatus(Long id) {

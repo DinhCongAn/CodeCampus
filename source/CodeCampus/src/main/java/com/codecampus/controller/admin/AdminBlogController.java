@@ -3,6 +3,8 @@ package com.codecampus.controller.admin;
 import com.codecampus.dto.BlogDto;
 import com.codecampus.entity.Blog;
 import com.codecampus.service.BlogService;
+import com.codecampus.service.SettingService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -16,6 +18,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class AdminBlogController {
 
     private final BlogService blogService;
+    @Autowired
+    private SettingService settingService;
 
     public AdminBlogController(BlogService blogService) { this.blogService = blogService; }
 
@@ -23,11 +27,15 @@ public class AdminBlogController {
     @GetMapping("")
     public String list(Model model,
                        @RequestParam(defaultValue = "0") int page,
-                       @RequestParam(defaultValue = "10") int size,
+                       @RequestParam(required = false ) Integer size,
                        @RequestParam(required = false) String keyword,
                        @RequestParam(required = false) Integer categoryId,
                        @RequestParam(required = false) String status) {
 
+        if (size == null) {
+            String sizeSetting = settingService.getSettingValue("page_size_blog");
+            size = (sizeSetting != null) ? Integer.parseInt(sizeSetting) : 10;
+        }
         // Gọi Service lấy Page
         Page<Blog> blogPage = blogService.getAdminBlogs(keyword, categoryId, status, page, size);
 

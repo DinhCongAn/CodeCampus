@@ -87,7 +87,8 @@ public class SecurityConfig {
                                 "/forgot-password", "/reset-password", "/verify",
                                 "/login/**", "/css/**", "/js/**", "/images/**",
                                 "/register-process", "/payment/**", "/api/ai/**",
-                                "/error" // Quan trọng: Phải mở trang lỗi
+                                "/error",
+                                "/ai-tools", "/about", "/contact", "/terms", "/privacy","/careers"
                         ).permitAll()
 
                         // Chỉ Admin mới được vào /admin/**

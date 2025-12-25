@@ -34,7 +34,7 @@ public class AdminSettingController {
             Model model) {
 
         // 1. Lấy config số dòng trên trang (page_size) từ DB
-        String pageSizeStr = settingService.getSettingValue("size_setting"); // Hoặc page_size_admin
+        String pageSizeStr = settingService.getSettingValue("page_size_setting"); // Hoặc page_size_admin
         int pageSize = (pageSizeStr != null && !pageSizeStr.isEmpty()) ? Integer.parseInt(pageSizeStr) : 10;
 
         // 2. Xử lý Sort

@@ -551,14 +551,16 @@
 
                 <div class="relative z-10 max-w-3xl mx-auto">
                     <h2 class="text-3xl md:text-5xl font-black text-white mb-6">Sẵn sàng trở thành Pro Coder?</h2>
-                    <p class="text-slate-400 mb-8 text-lg">Đăng ký nhận tin để không bỏ lỡ các bài viết chuyên sâu và mã giảm giá khóa học độc quyền.</p>
+                    <p class="text-slate-400 mb-8 text-lg">Đăng ký ngay để nhận kiến thức chuyên sâu và mã giảm giá khóa học độc quyền chỉ có tại CodeCampus.</p>
 
-                    <form class="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto">
-                        <input type="email" placeholder="Email của bạn..." class="flex-1 px-6 py-4 rounded-xl bg-white/10 border border-white/20 text-white placeholder-slate-400 focus:outline-none focus:bg-white/20 focus:border-brand-500 transition-all backdrop-blur-sm">
-                        <button type="button" class="px-8 py-4 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-xl shadow-lg shadow-brand-600/30 transition-all hover:scale-105">
-                            Đăng ký ngay
-                        </button>
-                    </form>
+                    <div class="flex justify-center">
+                        <a th:href="@{/courses}"
+                           class="inline-flex items-center justify-center px-8 py-4 bg-brand-600 hover:bg-brand-500
+                            text-white font-bold rounded-xl shadow-lg shadow-brand-600/30
+                            transition-all hover:scale-105">
+                            Khám phá và Đăng ký ngay
+                        </a>
+                    </div>
                     <p class="text-xs text-slate-500 mt-4">Không spam. Hủy đăng ký bất cứ lúc nào.</p>
                 </div>
             </div>

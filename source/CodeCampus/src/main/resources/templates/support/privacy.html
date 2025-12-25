@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chính sách bảo mật | CodeCampus</title>
+
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- Animation -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <link rel="icon" th:href="@{/images/logo.png}" />
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: { 50: '#eef2ff', 100: '#e0e7ff', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca', 900: '#312e81' }
+                    },
+                    typography: (theme) => ({
+                        DEFAULT: {
+                            css: {
+                                color: '#334155',
+                                a: { color: '#4f46e5', '&:hover': { color: '#4338ca' } },
+                                h2: { color: '#1e293b', fontWeight: '800', marginTop: '2em' },
+                                h3: { color: '#1e293b', fontWeight: '700', marginTop: '1.5em' },
+                                strong: { color: '#1e293b', fontWeight: '700' },
+                                'ul > li::marker': { color: '#10b981' }, // Green bullet for privacy (trust)
+                            },
+                        },
+                    }),
+                }
+            }
+        }
+    </script>
+    <style>
+        html { scroll-behavior: smooth; }
+        body {
+            background-color: #f8fafc;
+            background-image:
+                    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
+                    radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.05) 0px, transparent 50%), /* Emerald hint for security */
+                    radial-gradient(at 100% 100%, rgba(56, 189, 248, 0.08) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: #1e293b;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+            transition: all 0.3s ease;
+        }
+
+        .nav-link.active {
+            background-color: #ecfdf5; /* Emerald-50 */
+            color: #059669; /* Emerald-600 */
+            font-weight: 700;
+            border-left: 3px solid #059669;
+        }
+    </style>
+</head>
+<body class="antialiased font-sans min-h-screen flex flex-col">
+
+<!-- HEADER -->
+<div class="sticky top-0 z-50">
+    <div th:replace="~{fragments/header :: header}"></div>
+</div>
+
+<!-- MAIN CONTENT -->
+<main class="flex-grow w-full relative">
+
+    <!-- Hero Section -->
+    <section class="pt-16 pb-12 px-4 text-center relative overflow-hidden">
+        <!-- Background Decoration -->
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-400/10 rounded-full blur-[100px] -z-10"></div>
+
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-100 text-emerald-600 mb-6 shadow-sm" data-aos="zoom-in">
+            <i class="fa-solid fa-shield-halved text-3xl"></i>
+        </div>
+        <h1 class="text-3xl md:text-5xl font-black text-slate-900 mb-4" data-aos="fade-down">
+            Chính sách bảo mật
+        </h1>
+        <p class="text-slate-500 font-medium max-w-2xl mx-auto" data-aos="fade-up" data-aos-delay="100">
+            Chúng tôi hiểu rằng sự riêng tư là vô cùng quan trọng. CodeCampus cam kết bảo vệ thông tin cá nhân của bạn với tiêu chuẩn cao nhất.
+            <br><span class="text-xs uppercase tracking-widest mt-2 block opacity-70">Hiệu lực từ: 01/01/2025</span>
+        </p>
+    </section>
+
+    <div class="max-w-[1200px] mx-auto px-4 sm:px-6 pb-20">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+
+            <!-- SIDEBAR NAVIGATION (Sticky) -->
+            <aside class="lg:col-span-3 hidden lg:block">
+                <div class="sticky top-28 space-y-1">
+                    <h4 class="px-4 text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Nội dung chính</h4>
+                    <a href="#collection" class="nav-link block px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 rounded-r-lg transition-colors border-l-3 border-transparent" onclick="setActiveLink(this)">
+                        1. Thu thập thông tin
+                    </a>
+                    <a href="#usage" class="nav-link block px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 rounded-r-lg transition-colors border-l-3 border-transparent" onclick="setActiveLink(this)">
+                        2. Sử dụng thông tin
+                    </a>
+                    <a href="#sharing" class="nav-link block px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 rounded-r-lg transition-colors border-l-3 border-transparent" onclick="setActiveLink(this)">
+                        3. Chia sẻ dữ liệu
+                    </a>
+                    <a href="#cookies" class="nav-link block px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 rounded-r-lg transition-colors border-l-3 border-transparent" onclick="setActiveLink(this)">
+                        4. Cookies & Tracking
+                    </a>
+                    <a href="#security" class="nav-link block px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 rounded-r-lg transition-colors border-l-3 border-transparent" onclick="setActiveLink(this)">
+                        5. Bảo mật dữ liệu
+                    </a>
+                    <a href="#rights" class="nav-link block px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 rounded-r-lg transition-colors border-l-3 border-transparent" onclick="setActiveLink(this)">
+                        6. Quyền của bạn
+                    </a>
+
+                    <div class="mt-8 px-4">
+                        <a href="/terms" class="text-xs font-bold text-brand-600 hover:underline flex items-center gap-1">
+                            <i class="fa-solid fa-arrow-left"></i> Xem Điều khoản sử dụng
+                        </a>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- CONTENT AREA -->
+            <div class="lg:col-span-9 space-y-12">
+
+                <!-- 1. Collection -->
+                <section id="collection" class="glass-card p-8 md:p-12 rounded-[2rem] scroll-mt-28" data-aos="fade-up">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
+                            <i class="fa-solid fa-database"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-slate-900">1. Thông tin chúng tôi thu thập</h2>
+                    </div>
+                    <div class="prose prose-slate max-w-none">
+                        <p>Để cung cấp trải nghiệm học tập tốt nhất, CodeCampus thu thập các loại thông tin sau:</p>
+                        <ul>
+                            <li><strong>Thông tin tài khoản:</strong> Tên, địa chỉ email, ảnh đại diện, mật khẩu (đã mã hóa).</li>
+                            <li><strong>Thông tin học tập:</strong> Tiến độ khóa học, kết quả bài kiểm tra, code submission, và các chứng chỉ đã đạt được.</li>
+                            <li><strong>Thông tin thanh toán:</strong> Lịch sử giao dịch (Lưu ý: Chúng tôi không lưu trữ thông tin thẻ tín dụng đầy đủ, việc này được xử lý bởi các cổng thanh toán đối tác như VNPay, Stripe).</li>
+                            <li><strong>Dữ liệu tự động:</strong> Địa chỉ IP, loại thiết bị, trình duyệt và thời gian truy cập để phục vụ mục đích bảo mật và phân tích.</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <!-- 2. Usage -->
+                <section id="usage" class="glass-card p-8 md:p-12 rounded-[2rem] scroll-mt-28" data-aos="fade-up">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100">
+                            <i class="fa-solid fa-sliders"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-slate-900">2. Mục đích sử dụng thông tin</h2>
+                    </div>
+                    <div class="prose prose-slate max-w-none">
+                        <p>Dữ liệu của bạn được sử dụng để:</p>
+                        <ul>
+                            <li>Cung cấp, vận hành và cá nhân hóa các khóa học.</li>
+                            <li>Gửi thông báo quan trọng về tài khoản, cập nhật bảo mật hoặc thay đổi chính sách.</li>
+                            <li>Cải thiện chất lượng nội dung dựa trên phân tích hành vi học tập ẩn danh.</li>
+                            <li>Ngăn chặn các hành vi gian lận, spam hoặc vi phạm điều khoản sử dụng.</li>
+                        </ul>
+                        <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4 rounded-r-lg my-4 not-prose">
+                            <p class="text-sm text-indigo-900 font-medium flex items-center gap-2">
+                                <i class="fa-solid fa-circle-info"></i>
+                                Chúng tôi cam kết không sử dụng dữ liệu của bạn cho mục đích quảng cáo của bên thứ ba.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. Sharing -->
+                <section id="sharing" class="glass-card p-8 md:p-12 rounded-[2rem] scroll-mt-28" data-aos="fade-up">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center border border-purple-100">
+                            <i class="fa-solid fa-share-nodes"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-slate-900">3. Chia sẻ dữ liệu</h2>
+                    </div>
+                    <div class="prose prose-slate max-w-none">
+                        <p>Thông tin của bạn được bảo mật tuyệt đối. Chúng tôi chỉ chia sẻ trong các trường hợp hạn chế sau:</p>
+                        <ul>
+                            <li><strong>Nhà cung cấp dịch vụ:</strong> Các đối tác giúp chúng tôi vận hành website (ví dụ: dịch vụ hosting AWS, cổng thanh toán, dịch vụ gửi email). Họ chỉ có quyền truy cập cần thiết để thực hiện công việc.</li>
+                            <li><strong>Yêu cầu pháp lý:</strong> Khi có yêu cầu hợp pháp từ cơ quan nhà nước có thẩm quyền.</li>
+                            <li><strong>Sự đồng ý của bạn:</strong> Khi bạn chủ động chia sẻ chứng chỉ hoặc hồ sơ của mình lên mạng xã hội hoặc nhà tuyển dụng.</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <!-- 4. Cookies -->
+                <section id="cookies" class="glass-card p-8 md:p-12 rounded-[2rem] scroll-mt-28" data-aos="fade-up">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center border border-orange-100">
+                            <i class="fa-solid fa-cookie-bite"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-slate-900">4. Cookies & Công nghệ theo dõi</h2>
+                    </div>
+                    <div class="prose prose-slate max-w-none">
+                        <p>Chúng tôi sử dụng Cookies để:</p>
+                        <ul>
+                            <li>Duy trì trạng thái đăng nhập của bạn (Session cookies).</li>
+                            <li>Ghi nhớ các tùy chọn cá nhân (ví dụ: ngôn ngữ, chế độ sáng/tối).</li>
+                            <li>Phân tích lưu lượng truy cập (Google Analytics) để tối ưu hóa hiệu suất website.</li>
+                        </ul>
+                        <p>Bạn có thể tắt Cookies trong cài đặt trình duyệt, nhưng điều này có thể ảnh hưởng đến một số tính năng của CodeCampus.</p>
+                    </div>
+                </section>
+
+                <!-- 5. Security -->
+                <section id="security" class="glass-card p-8 md:p-12 rounded-[2rem] scroll-mt-28 bg-emerald-50/30 border-emerald-100" data-aos="fade-up">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center border border-emerald-200">
+                            <i class="fa-solid fa-lock"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-emerald-900">5. Bảo mật dữ liệu</h2>
+                    </div>
+                    <div class="prose prose-slate max-w-none">
+                        <p>Bảo mật là ưu tiên hàng đầu tại CodeCampus. Chúng tôi áp dụng các biện pháp kỹ thuật tiên tiến:</p>
+                        <ul>
+                            <li>Mã hóa toàn bộ dữ liệu truyền tải qua giao thức <strong>SSL/TLS</strong>.</li>
+                            <li>Mật khẩu được băm (hashing) bằng thuật toán <strong>BCrypt</strong> mạnh mẽ trước khi lưu trữ.</li>
+                            <li>Hệ thống tường lửa và giám sát 24/7 để ngăn chặn truy cập trái phép.</li>
+                            <li>Sao lưu dữ liệu định kỳ để đảm bảo tính toàn vẹn.</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <!-- 6. User Rights -->
+                <section id="rights" class="glass-card p-8 md:p-12 rounded-[2rem] scroll-mt-28" data-aos="fade-up">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center border border-brand-100">
+                            <i class="fa-solid fa-user-check"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-slate-900">6. Quyền của bạn</h2>
+                    </div>
+                    <div class="prose prose-slate max-w-none">
+                        <p>Bạn có toàn quyền kiểm soát dữ liệu cá nhân của mình:</p>
+                        <ul>
+                            <li><strong>Truy cập & Chỉnh sửa:</strong> Bạn có thể xem và cập nhật thông tin cá nhân bất kỳ lúc nào trong phần Cài đặt tài khoản.</li>
+                            <li><strong>Xóa tài khoản:</strong> Bạn có quyền yêu cầu xóa vĩnh viễn tài khoản và dữ liệu liên quan.</li>
+                            <li><strong>Hủy đăng ký:</strong> Bạn có thể từ chối nhận email marketing bằng cách nhấp vào liên kết "Hủy đăng ký" ở cuối email.</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <!-- Contact Box -->
+                <div class="mt-12 p-8 rounded-[2rem] bg-slate-900 text-white text-center relative overflow-hidden group">
+                    <!-- Decor -->
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-emerald-500/20 rounded-full blur-[80px] -mr-16 -mt-16"></div>
+
+                    <h3 class="text-2xl font-bold mb-4 relative z-10">Bạn còn thắc mắc về bảo mật?</h3>
+                    <p class="text-slate-300 mb-8 relative z-10 max-w-lg mx-auto">Đội ngũ bảo mật của chúng tôi luôn sẵn sàng giải đáp mọi lo ngại của bạn để đảm bảo trải nghiệm an tâm nhất.</p>
+                    <a href="mailto:security@codecampus.vn" class="inline-flex items-center gap-2 px-8 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl transition-all shadow-lg shadow-emerald-500/30 relative z-10 hover:-translate-y-1">
+                        <i class="fa-solid fa-envelope-open-text"></i> Liên hệ Bộ phận Bảo mật
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<!-- FOOTER -->
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<!-- SCRIPTS -->
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+    AOS.init({
+        once: true,
+        offset: 100,
+        duration: 800,
+        easing: 'ease-out-cubic'
+    });
+
+    function setActiveLink(element) {
+        document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+        element.classList.add('active');
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const firstLink = document.querySelector('.nav-link');
+        if(firstLink) firstLink.classList.add('active');
+    });
+</script>
+</body>
+</html>

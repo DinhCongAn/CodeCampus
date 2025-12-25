@@ -5,6 +5,7 @@ import com.codecampus.entity.User;
 import com.codecampus.repository.CourseCategoryRepository;
 import com.codecampus.repository.UserRepository;
 import com.codecampus.service.CourseService;
+import com.codecampus.service.SettingService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,7 @@ public class AdminSubjectController {
     @Autowired private CourseService courseService;
     @Autowired private CourseCategoryRepository categoryRepository;
     @Autowired private UserRepository userRepository;
+    @Autowired private SettingService settingService;
 
     /**
      * 1. HIỂN THỊ DANH SÁCH MÔN HỌC (Kèm bộ lọc)
@@ -38,9 +40,13 @@ public class AdminSubjectController {
             @RequestParam(required = false) Integer categoryId,
             @RequestParam(required = false) String status,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "7") int size,
+            @RequestParam(required = false) Integer size,
             Model model) {
 
+        if (size == null) {
+            String sizeSetting = settingService.getSettingValue("page_size_course");
+            size = (sizeSetting != null) ? Integer.parseInt(sizeSetting) : 10;
+        }
         // Xử lý chuỗi rỗng thành null cho bộ lọc hoạt động đúng
         if (keyword != null && keyword.trim().isEmpty()) keyword = null;
         if (status != null && status.trim().isEmpty()) status = null;

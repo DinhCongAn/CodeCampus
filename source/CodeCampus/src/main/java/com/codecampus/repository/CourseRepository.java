@@ -60,6 +60,7 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
      * Tương thích DB: 'Top5' được Hibernate dịch thành 'TOP 5' (SQL Server) hoặc 'LIMIT 5' (MySQL).
      */
     List<Course> findTop5ByStatusAndIsFeaturedOrderByUpdatedAtDesc(String status, boolean isFeatured);
+    List<Course> findTop5ByIsFeaturedTrueOrderByUpdatedAtDesc();
 
     // --- PHƯƠNG THỨC CHO TRANG CHI TIẾT ---
 

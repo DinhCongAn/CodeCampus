@@ -51,8 +51,6 @@ public class AiConsultantService {
                     .httpOptions(httpOptions)
                     .build();
 
-            logger.info("✅ AiConsultantService: Gemini Client khởi tạo thành công với API v1beta");
-
         } catch (Exception e) {
             logger.error("❌ Lỗi khởi tạo Gemini Client: {}", e.getMessage(), e);
         }

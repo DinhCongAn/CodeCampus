@@ -59,7 +59,7 @@ public class AiLearningService { // <-- Đổi tên thành AiLearningService
                     .apiKey(this.apiKey)
                     .httpOptions(httpOptions)
                     .build();
-            logger.info("✅ AiLearningService: Gemini Client khởi tạo thành công với API v1beta");
+            logger.info("✅ AI ready: Gemini Client khởi tạo thành công với API v1beta");
         } catch (Exception e) {
             logger.error("❌ Lỗi khởi tạo Gemini Client: {}", e.getMessage(), e);
         }

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Điều khoản & Chính sách | CodeCampus</title>
+
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- Animation -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <link rel="icon" th:href="@{/images/logo.png}" />
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: { 50: '#eef2ff', 100: '#e0e7ff', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca', 900: '#312e81' }
+                    },
+                    typography: (theme) => ({
+                        DEFAULT: {
+                            css: {
+                                color: '#334155',
+                                a: {
+                                    color: '#4f46e5',
+                                    '&:hover': { color: '#4338ca' },
+                                },
+                                h2: { color: '#1e293b', fontWeight: '800', marginTop: '2em' },
+                                h3: { color: '#1e293b', fontWeight: '700', marginTop: '1.5em' },
+                                strong: { color: '#1e293b', fontWeight: '700' },
+                                'ul > li::marker': { color: '#6366f1' },
+                            },
+                        },
+                    }),
+                }
+            }
+        }
+    </script>
+    <style>
+        html { scroll-behavior: smooth; }
+        body {
+            background-color: #f8fafc;
+            background-image:
+                    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
+                    radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.05) 0px, transparent 50%),
+                    radial-gradient(at 100% 100%, rgba(56, 189, 248, 0.08) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: #1e293b;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+        }
+
+        /* Sticky Navigation Active State */
+        .nav-link.active {
+            background-color: #eef2ff;
+            color: #4f46e5;
+            font-weight: 700;
+            border-right: 3px solid #4f46e5;
+        }
+    </style>
+</head>
+<body class="antialiased font-sans min-h-screen flex flex-col">
+
+<!-- HEADER -->
+<div class="sticky top-0 z-50">
+    <div th:replace="~{fragments/header :: header}"></div>
+</div>
+
+<!-- MAIN CONTENT -->
+<main class="flex-grow w-full relative">
+
+    <!-- Hero Title -->
+    <section class="pt-16 pb-12 px-4 text-center">
+        <h1 class="text-3xl md:text-5xl font-black text-slate-900 mb-4" data-aos="fade-down">
+            Điều khoản & Chính sách
+        </h1>
+        <p class="text-slate-500 font-medium max-w-2xl mx-auto" data-aos="fade-up" data-aos-delay="100">
+            Cam kết của CodeCampus về sự minh bạch, bảo mật và quyền lợi của cộng đồng học viên.
+            <br><span class="text-xs uppercase tracking-widest mt-2 block opacity-70">Cập nhật lần cuối: 25/12/2025</span>
+        </p>
+    </section>
+
+    <div class="max-w-[1200px] mx-auto px-4 sm:px-6 pb-20">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+
+            <!-- SIDEBAR NAVIGATION (Sticky) -->
+            <aside class="lg:col-span-3 hidden lg:block">
+                <div class="sticky top-28 space-y-1">
+                    <a href="#terms" class="nav-link block px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-l-lg transition-colors border-r-3 border-transparent" onclick="setActiveLink(this)">
+                        1. Điều khoản sử dụng
+                    </a>
+                    <a href="#privacy" class="nav-link block px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-l-lg transition-colors border-r-3 border-transparent" onclick="setActiveLink(this)">
+                        2. Chính sách bảo mật
+                    </a>
+                    <a href="#payment" class="nav-link block px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-l-lg transition-colors border-r-3 border-transparent" onclick="setActiveLink(this)">
+                        3. Thanh toán & Hoàn tiền
+                    </a>
+                    <a href="#copyright" class="nav-link block px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-l-lg transition-colors border-r-3 border-transparent" onclick="setActiveLink(this)">
+                        4. Bản quyền nội dung
+                    </a>
+                    <a href="#contact" class="nav-link block px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-l-lg transition-colors border-r-3 border-transparent" onclick="setActiveLink(this)">
+                        5. Liên hệ
+                    </a>
+
+                    <div class="pt-6 mt-6 border-t border-slate-200">
+                        <div class="bg-brand-50 rounded-xl p-4">
+                            <h4 class="text-xs font-bold text-brand-700 uppercase mb-2">Cần hỗ trợ?</h4>
+                            <p class="text-xs text-slate-600 mb-3">Đội ngũ pháp chế của chúng tôi luôn sẵn sàng giải đáp.</p>
+                            <a href="mailto:legal@codecampus.vn" class="text-xs font-bold text-brand-600 hover:underline">legal@codecampus.vn</a>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- CONTENT AREA -->
+            <div class="lg:col-span-9 space-y-12">
+
+                <!-- 1. Terms of Service -->
+                <section id="terms" class="glass-card p-8 md:p-12 rounded-[2rem] scroll-mt-28" data-aos="fade-up">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center"><i class="fa-solid fa-file-contract"></i></div>
+                        <h2 class="text-2xl font-bold text-slate-900">1. Điều khoản sử dụng</h2>
+                    </div>
+                    <div class="prose prose-slate max-w-none">
+                        <p>Chào mừng bạn đến với CodeCampus. Khi truy cập và sử dụng dịch vụ của chúng tôi, bạn đồng ý tuân thủ các điều khoản dưới đây.</p>
+                        <h3>1.1. Tài khoản người dùng</h3>
+                        <ul>
+                            <li>Bạn chịu trách nhiệm bảo mật thông tin tài khoản và mật khẩu của mình.</li>
+                            <li>Mỗi tài khoản chỉ được sử dụng bởi một cá nhân. Việc chia sẻ tài khoản bị nghiêm cấm.</li>
+                            <li>Chúng tôi có quyền khóa tài khoản nếu phát hiện hành vi gian lận hoặc vi phạm chính sách.</li>
+                        </ul>
+                        <h3>1.2. Trách nhiệm người dùng</h3>
+                        <p>Bạn cam kết không sử dụng CodeCampus để phát tán nội dung độc hại, spam, hoặc xâm phạm quyền sở hữu trí tuệ của người khác. Chúng tôi khuyến khích môi trường học tập văn minh và tôn trọng lẫn nhau.</p>
+                    </div>
+                </section>
+
+                <!-- 2. Privacy Policy -->
+                <section id="privacy" class="glass-card p-8 md:p-12 rounded-[2rem] scroll-mt-28" data-aos="fade-up">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center"><i class="fa-solid fa-user-shield"></i></div>
+                        <h2 class="text-2xl font-bold text-slate-900">2. Chính sách bảo mật</h2>
+                    </div>
+                    <div class="prose prose-slate max-w-none">
+                        <p>Chúng tôi tôn trọng quyền riêng tư của bạn và cam kết bảo vệ dữ liệu cá nhân theo quy định pháp luật.</p>
+                        <h3>2.1. Dữ liệu chúng tôi thu thập</h3>
+                        <p>Chúng tôi thu thập thông tin cơ bản như tên, email, và tiến độ học tập để cá nhân hóa trải nghiệm và cấp chứng chỉ.</p>
+                        <h3>2.2. Cách sử dụng dữ liệu</h3>
+                        <ul>
+                            <li>Cung cấp và duy trì dịch vụ.</li>
+                            <li>Thông báo về các khóa học mới hoặc thay đổi chính sách.</li>
+                            <li>Phân tích để cải thiện chất lượng nội dung (dữ liệu được ẩn danh).</li>
+                        </ul>
+                        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg my-4 not-prose">
+                            <p class="text-sm text-yellow-800 font-medium">Lưu ý: Chúng tôi không bao giờ bán dữ liệu cá nhân của bạn cho bên thứ ba.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. Payment & Refund -->
+                <section id="payment" class="glass-card p-8 md:p-12 rounded-[2rem] scroll-mt-28" data-aos="fade-up">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center"><i class="fa-solid fa-credit-card"></i></div>
+                        <h2 class="text-2xl font-bold text-slate-900">3. Thanh toán & Hoàn tiền</h2>
+                    </div>
+                    <div class="prose prose-slate max-w-none">
+                        <h3>3.1. Phương thức thanh toán</h3>
+                        <p>CodeCampus hỗ trợ thanh toán qua thẻ ngân hàng nội địa, thẻ quốc tế (Visa/Mastercard) và ví điện tử (Momo, VNPay).</p>
+                        <h3>3.2. Chính sách hoàn tiền (Refund)</h3>
+                        <p>Chúng tôi cam kết hoàn tiền 100% trong vòng <strong>7 ngày</strong> kể từ khi mua khóa học nếu bạn không hài lòng, với điều kiện:</p>
+                        <ul>
+                            <li>Bạn chưa hoàn thành quá 20% nội dung khóa học.</li>
+                            <li>Chưa tải xuống các tài liệu độc quyền.</li>
+                        </ul>
+                        <p>Vui lòng liên hệ bộ phận hỗ trợ để yêu cầu hoàn tiền.</p>
+                    </div>
+                </section>
+
+                <!-- 4. Copyright -->
+                <section id="copyright" class="glass-card p-8 md:p-12 rounded-[2rem] scroll-mt-28" data-aos="fade-up">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center"><i class="fa-solid fa-copyright"></i></div>
+                        <h2 class="text-2xl font-bold text-slate-900">4. Bản quyền nội dung</h2>
+                    </div>
+                    <div class="prose prose-slate max-w-none">
+                        <p>Toàn bộ nội dung trên CodeCampus bao gồm video, bài viết, mã nguồn mẫu, logo và thiết kế đều thuộc sở hữu trí tuệ của CodeCampus.</p>
+                        <p>Nghiêm cấm mọi hành vi sao chép, phát tán, bán lại hoặc sử dụng nội dung cho mục đích thương mại mà không có sự đồng ý bằng văn bản của chúng tôi.</p>
+                    </div>
+                </section>
+
+                <!-- 5. Contact -->
+                <section id="contact" class="glass-card p-8 md:p-12 rounded-[2rem] scroll-mt-28" data-aos="fade-up">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-xl bg-teal-100 text-teal-600 flex items-center justify-center"><i class="fa-solid fa-envelope-open-text"></i></div>
+                        <h2 class="text-2xl font-bold text-slate-900">5. Liên hệ</h2>
+                    </div>
+                    <div class="prose prose-slate max-w-none">
+                        <p>Nếu có bất kỳ thắc mắc nào về Điều khoản & Chính sách, vui lòng liên hệ với chúng tôi qua:</p>
+                        <ul>
+                            <li><strong>Email:</strong> support@codecampus.vn</li>
+                            <li><strong>Hotline:</strong> 1900 1234</li>
+                            <li><strong>Địa chỉ:</strong> Tòa nhà TechHub, Hà Nội, Việt Nam.</li>
+                        </ul>
+                    </div>
+                </section>
+
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<!-- FOOTER -->
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<!-- SCRIPTS -->
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+    AOS.init({
+        once: true,
+        offset: 100,
+        duration: 800,
+        easing: 'ease-out-cubic'
+    });
+
+    // Simple Active Link Logic using Intersection Observer (Optional enhancement)
+    // For simplicity, click handler is used in HTML
+    function setActiveLink(element) {
+        document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+        element.classList.add('active');
+    }
+
+    // Auto active first link on load
+    document.addEventListener("DOMContentLoaded", () => {
+        const firstLink = document.querySelector('.nav-link');
+        if(firstLink) firstLink.classList.add('active');
+    });
+</script>
+</body>
+</html>
