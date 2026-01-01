@@ -6,17 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
     <link rel="stylesheet" th:href="@{/css/admin-style.css}">
 </head>
 <body>
 
-<!-- ====================== SIDEBAR ====================== -->
 <div th:replace="~{fragments/sidebar-menu-admin :: sidebar('orders')}"></div>
 
 <div class="main-content" id="mainContent">
 
-    <!-- Topbar -->
     <div class="topbar d-flex align-items-center justify-content-between">
         <div class="d-flex align-items-center">
             <div class="toggle-btn me-4" onclick="toggleSidebar()">
@@ -26,8 +23,6 @@
         </div>
 
         <div class="d-flex align-items-center gap-3">
-
-            <!-- Button Quay về trang chủ -->
             <a href="/home" target="_blank"
                class="btn btn-outline-primary btn-sm rounded-pill d-flex align-items-center gap-2 shadow-sm px-3"
                title="Mở trang chủ trong tab mới">
@@ -36,43 +31,22 @@
                 <i class="fas fa-external-link-alt small opacity-50 ms-1" style="font-size: 0.75em;"></i>
             </a>
 
-            <!-- Email ẩn để JS dùng -->
             <span id="currentUserEmail" class="d-none" th:text="${email}"></span>
-
-            <!-- Lời chào + Tên -->
             <span class="text-muted small">
-            Xin chào, Admin
-            <strong th:text="${fullName}">Admin</strong>
-        </span>
-
-            <!-- Avatar -->
+                Xin chào, Admin <strong th:text="${fullName}">Admin</strong>
+            </span>
             <div class="avatar-wrapper">
-                <!-- Có avatar trong DB -->
-                <img th:if="${avatarUrl}"
-                     th:src="${avatarUrl}"
-                     width="40"
-                     height="40"
-                     class="rounded-circle object-fit-cover"
-                     alt="Avatar">
-
-                <!-- Không có avatar → fallback theo tên -->
-                <img th:unless="${avatarUrl}"
-                     th:src="@{'https://ui-avatars.com/api/?name=' + ${fullName} + '&background=4361ee&color=fff'}"
-                     width="40"
-                     height="40"
-                     class="rounded-circle object-fit-cover"
-                     alt="Avatar">
+                <img th:if="${avatarUrl}" th:src="${avatarUrl}" width="40" height="40" class="rounded-circle object-fit-cover" alt="Avatar">
+                <img th:unless="${avatarUrl}" th:src="@{'https://ui-avatars.com/api/?name=' + ${fullName} + '&background=4361ee&color=fff'}" width="40" height="40" class="rounded-circle object-fit-cover" alt="Avatar">
             </div>
         </div>
     </div>
 
     <div class="container-fluid py-4">
-
         <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
             <i class="fas fa-check-circle me-2"></i> <span th:text="${successMessage}"></span>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
-
         <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="fas fa-exclamation-circle me-2"></i> <span th:text="${errorMessage}"></span>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
@@ -81,15 +55,12 @@
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-body">
                 <form th:action="@{/admin/orders}" method="get" class="row g-3">
-
                     <div class="col-md-4">
                         <div class="input-group">
                             <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
-                            <input type="text" name="keyword" class="form-control border-start-0"
-                                   placeholder="Tìm mã đơn, email, tên môn..." th:value="${keyword}">
+                            <input type="text" name="keyword" class="form-control border-start-0" placeholder="Tìm mã đơn, email..." th:value="${keyword}">
                         </div>
                     </div>
-
                     <div class="col-md-3">
                         <select name="status" class="form-select">
                             <option value="" th:selected="${status == null || status == ''}">-- Tất cả trạng thái --</option>
@@ -98,17 +69,10 @@
                             <option value="CANCELLED" th:selected="${status == 'CANCELLED'}">Đã hủy</option>
                         </select>
                     </div>
-
                     <div class="col-md-3 d-flex gap-2">
-                        <button type="submit" class="btn btn-primary flex-grow-1">
-                            <i class="fas fa-filter me-1"></i> Lọc
-                        </button>
-
-                        <a th:href="@{/admin/orders}" class="btn btn-light border flex-grow-1" title="Xóa bộ lọc">
-                            <i class="fas fa-sync-alt me-1"></i> Làm mới
-                        </a>
+                        <button type="submit" class="btn btn-primary flex-grow-1"><i class="fas fa-filter me-1"></i> Lọc</button>
+                        <a th:href="@{/admin/orders}" class="btn btn-light border flex-grow-1"><i class="fas fa-sync-alt me-1"></i> Reset</a>
                     </div>
-
                 </form>
             </div>
         </div>
@@ -118,7 +82,7 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead>
                     <tr>
-                        <th class="ps-4">Mã đơn hàng</th>
+                        <th class="ps-4">Mã đơn</th>
                         <th>Khách hàng</th>
                         <th>Khóa học</th>
                         <th>Số tiền</th>
@@ -128,105 +92,57 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr th:if="${orderPage.empty}">
-                        <td colspan="7" class="text-center py-5 text-muted">
-                            <i class="fas fa-box-open fa-3x mb-3"></i><br>Không tìm thấy đơn hàng nào.
-                        </td>
-                    </tr>
-
+                    <tr th:if="${orderPage.empty}"><td colspan="7" class="text-center py-5 text-muted">Không có đơn hàng nào.</td></tr>
                     <tr th:each="order : ${orderPage.content}">
-                        <td class="ps-4">
-                            <span class="fw-bold text-primary" th:text="${'#' + order.orderCode}">#123456</span>
-                        </td>
+                        <td class="ps-4"><span class="fw-bold text-primary" th:text="${'#' + order.orderCode}">#CODE</span></td>
                         <td>
                             <div class="d-flex align-items-center">
-                                <img th:src="${order.user.avatarUrl != null ? order.user.avatarUrl : 'https://ui-avatars.com/api/?name=' + order.user.fullName}"
-                                     class="avatar-sm me-2" alt="user">
+                                <img th:src="${order.user.avatarUrl != null ? order.user.avatarUrl : 'https://ui-avatars.com/api/?name=' + order.user.fullName}" class="rounded-circle me-2" width="35" height="35" style="object-fit: cover;">
                                 <div>
-                                    <div class="fw-bold" th:text="${order.user.fullName}">Tên User</div>
-                                    <div class="small text-muted" th:text="${order.user.email}">email@example.com</div>
+                                    <div class="fw-bold small" th:text="${order.user.fullName}">Name</div>
+                                    <div class="small text-muted" th:text="${order.user.email}">Email</div>
                                 </div>
                             </div>
                         </td>
-                        <td th:text="${order.course.name}">Tên khóa học</td> <td class="fw-bold text-dark"
-                                                                                 th:text="${#numbers.formatDecimal(order.totalCost, 0, 'POINT', 0, 'COMMA')} + ' ₫'">
-                        500.000 ₫
-                    </td>
-                        <td th:text="${#temporals.format(order.registrationTime, 'dd/MM/yyyy HH:mm')}">20/11/2025</td>
+                        <td class="small" th:text="${order.course.name}">Course</td>
+                        <td class="fw-bold text-dark" th:text="${#numbers.formatDecimal(order.totalCost, 0, 'POINT', 0, 'COMMA')} + ' ₫'">0 ₫</td>
+                        <td class="small" th:text="${#temporals.format(order.registrationTime, 'dd/MM/yyyy HH:mm')}">Date</td>
                         <td>
-                                <span th:if="${order.status == 'COMPLETED'}" class="status-badge bg-success-subtle text-success">
-                                    <i class="fas fa-check-circle me-1"></i>Thành công
-                                </span>
-                            <span th:if="${order.status == 'PENDING'}" class="status-badge bg-warning-subtle text-warning">
-                                    <i class="fas fa-clock me-1"></i>Chờ thanh toán
-                                </span>
-                            <span th:if="${order.status == 'CANCELLED'}" class="status-badge bg-danger-subtle text-danger">
-                                    <i class="fas fa-times-circle me-1"></i>Đã hủy
-                                </span>
+                            <span th:if="${order.status == 'COMPLETED'}" class="badge bg-success-subtle text-success"><i class="fas fa-check-circle me-1"></i>Thành công</span>
+                            <span th:if="${order.status == 'PENDING'}" class="badge bg-warning-subtle text-warning"><i class="fas fa-clock me-1"></i>Chờ xử lý</span>
+                            <span th:if="${order.status == 'CANCELLED'}" class="badge bg-danger-subtle text-danger"><i class="fas fa-times-circle me-1"></i>Đã hủy</span>
                         </td>
                         <td class="text-end pe-4">
-                            <button type="button"
-                                    class="btn btn-sm btn-outline-primary me-1"
-                                    title="Xem chi tiết"
-                                    th:onclick="'viewOrderDetails(' + ${order.id} + ')'"> <i class="fas fa-eye"></i>
+                            <button type="button" class="btn btn-sm btn-outline-primary me-1" title="Xem & Sửa" th:onclick="'viewOrderDetails(' + ${order.id} + ')'">
+                                <i class="fas fa-eye"></i>
                             </button>
-
-                            <form th:if="${order.status == 'PENDING'}"
-                                  th:action="@{/admin/orders/cancel/{id}(id=${order.id})}"
-                                  method="post"
-                                  style="display: inline-block;"
-                                  onsubmit="return confirm('CẢNH BÁO: Bạn có chắc chắn muốn xóa đơn hàng này không? Hành động này không thể hoàn tác.');">
-
-                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa đơn rác">
-                                    <i class="fas fa-trash"></i>
-                                </button>
+                            <form th:if="${order.status == 'PENDING'}" th:action="@{/admin/orders/cancel/{id}(id=${order.id})}" method="post" class="d-inline" onsubmit="return confirm('Hủy đơn hàng này?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Hủy đơn"><i class="fas fa-trash"></i></button>
                             </form>
                         </td>
                     </tr>
                     </tbody>
                 </table>
             </div>
-
             <div class="d-flex justify-content-between align-items-center p-3 border-top" th:if="${orderPage.totalPages > 0}">
-                <span class="text-muted small">
-                    Hiển thị <strong th:text="${orderPage.numberOfElements}">10</strong>
-                    trên tổng số <strong th:text="${orderPage.totalElements}">50</strong> đơn hàng
-                </span>
+                <span class="text-muted small">Hiển thị <strong th:text="${orderPage.numberOfElements}"></strong> / <strong th:text="${orderPage.totalElements}"></strong> đơn</span>
                 <nav>
                     <ul class="pagination pagination-sm mb-0">
-                        <li class="page-item" th:classappend="${orderPage.first ? 'disabled' : ''}">
-                            <a class="page-link" th:href="@{/admin/orders(page=${orderPage.number - 1}, keyword=${keyword}, status=${status})}">Trước</a>
-                        </li>
-
-                        <li class="page-item" th:each="i : ${#numbers.sequence(0, orderPage.totalPages - 1)}"
-                            th:classappend="${i == orderPage.number ? 'active' : ''}">
-                            <a class="page-link" th:href="@{/admin/orders(page=${i}, keyword=${keyword}, status=${status})}"
-                               th:text="${i + 1}">1</a>
-                        </li>
-
-                        <li class="page-item" th:classappend="${orderPage.last ? 'disabled' : ''}">
-                            <a class="page-link" th:href="@{/admin/orders(page=${orderPage.number + 1}, keyword=${keyword}, status=${status})}">Sau</a>
-                        </li>
+                        <li class="page-item" th:classappend="${orderPage.first ? 'disabled' : ''}"><a class="page-link" th:href="@{/admin/orders(page=${orderPage.number - 1}, keyword=${keyword}, status=${status})}">Trước</a></li>
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, orderPage.totalPages - 1)}" th:classappend="${i == orderPage.number ? 'active' : ''}"><a class="page-link" th:href="@{/admin/orders(page=${i}, keyword=${keyword}, status=${status})}" th:text="${i + 1}">1</a></li>
+                        <li class="page-item" th:classappend="${orderPage.last ? 'disabled' : ''}"><a class="page-link" th:href="@{/admin/orders(page=${orderPage.number + 1}, keyword=${keyword}, status=${status})}">Sau</a></li>
                     </ul>
                 </nav>
             </div>
         </div>
-
     </div>
 </div>
 
-<script>
-    function toggleSidebar() {
-        document.getElementById('sidebar').classList.toggle('collapsed');
-        document.getElementById('mainContent').classList.toggle('expanded');
-    }
-</script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <div class="modal fade" id="orderDetailModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title"><i class="fas fa-receipt me-2"></i>Chi tiết đơn hàng #<span id="modalOrderCode"></span></h5>
+                <h5 class="modal-title fw-bold"><i class="fas fa-receipt me-2"></i>Chi tiết đơn hàng #<span id="modalOrderCode"></span></h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-4">
@@ -234,118 +150,111 @@
                     <div class="col-md-6 border-end">
                         <h6 class="text-uppercase text-muted small fw-bold mb-3">Thông tin khách hàng</h6>
                         <div class="d-flex align-items-center mb-4">
-                            <img id="modalUserAvatar" src="" class="rounded-circle me-3" width="60" height="60" style="object-fit: cover;">
+                            <img id="modalUserAvatar" src="" class="rounded-circle me-3 border" width="60" height="60" style="object-fit: cover;">
                             <div>
-                                <h5 id="modalUserName" class="mb-0 fw-bold text-dark"></h5>
-                                <small id="modalUserEmail" class="text-muted"></small>
+                                <h5 id="modalUserName" class="mb-0 fw-bold text-dark">User Name</h5>
+                                <small id="modalUserEmail" class="text-muted">email@example.com</small>
                             </div>
                         </div>
-                        <p><i class="fas fa-phone me-2 text-primary"></i> <span id="modalUserPhone"></span></p>
-                        <p><i class="fas fa-clock me-2 text-primary"></i> Ngày đặt: <span id="modalRegTime" class="fw-bold"></span></p>
+                        <p class="mb-2"><i class="fas fa-phone me-2 text-primary"></i> <span id="modalUserPhone">...</span></p>
+                        <p class="mb-2"><i class="fas fa-calendar-alt me-2 text-primary"></i> Ngày đặt: <span id="modalRegTime" class="fw-bold">...</span></p>
                     </div>
 
                     <div class="col-md-6 ps-md-4">
                         <h6 class="text-uppercase text-muted small fw-bold mb-3">Thông tin khóa học</h6>
                         <div class="card border-0 bg-light mb-3">
-                            <div class="card-body d-flex align-items-center">
-                                <img id="modalCourseThumb" src="" class="rounded me-3" width="60" height="40" style="object-fit: cover;">
+                            <div class="card-body d-flex align-items-center p-2">
+                                <img id="modalCourseThumb" src="" class="rounded me-3 border" width="70" height="50" style="object-fit: cover;">
                                 <div>
-                                    <strong id="modalCourseName" class="d-block text-dark"></strong>
-                                    <small id="modalPackageName" class="text-primary"></small>
+                                    <strong id="modalCourseName" class="d-block text-dark small">Course Name</strong>
+                                    <small id="modalPackageName" class="text-primary" style="font-size: 0.8em;">Package</small>
                                 </div>
                             </div>
                         </div>
 
-                        <ul class="list-unstyled">
+                        <ul class="list-unstyled mb-4 small">
                             <li class="d-flex justify-content-between mb-2">
-                                <span>Trạng thái:</span>
-                                <span id="modalStatus"></span>
+                                <span>Trạng thái hiện tại:</span>
+                                <span id="modalStatus">...</span>
                             </li>
-                            <li class="d-flex justify-content-between mb-2">
-                                <span>Hiệu lực từ:</span>
-                                <span id="modalValidFrom"></span>
-                            </li>
-                            <li class="d-flex justify-content-between mb-2">
-                                <span>Hết hạn ngày:</span>
-                                <span id="modalValidTo"></span>
-                            </li>
-                            <li class="d-flex justify-content-between mt-3 pt-3 border-top">
-                                <strong class="fs-5">Tổng tiền:</strong>
-                                <strong id="modalTotalCost" class="fs-4 text-success"></strong>
+                            <li class="d-flex justify-content-between mb-2 pt-2 border-top">
+                                <strong class="fs-6">Tổng tiền:</strong>
+                                <strong id="modalTotalCost" class="fs-5 text-success">...</strong>
                             </li>
                         </ul>
+
+                        <div class="p-3 border rounded bg-white shadow-sm">
+                            <h6 class="fw-bold text-primary mb-2 small"><i class="fas fa-tools me-1"></i> Cập nhật trạng thái (Admin)</h6>
+                            <form th:action="@{/admin/orders/update-status}" method="post">
+                                <input type="hidden" name="id" id="formUpdateOrderId">
+                                <div class="input-group">
+                                    <select name="status" id="formUpdateStatusSelect" class="form-select form-select-sm fw-bold">
+                                        <option value="PENDING" class="text-warning">⏳ Chờ xử lý</option>
+                                        <option value="COMPLETED" class="text-success">✅ Hoàn thành (Duyệt)</option>
+                                        <option value="CANCELLED" class="text-danger">❌ Hủy đơn</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-sm btn-primary fw-bold" onclick="return confirm('Xác nhận thay đổi trạng thái đơn hàng này?');">
+                                        <i class="fas fa-save me-1"></i> Lưu
+                                    </button>
+                                </div>
+                                <small class="text-muted d-block mt-1 fst-italic" style="font-size: 0.75em;">
+                                    * Chọn "Hoàn thành" sẽ kích hoạt khóa học cho học viên ngay lập tức.
+                                </small>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="modal-footer bg-light">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            <div class="modal-footer bg-light py-2">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Đóng</button>
             </div>
         </div>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // 1. Toggle Sidebar (Code cũ)
     function toggleSidebar() {
         document.getElementById('sidebar').classList.toggle('collapsed');
         document.getElementById('mainContent').classList.toggle('expanded');
     }
 
-    // 2. Hàm định dạng tiền tệ VNĐ
     const formatVND = (value) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
 
-    // 3. Hàm xem chi tiết (Được gọi khi bấm nút Mắt)
     function viewOrderDetails(id) {
-        // Gọi API Backend
         fetch(`/admin/orders/api/${id}`)
-            .then(response => {
-                if (!response.ok) throw new Error('Lỗi tải dữ liệu');
-                return response.json();
-            })
+            .then(res => { if (!res.ok) throw new Error('Lỗi tải dữ liệu'); return res.json(); })
             .then(data => {
-                // Điền dữ liệu vào Modal
+                // Info
                 document.getElementById('modalOrderCode').innerText = data.orderCode;
-
-                // User info
                 document.getElementById('modalUserName').innerText = data.user.fullName;
                 document.getElementById('modalUserEmail').innerText = data.user.email;
                 document.getElementById('modalUserPhone').innerText = data.user.mobile || 'Chưa cập nhật';
                 document.getElementById('modalUserAvatar').src = data.user.avatar;
-
-                // Time info
                 document.getElementById('modalRegTime').innerText = data.registrationTime;
-                document.getElementById('modalValidFrom').innerText = data.validFrom;
-                document.getElementById('modalValidTo').innerText = data.validTo;
 
-                // Course info
                 document.getElementById('modalCourseName').innerText = data.course.name;
                 document.getElementById('modalCourseThumb').src = data.course.thumbnail || 'https://via.placeholder.com/150';
                 document.getElementById('modalPackageName').innerText = data.packageName + ' (' + data.duration + ')';
-
-                // Money
                 document.getElementById('modalTotalCost').innerText = formatVND(data.totalCost);
 
-                // Status Badge (Xử lý màu sắc)
+                // Status Badge Display
                 const statusEl = document.getElementById('modalStatus');
                 let badgeClass = 'badge ';
                 let statusText = '';
-
-                if (data.status === 'COMPLETED') {
-                    badgeClass += 'bg-success'; statusText = 'Thành công';
-                } else if (data.status === 'PENDING') {
-                    badgeClass += 'bg-warning text-dark'; statusText = 'Chờ thanh toán';
-                } else {
-                    badgeClass += 'bg-danger'; statusText = 'Đã hủy';
-                }
+                if (data.status === 'COMPLETED') { badgeClass += 'bg-success'; statusText = 'Thành công'; }
+                else if (data.status === 'PENDING') { badgeClass += 'bg-warning text-dark'; statusText = 'Chờ xử lý'; }
+                else { badgeClass += 'bg-danger'; statusText = 'Đã hủy'; }
                 statusEl.className = badgeClass;
                 statusEl.innerText = statusText;
 
-                // Hiện Modal lên
-                const myModal = new bootstrap.Modal(document.getElementById('orderDetailModal'));
-                myModal.show();
+                // --- SET FORM VALUES ---
+                document.getElementById('formUpdateOrderId').value = data.id;
+                document.getElementById('formUpdateStatusSelect').value = data.status;
+
+                new bootstrap.Modal(document.getElementById('orderDetailModal')).show();
             })
-            .catch(error => {
-                alert('Không thể tải thông tin đơn hàng: ' + error);
-            });
+            .catch(err => alert('Lỗi: ' + err));
     }
 </script>
 </body>

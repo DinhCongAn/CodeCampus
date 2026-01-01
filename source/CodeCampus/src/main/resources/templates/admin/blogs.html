@@ -9,6 +9,29 @@
     <link rel="stylesheet" th:href="@{/css/admin-style.css}">
     <meta name="_csrf" th:content="${_csrf.token}">
     <meta name="_csrf_header" th:content="${_csrf.headerName}">
+    <style>
+        /* CSS bổ sung cho phần ảnh */
+        .img-preview-container {
+            width: 100%;
+            height: 200px;
+            background-color: #f8f9fa;
+            border: 1px dashed #dee2e6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+        .img-preview-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        .readonly-field {
+            background-color: #e9ecef;
+            cursor: not-allowed;
+        }
+    </style>
 </head>
 <body>
 
@@ -16,7 +39,6 @@
 
 <div class="main-content" id="mainContent">
 
-    <!-- Topbar -->
     <div class="topbar d-flex align-items-center justify-content-between">
         <div class="d-flex align-items-center">
             <div class="toggle-btn me-4" onclick="toggleSidebar()">
@@ -26,49 +48,27 @@
         </div>
 
         <div class="d-flex align-items-center gap-3">
-
-            <!-- Button Quay về trang chủ -->
             <a href="/home" target="_blank"
-               class="btn btn-outline-primary btn-sm rounded-pill d-flex align-items-center gap-2 shadow-sm px-3"
-               title="Mở trang chủ trong tab mới">
+               class="btn btn-outline-primary btn-sm rounded-pill d-flex align-items-center gap-2 shadow-sm px-3">
                 <i class="fas fa-home"></i>
                 <span class="d-none d-md-inline fw-medium">Trang chủ</span>
-                <i class="fas fa-external-link-alt small opacity-50 ms-1" style="font-size: 0.75em;"></i>
+                <i class="fas fa-external-link-alt small opacity-50 ms-1"></i>
             </a>
 
-            <!-- Email ẩn để JS dùng -->
             <span id="currentUserEmail" class="d-none" th:text="${email}"></span>
 
-            <!-- Lời chào + Tên -->
             <span class="text-muted small">
-            Xin chào, Admin
-            <strong th:text="${fullName}">Admin</strong>
-        </span>
+                Xin chào, <strong th:text="${fullName}">Admin</strong>
+            </span>
 
-            <!-- Avatar -->
             <div class="avatar-wrapper">
-                <!-- Có avatar trong DB -->
-                <img th:if="${avatarUrl}"
-                     th:src="${avatarUrl}"
-                     width="40"
-                     height="40"
-                     class="rounded-circle object-fit-cover"
-                     alt="Avatar">
-
-                <!-- Không có avatar → fallback theo tên -->
-                <img th:unless="${avatarUrl}"
-                     th:src="@{'https://ui-avatars.com/api/?name=' + ${fullName} + '&background=4361ee&color=fff'}"
-                     width="40"
-                     height="40"
-                     class="rounded-circle object-fit-cover"
-                     alt="Avatar">
+                <img th:if="${avatarUrl}" th:src="${avatarUrl}" width="40" height="40" class="rounded-circle object-fit-cover" alt="Avatar">
+                <img th:unless="${avatarUrl}" th:src="@{'https://ui-avatars.com/api/?name=' + ${fullName} + '&background=4361ee&color=fff'}" width="40" height="40" class="rounded-circle object-fit-cover" alt="Avatar">
             </div>
         </div>
     </div>
 
-
     <div class="container-fluid">
-        <!-- Alerts -->
         <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
             <i class="fas fa-check-circle me-2"></i> <span th:text="${successMessage}"></span>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
@@ -78,7 +78,6 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
 
-        <!-- Filters & Actions -->
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-body">
                 <div class="row g-3">
@@ -119,7 +118,6 @@
             </div>
         </div>
 
-        <!-- Table List -->
         <div class="table-card">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
@@ -139,18 +137,13 @@
                     <tr th:each="blog : ${blogPage.content}">
                         <td class="ps-4 text-muted" th:text="${'#' + blog.id}">#1</td>
                         <td>
-                            <img th:if="${blog.thumbnailUrl}"
-                                 th:src="@{${blog.thumbnailUrl}}"
-                                 class="img-thumbnail-custom border shadow-sm"
-                                 style="max-height: 70px; width: auto;">
+                            <img th:if="${blog.thumbnailUrl}" th:src="@{${blog.thumbnailUrl}}" class="img-thumbnail-custom border shadow-sm" style="max-height: 70px; width: auto;">
                             <span th:unless="${blog.thumbnailUrl}" class="badge bg-light text-dark border">No Img</span>
                         </td>
-
                         <td>
                             <div class="d-flex align-items-center">
                                 <strong class="text-dark d-inline-block text-truncate" style="max-width: 250px;" th:text="${blog.title}">Title</strong>
-                                <span th:id="'featured-badge-' + ${blog.id}"
-                                      th:class="'badge bg-warning text-dark ms-2 ' + (${blog.isFeatured} ? '' : 'd-none')"><i class="fas fa-star"></i> HOT</span>
+                                <span th:id="'featured-badge-' + ${blog.id}" th:class="'badge bg-warning text-dark ms-2 ' + (${blog.isFeatured} ? '' : 'd-none')"><i class="fas fa-star"></i> HOT</span>
                             </div>
                             <small class="text-muted text-truncate d-inline-block" style="max-width: 250px;" th:text="${blog.summary}">Summary...</small>
                         </td>
@@ -165,36 +158,17 @@
                         <td class="text-muted small" th:text="${blog.author != null ? blog.author.email : 'Unknown'}">User</td>
                         <td class="text-end pe-4">
                             <div class="d-flex justify-content-end align-items-center gap-2">
-
-                                <!-- Featured Switch -->
                                 <div class="form-check form-switch" title="Bài viết nổi bật">
-                                    <input class="form-check-input"
-                                           type="checkbox"
-                                           th:checked="${blog.isFeatured}"
-                                           th:onchange="'toggleFeatured(' + ${blog.id} + ', this)'">
+                                    <input class="form-check-input" type="checkbox" th:checked="${blog.isFeatured}" th:onchange="'toggleFeatured(' + ${blog.id} + ', this)'">
                                 </div>
-
-                                <!-- Edit -->
-                                <button class="btn btn-sm btn-outline-primary"
-                                        th:onclick="'openModalEdit(' + ${blog.id} + ')'"
-                                        title="Xem/Sửa">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-
-                                <!-- Delete -->
-                                <a th:href="@{/admin/blogs/delete/{id}(id=${blog.id})}"
-                                   onclick="return confirm('Bạn có chắc chắn muốn xóa?');"
-                                   class="btn btn-sm btn-outline-danger"
-                                   title="Xóa">
-                                    <i class="fas fa-trash-alt"></i>
-                                </a>
+                                <button class="btn btn-sm btn-outline-primary" th:onclick="'openModalEdit(' + ${blog.id} + ')'" title="Xem/Sửa"><i class="fas fa-edit"></i></button>
+                                <a th:href="@{/admin/blogs/delete/{id}(id=${blog.id})}" onclick="return confirm('Bạn có chắc chắn muốn xóa?');" class="btn btn-sm btn-outline-danger" title="Xóa"><i class="fas fa-trash-alt"></i></a>
                             </div>
                         </td>
                     </tr>
                     </tbody>
                 </table>
             </div>
-            <!-- Pagination -->
             <div class="d-flex justify-content-between align-items-center p-3 border-top" th:if="${blogPage.totalPages > 0}">
                 <span class="text-muted small">Hiển thị <strong th:text="${blogPage.numberOfElements}"></strong> / <strong th:text="${blogPage.totalElements}"></strong> bài viết</span>
                 <nav>
@@ -209,7 +183,6 @@
     </div>
 </div>
 
-<!-- ================= MODAL ================= -->
 <div class="modal fade" id="blogModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
         <form th:action="@{/admin/blogs/save}" method="post" enctype="multipart/form-data" class="modal-content border-0 shadow" onsubmit="return validateBlogForm()">
@@ -219,49 +192,58 @@
             </div>
             <div class="modal-body p-4 bg-light">
                 <input type="hidden" id="blogId" name="id">
-                <input type="hidden" id="currentThumbnailUrl" name="thumbnailUrl">
 
-                <!-- Cảnh báo chế độ Duyệt -->
                 <div id="reviewModeAlert" class="alert alert-warning border-0 small py-2 d-none">
-                    <i class="fas fa-lock me-1"></i> Bạn đang ở chế độ <strong>Duyệt bài</strong>. Nội dung của tác giả khác không được phép chỉnh sửa.
+                    <i class="fas fa-lock me-1"></i> Chế độ <strong>Duyệt bài</strong>. Bạn không thể chỉnh sửa nội dung của người khác.
                 </div>
                 <div id="jsErrorAlert" class="alert alert-danger d-none small py-2"></div>
 
                 <div class="row g-4">
-                    <!-- Cột Trái -->
                     <div class="col-lg-4">
                         <div class="card shadow-sm border-0 h-100">
                             <div class="card-body">
                                 <h6 class="fw-bold text-muted mb-3 small">HÌNH ẢNH & TRẠNG THÁI</h6>
-                                <div class="img-preview-container rounded mb-3 bg-white">
-                                    <img id="previewImage" src="https://via.placeholder.com/400x250?text=No+Thumbnail" class="img-fluid rounded shadow-sm">
+
+                                <div class="img-preview-container rounded mb-3">
+                                    <img id="previewImage" src="https://via.placeholder.com/400x250?text=No+Thumbnail" alt="Preview">
                                 </div>
 
-                                <!-- Khu vực upload ảnh (Sẽ bị disable nếu duyệt bài người khác) -->
                                 <div id="imageUploadArea">
                                     <ul class="nav nav-tabs nav-fill small mb-3" id="imageTabs" role="tablist">
-                                        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#upload-pane" type="button" id="upload-tab"><i class="fas fa-upload me-1"></i> Upload</button></li>
-                                        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#link-pane" type="button" id="link-tab"><i class="fas fa-link me-1"></i> URL</button></li>
+                                        <li class="nav-item">
+                                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#upload-pane" type="button" id="upload-tab">
+                                                <i class="fas fa-upload me-1"></i> Tải ảnh lên
+                                            </button>
+                                        </li>
+                                        <li class="nav-item">
+                                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#link-pane" type="button" id="link-tab">
+                                                <i class="fas fa-link me-1"></i> Dùng URL
+                                            </button>
+                                        </li>
                                     </ul>
                                     <div class="tab-content mb-4 bg-white p-2 border border-top-0 rounded-bottom">
                                         <div class="tab-pane fade show active" id="upload-pane">
-                                            <input type="file" class="form-control form-control-sm content-field" name="thumbnail" id="fileInput" accept="image/*" onchange="previewFile()">
+                                            <input type="file" class="form-control form-control-sm content-field"
+                                                   name="thumbnail" id="fileInput" accept="image/*" onchange="previewFile()">
+                                            <div class="form-text small fst-italic">Hỗ trợ JPG, PNG, WEBP.</div>
                                         </div>
                                         <div class="tab-pane fade" id="link-pane">
-                                            <input type="text" class="form-control form-control-sm content-field" id="urlInput" placeholder="https://..." onchange="previewUrl()">
+                                            <input type="text" class="form-control form-control-sm content-field"
+                                                   name="thumbnailUrl" id="urlInput" placeholder="https://example.com/image.jpg" oninput="previewUrl()">
+                                            <div class="form-text small fst-italic">Nhập đường dẫn ảnh trực tiếp.</div>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="form-label small fw-bold text-muted">Danh mục</label>
+                                    <label class="form-label small fw-bold text-muted">Danh mục <span class="text-danger">*</span></label>
                                     <select class="form-select content-field" name="blogCategoryId" id="blogCategoryId" required>
                                         <option value="">-- Chọn danh mục --</option>
                                         <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}"></option>
                                     </select>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label small fw-bold text-muted">Trạng thái (Admin)</label>
+                                    <label class="form-label small fw-bold text-muted">Trạng thái</label>
                                     <select class="form-select border-primary" name="status" id="blogStatus">
                                         <option value="draft">Bản nháp (Draft)</option>
                                         <option value="published">Công khai (Published)</option>
@@ -269,28 +251,30 @@
                                     </select>
                                 </div>
                                 <div class="form-check form-switch p-3 bg-white rounded border d-flex justify-content-between align-items-center">
-                                    <label class="form-check-label fw-bold small mb-0" for="blogFeatured">Bài viết nổi bật (Featured)</label>
+                                    <label class="form-check-label fw-bold small mb-0" for="blogFeatured">Nổi bật (Featured)</label>
                                     <input class="form-check-input ms-2" type="checkbox" id="blogFeatured" name="isFeatured">
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <!-- Cột Phải -->
+
                     <div class="col-lg-8">
                         <div class="card shadow-sm border-0 h-100">
                             <div class="card-body d-flex flex-column">
                                 <h6 class="fw-bold text-muted mb-3 small">NỘI DUNG BÀI VIẾT</h6>
                                 <div class="mb-3">
-                                    <label class="form-label small fw-bold">Tiêu đề</label>
+                                    <label class="form-label small fw-bold">Tiêu đề <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control fw-bold content-field" name="title" id="blogTitle" placeholder="Nhập tiêu đề bài viết..." required>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label small fw-bold">Mô tả ngắn</label>
-                                    <textarea class="form-control content-field" name="brief" id="blogBrief" rows="3" placeholder="Tóm tắt nội dung..."></textarea>
+                                    <textarea class="form-control content-field" name="brief" id="blogBrief" rows="3" placeholder="Tóm tắt nội dung để hiển thị trên thẻ bài viết..."></textarea>
                                 </div>
                                 <div class="mb-0 flex-grow-1 d-flex flex-column">
-                                    <label class="form-label small fw-bold">Nội dung chi tiết</label>
-                                    <textarea class="form-control flex-grow-1 content-field" name="content" id="blogContent" rows="15" style="min-height: 350px; font-family: monospace;" placeholder="Viết nội dung HTML hoặc văn bản tại đây..."></textarea>
+                                    <label class="form-label small fw-bold">Nội dung chi tiết (HTML)</label>
+                                    <textarea class="form-control flex-grow-1 content-field" name="content" id="blogContent" rows="15"
+                                              style="min-height: 350px; font-family: monospace;"
+                                              placeholder="<h1>Nội dung bài viết</h1><p>Viết ở đây...</p>"></textarea>
                                 </div>
                             </div>
                         </div>
@@ -299,7 +283,7 @@
             </div>
             <div class="modal-footer bg-light border-top-0 py-3">
                 <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Đóng</button>
-                <button type="submit" class="btn btn-primary px-4 fw-bold"><i class="fas fa-save me-1"></i> Lưu Thay Đổi</button>
+                <button type="submit" class="btn btn-primary px-4 fw-bold"><i class="fas fa-save me-1"></i> Lưu Bài Viết</button>
             </div>
         </form>
     </div>
@@ -307,51 +291,59 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+    // --- Global Config ---
+    const DEFAULT_IMG = "https://via.placeholder.com/400x250?text=No+Thumbnail";
+    const blogModal = new bootstrap.Modal(document.getElementById('blogModal'));
+    const errorAlert = document.getElementById('jsErrorAlert');
+    const reviewAlert = document.getElementById('reviewModeAlert');
+    const previewImg = document.getElementById('previewImage');
+    const fileInput = document.getElementById('fileInput');
+    const urlInput = document.getElementById('urlInput');
+    const currentUserEmail = document.getElementById('currentUserEmail').innerText.trim();
+
     function toggleSidebar() {
         const sidebar = document.getElementById('sidebar');
         const main = document.getElementById('mainContent');
         if(sidebar && main) { sidebar.classList.toggle('collapsed'); main.classList.toggle('expanded'); }
     }
 
-    const blogModal = new bootstrap.Modal(document.getElementById('blogModal'));
-    const previewImg = document.getElementById('previewImage');
-    const errorAlert = document.getElementById('jsErrorAlert');
-    const reviewAlert = document.getElementById('reviewModeAlert');
-
-    // Lấy email hiện tại từ span ẩn
-    const currentUserEmail = document.getElementById('currentUserEmail').innerText.trim();
-
+    // --- Image Handling Logic (FIXED) ---
     function previewFile() {
-        const file = document.getElementById('fileInput').files[0];
+        const file = fileInput.files[0];
         if (file) {
             const reader = new FileReader();
             reader.onload = (e) => previewImg.src = e.target.result;
             reader.readAsDataURL(file);
-            document.getElementById('urlInput').value = "";
-        }
-    }
-    function previewUrl() {
-        const url = document.getElementById('urlInput').value.trim();
-        if (url) {
-            previewImg.src = url;
-            document.getElementById('fileInput').value = "";
+
+            // Nếu chọn file, xóa nội dung URL để tránh nhầm lẫn Backend
+            urlInput.value = "";
         } else {
-            previewImg.src = "https://via.placeholder.com/400x250?text=No+Thumbnail";
+            // Nếu hủy chọn file, quay về mặc định hoặc ảnh cũ (logic đơn giản là về default)
+            previewImg.src = DEFAULT_IMG;
         }
     }
 
-    // --- Enable/Disable Content Fields ---
+    function previewUrl() {
+        const url = urlInput.value.trim();
+        if (url) {
+            previewImg.src = url;
+            // Nếu nhập URL, clear file input
+            fileInput.value = "";
+        } else {
+            previewImg.src = DEFAULT_IMG;
+        }
+    }
+
+    // --- Enable/Disable Logic ---
     function setContentEditable(editable) {
         const fields = document.querySelectorAll('.content-field');
         const uploadArea = document.getElementById('imageUploadArea');
 
         fields.forEach(f => {
             f.disabled = !editable;
-            if(!editable) f.classList.add('readonly-field');
-            else f.classList.remove('readonly-field');
+            f.classList.toggle('readonly-field', !editable);
         });
 
-        // Ẩn/Hiện vùng upload ảnh nếu không được sửa
         if(!editable) {
             uploadArea.style.pointerEvents = 'none';
             uploadArea.style.opacity = '0.5';
@@ -363,14 +355,13 @@
         }
     }
 
+    // --- OPEN ADD MODAL ---
     function openModalAdd() {
         document.getElementById('modalTitle').innerHTML = '<i class="fas fa-plus-circle me-2"></i>Thêm Bài Viết Mới';
-
-        // Reset form & Enable fields (Tạo mới luôn được sửa)
         setContentEditable(true);
 
+        // Reset Values
         document.getElementById('blogId').value = "";
-        document.getElementById('currentThumbnailUrl').value = "";
         document.getElementById('blogTitle').value = "";
         document.getElementById('blogBrief').value = "";
         document.getElementById('blogContent').value = "";
@@ -378,99 +369,101 @@
         document.getElementById('blogStatus').value = "draft";
         document.getElementById('blogFeatured').checked = false;
 
-        document.getElementById('fileInput').value = "";
-        document.getElementById('urlInput').value = "";
+        // Reset Image Controls
+        fileInput.value = "";
+        urlInput.value = "";
         previewImg.src = "https://via.placeholder.com/400x250?text=New+Post";
-        const uploadTab = new bootstrap.Tab(document.querySelector('#upload-tab'));
-        uploadTab.show();
+        new bootstrap.Tab(document.querySelector('#upload-tab')).show();
 
         errorAlert.classList.add('d-none');
         blogModal.show();
     }
 
+    // --- OPEN EDIT MODAL ---
+    function openModalEdit(id) {
+        document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit me-2"></i>Cập nhật Bài Viết';
+        errorAlert.classList.add('d-none');
+
+        fetch(`/admin/blogs/api/${id}`)
+            .then(res => {
+                if (!res.ok) throw new Error("Lỗi tải dữ liệu");
+                return res.json();
+            })
+            .then(data => {
+                // Fill Info
+                document.getElementById('blogId').value = data.id;
+                document.getElementById('blogTitle').value = data.title;
+                document.getElementById('blogBrief').value = data.brief || "";
+                document.getElementById('blogContent').value = data.content || "";
+                document.getElementById('blogCategoryId').value = data.blogCategoryId || "";
+                document.getElementById('blogStatus').value = data.status ? data.status.toLowerCase() : "draft";
+                document.getElementById('blogFeatured').checked = data.isFeatured === true;
+
+                // --- Permissions Check ---
+                if (data.authorEmail && data.authorEmail !== currentUserEmail) {
+                    setContentEditable(false);
+                } else {
+                    setContentEditable(true);
+                }
+
+                // --- Image Logic For Edit ---
+                // Reset inputs để rỗng (nghĩa là "Giữ nguyên ảnh cũ")
+                fileInput.value = "";
+                urlInput.value = "";
+
+                if (data.thumbnailUrl) {
+                    previewImg.src = data.thumbnailUrl;
+
+                    // Nếu là link ngoài (bắt đầu bằng http), có thể hiển thị tab URL cho tiện
+                    if (data.thumbnailUrl.startsWith('http')) {
+                        new bootstrap.Tab(document.querySelector('#link-tab')).show();
+                        // Không set value vào urlInput để tránh gửi lại String nếu người dùng không sửa gì
+                        // Backend sẽ tự hiểu: nếu urlInput rỗng && fileInput rỗng => Ko update ảnh.
+                    } else {
+                        new bootstrap.Tab(document.querySelector('#upload-tab')).show();
+                    }
+                } else {
+                    previewImg.src = DEFAULT_IMG;
+                    new bootstrap.Tab(document.querySelector('#upload-tab')).show();
+                }
+
+                blogModal.show();
+            })
+            .catch(err => alert("Lỗi: " + err.message));
+    }
+
+    // --- Helper: Toggle Featured ---
     function toggleFeatured(blogId, checkbox) {
         const token = document.querySelector('meta[name="_csrf"]').content;
         const header = document.querySelector('meta[name="_csrf_header"]').content;
 
         fetch(`/admin/blogs/toggle-featured/${blogId}`, {
             method: 'POST',
-            headers: {
-                [header]: token,
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-            .then(res => {
-                if (!res.ok) throw new Error("Request failed");
-
-                // === UPDATE UI NGAY LẬP TỨC ===
-                const badge = document.getElementById(`featured-badge-${blogId}`);
-                if (badge) {
-                    if (checkbox.checked) {
-                        badge.classList.remove('d-none');
-                    } else {
-                        badge.classList.add('d-none');
-                    }
-                }
-            })
-            .catch(err => {
-                alert("Có lỗi xảy ra!");
-                checkbox.checked = !checkbox.checked; // rollback UI
-            });
-    }
-
-
-    function openModalEdit(id) {
-        document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit me-2"></i>Cập nhật Bài Viết';
-        errorAlert.classList.add('d-none');
-
-        fetch(`/admin/blogs/api/${id}`).then(res => {
-            if (!res.ok) throw new Error("Lỗi tải dữ liệu"); return res.json();
-        }).then(data => {
-            // Fill Data
-            document.getElementById('blogId').value = data.id;
-            document.getElementById('blogTitle').value = data.title;
-            document.getElementById('blogBrief').value = data.brief || "";
-            document.getElementById('blogContent').value = data.content || "";
-            document.getElementById('blogCategoryId').value = data.blogCategoryId || "";
-            document.getElementById('blogStatus').value = data.status ? data.status.toLowerCase() : "draft";
-            document.getElementById('blogFeatured').checked = data.isFeatured === true;
-            document.getElementById('currentThumbnailUrl').value = data.thumbnailUrl;
-
-            // --- CHECK QUYỀN SỞ HỮU ---
-            // Nếu email tác giả KHÁC email admin đang login -> Disable content
-            if (data.authorEmail && data.authorEmail !== currentUserEmail) {
-                setContentEditable(false);
-            } else {
-                setContentEditable(true);
-            }
-
-            // Image Preview
-            if (data.thumbnailUrl) {
-                previewImg.src = data.thumbnailUrl;
-                document.getElementById('urlInput').value = data.thumbnailUrl;
-                const linkTab = new bootstrap.Tab(document.querySelector('#link-tab'));
-                linkTab.show();
-            } else {
-                previewImg.src = "https://via.placeholder.com/400x250?text=No+Thumbnail";
-                const uploadTab = new bootstrap.Tab(document.querySelector('#upload-tab'));
-                uploadTab.show();
-            }
-            document.getElementById('fileInput').value = "";
-            blogModal.show();
-        }).catch(err => alert("Lỗi: " + err.message));
+            headers: { [header]: token, 'X-Requested-With': 'XMLHttpRequest' }
+        }).then(res => {
+            if (!res.ok) throw new Error("Failed");
+            const badge = document.getElementById(`featured-badge-${blogId}`);
+            if (badge) checkbox.checked ? badge.classList.remove('d-none') : badge.classList.add('d-none');
+        }).catch(() => {
+            alert("Lỗi cập nhật trạng thái!");
+            checkbox.checked = !checkbox.checked;
+        });
     }
 
     function validateBlogForm() {
-        // Nếu đang ở chế độ Review (chỉ sửa status), bỏ qua validate content
         if (!document.getElementById('blogTitle').disabled) {
             const title = document.getElementById('blogTitle').value.trim();
             const category = document.getElementById('blogCategoryId').value;
-            if (title.length < 5) { showError("Tiêu đề quá ngắn."); return false; }
+            if (title.length < 5) { showError("Tiêu đề phải từ 5 ký tự."); return false; }
             if (!category) { showError("Vui lòng chọn danh mục."); return false; }
         }
         return true;
     }
-    function showError(msg) { errorAlert.innerText = msg; errorAlert.classList.remove('d-none'); }
+
+    function showError(msg) {
+        errorAlert.innerText = msg;
+        errorAlert.classList.remove('d-none');
+    }
 </script>
 </body>
 </html>

@@ -87,7 +87,7 @@ public class SecurityConfig {
                                 "/forgot-password", "/reset-password", "/verify",
                                 "/login/**", "/css/**", "/js/**", "/images/**",
                                 "/register-process", "/payment/**", "/api/ai/**",
-                                "/error",
+                                "/error","/search","/",
                                 "/ai-tools", "/about", "/contact", "/terms", "/privacy","/careers"
                         ).permitAll()
 

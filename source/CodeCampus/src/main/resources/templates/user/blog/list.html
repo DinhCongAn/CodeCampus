@@ -5,14 +5,11 @@
     <title>Bài viết của tôi | CodeCampus</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-    <!-- AOS Animation -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 
-    <!-- Tailwind & Config -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -35,11 +32,6 @@
                             800: '#3730a3',
                             900: '#312e81',
                         }
-                    },
-                    boxShadow: {
-                        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.05)',
-                        'glow': '0 0 40px -10px rgba(99, 102, 241, 0.5)',
-                        'card-hover': '0 20px 40px -5px rgba(99, 102, 241, 0.15), 0 10px 20px -5px rgba(0, 0, 0, 0.04)',
                     },
                     animation: {
                         'blob': 'blob 10s infinite',
@@ -87,7 +79,7 @@
         .modal { transition: opacity 0.25s ease; }
         body.modal-active { overflow: hidden; }
 
-        /* Custom Scrollbar for Modal/Table */
+        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
@@ -96,14 +88,12 @@
 </head>
 <body class="antialiased font-sans selection:bg-brand-500 selection:text-white min-h-screen flex flex-col">
 
-<!-- Header -->
 <div class="sticky top-0 z-50">
     <div th:replace="~{fragments/header :: header}"></div>
 </div>
 
 <div class="relative w-full max-w-[1500px] mx-auto py-10 px-4 sm:px-6 lg:px-8 flex-grow">
 
-    <!-- Decor Background -->
     <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
         <div class="absolute top-20 left-10 w-[600px] h-[600px] bg-orange-300/15 rounded-full blur-[120px] mix-blend-multiply animate-blob"></div>
         <div class="absolute bottom-20 right-10 w-[600px] h-[600px] bg-brand-400/15 rounded-full blur-[120px] mix-blend-multiply animate-blob animation-delay-2000"></div>
@@ -111,7 +101,6 @@
 
     <main class="w-full flex flex-col gap-8">
 
-        <!-- Header Section -->
         <div class="flex flex-col md:flex-row md:items-end justify-between gap-4" data-aos="fade-down">
             <div>
                 <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Bài viết của tôi</h1>
@@ -123,7 +112,6 @@
             </button>
         </div>
 
-        <!-- Alerts -->
         <div th:if="${successMessage}" class="glass-card bg-emerald-50/80 border-l-4 border-emerald-500 text-emerald-700 p-4 rounded-xl flex items-center gap-3 animate-fade-in shadow-sm" data-aos="fade-up">
             <i class="fas fa-check-circle text-xl"></i> <span th:text="${successMessage}"></span>
         </div>
@@ -131,15 +119,9 @@
             <i class="fas fa-exclamation-circle text-xl"></i> <span th:text="${errorMessage}"></span>
         </div>
 
-        <!-- Table Container -->
         <div class="glass-card rounded-[1.5rem] overflow-hidden border border-white/60 shadow-lg" data-aos="fade-up" data-aos-delay="100">
-
-            <!-- Toolbar -->
             <div class="px-6 py-4 border-b border-slate-100 bg-white/40 flex justify-between items-center">
                 <span class="text-sm font-bold text-slate-600">Tổng số: <strong class="text-brand-600" th:text="${#lists.size(blogs)}">0</strong> bài viết</span>
-                <div class="flex gap-2">
-                    <!-- Placeholder for search/filter -->
-                </div>
             </div>
 
             <div class="overflow-x-auto">
@@ -155,7 +137,6 @@
                     </tr>
                     </thead>
                     <tbody class="text-sm font-medium text-slate-600">
-                    <!-- Empty State -->
                     <tr th:if="${#lists.isEmpty(blogs)}">
                         <td colspan="6" class="px-6 py-16 text-center">
                             <div class="flex flex-col items-center justify-center">
@@ -167,11 +148,8 @@
                             </div>
                         </td>
                     </tr>
-
-                    <!-- Rows -->
                     <tr th:each="blog, iter : ${blogs}" class="group hover:bg-white/60 transition-colors border-b border-slate-100 last:border-0">
                         <td class="px-6 py-5 text-slate-400 font-mono text-xs" th:text="${iter.count}">1</td>
-
                         <td class="px-6 py-5">
                             <div class="w-20 h-14 rounded-lg overflow-hidden border border-slate-200 shadow-sm relative bg-slate-100">
                                 <img th:if="${blog.thumbnailUrl}" th:src="@{${blog.thumbnailUrl}}" class="w-full h-full object-cover">
@@ -180,7 +158,6 @@
                                 </div>
                             </div>
                         </td>
-
                         <td class="px-6 py-5">
                             <div class="font-bold text-slate-800 mb-1 line-clamp-1 text-base group-hover:text-brand-600 transition-colors" th:text="${blog.title}">Tiêu đề</div>
                             <div class="text-xs text-slate-500 line-clamp-2 mb-2 font-normal" th:text="${blog.summary}">Mô tả ngắn...</div>
@@ -189,35 +166,19 @@
                                 <span th:text="${#temporals.format(blog.createdAt, 'dd/MM/yyyy HH:mm')}"></span>
                             </div>
                         </td>
-
                         <td class="px-6 py-5">
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200"
-                                      th:text="${blog.category != null ? blog.category.name : 'Chưa phân loại'}">Category</span>
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200"
+                                  th:text="${blog.category != null ? blog.category.name : 'Chưa phân loại'}">Category</span>
                         </td>
-
                         <td class="px-6 py-5 text-center">
-                                <span th:if="${blog.status == 'published'}" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-600 border border-emerald-200">
-                                    <i class="fas fa-check text-[10px]"></i> Đã duyệt
-                                </span>
-                            <span th:if="${blog.status == 'draft'}" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-yellow-50 text-yellow-600 border border-yellow-200">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></span> Chờ duyệt
-                                </span>
-                            <span th:if="${blog.status == 'hidden'}" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-red-50 text-red-600 border border-red-200">
-                                    <i class="fas fa-eye-slash text-[10px]"></i> Bị ẩn
-                                </span>
+                            <span th:if="${blog.status == 'published'}" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-600 border border-emerald-200"><i class="fas fa-check text-[10px]"></i> Đã duyệt</span>
+                            <span th:if="${blog.status == 'draft'}" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-yellow-50 text-yellow-600 border border-yellow-200"><span class="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></span> Chờ duyệt</span>
+                            <span th:if="${blog.status == 'hidden'}" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-red-50 text-red-600 border border-red-200"><i class="fas fa-eye-slash text-[10px]"></i> Bị ẩn</span>
                         </td>
-
                         <td class="px-6 py-5 text-right">
                             <div class="flex items-center justify-end gap-2">
-                                <button th:onclick="'openModalEdit(' + ${blog.id} + ')'"
-                                        class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all shadow-sm" title="Chỉnh sửa">
-                                    <i class="fas fa-pen text-xs"></i>
-                                </button>
-                                <a th:href="@{/user/my-blogs/delete/{id}(id=${blog.id})}"
-                                   onclick="return confirm('Bạn chắc chắn muốn xóa bài viết này? Hành động này không thể hoàn tác.');"
-                                   class="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-white transition-all shadow-sm" title="Xóa">
-                                    <i class="fas fa-trash text-xs"></i>
-                                </a>
+                                <button th:onclick="'openModalEdit(' + ${blog.id} + ')'" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all shadow-sm"><i class="fas fa-pen text-xs"></i></button>
+                                <a th:href="@{/user/my-blogs/delete/{id}(id=${blog.id})}" onclick="return confirm('Bạn chắc chắn muốn xóa bài viết này?');" class="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-white transition-all shadow-sm"><i class="fas fa-trash text-xs"></i></a>
                             </div>
                         </td>
                     </tr>
@@ -229,12 +190,9 @@
     </main>
 </div>
 
-<!-- Footer -->
 <div th:replace="~{fragments/footer :: footer}"></div>
 
-<!-- ================= MODAL EDITOR (Re-styled) ================= -->
 <div id="userBlogModal" class="fixed inset-0 z-[60] hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-    <!-- Backdrop -->
     <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeModal()"></div>
 
     <div class="fixed inset-0 z-20 overflow-y-auto">
@@ -243,7 +201,6 @@
             <form th:action="@{/user/my-blogs/save}" method="post" enctype="multipart/form-data" onsubmit="return validateForm()"
                   class="relative transform rounded-[1.5rem] bg-white text-left shadow-2xl transition-all w-full max-w-5xl border border-white/50 flex flex-col max-h-[90vh]">
 
-                <!-- Modal Header -->
                 <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-white/80 backdrop-blur-md rounded-t-[1.5rem] sticky top-0 z-10">
                     <h3 class="text-xl font-extrabold text-slate-800 flex items-center gap-2" id="modalTitle">
                         <i class="fas fa-pen-nib text-brand-600"></i> Viết bài mới
@@ -253,46 +210,42 @@
                     </button>
                 </div>
 
-                <!-- Modal Body -->
                 <div class="px-6 py-6 bg-slate-50/50 overflow-y-auto custom-scrollbar flex-1">
                     <input type="hidden" id="blogId" name="id">
-                    <input type="hidden" id="currentThumbnailUrl" name="thumbnailUrl">
 
-                    <!-- JS Error Alert -->
                     <div id="jsErrorAlert" class="hidden mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-xl shadow-sm text-sm font-medium flex items-center gap-2">
                         <i class="fas fa-exclamation-triangle"></i> <span id="errorMsgText"></span>
                     </div>
 
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
 
-                        <!-- Left Column: Image & Meta -->
                         <div class="lg:col-span-1 space-y-6">
-
-                            <!-- Thumbnail Section -->
                             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
                                 <label class="block text-sm font-bold text-slate-700 mb-3">1. Ảnh đại diện</label>
 
                                 <div class="bg-slate-100 border-2 border-dashed border-slate-300 rounded-xl mb-4 flex items-center justify-center min-h-[180px] relative overflow-hidden group hover:border-brand-400 transition-colors">
-                                    <img id="previewImage" src="https://via.placeholder.com/400x250?text=Preview" class="w-full h-full object-cover absolute inset-0">
+                                    <img id="previewImage" src="https://via.placeholder.com/400x250?text=Preview" class="w-full h-full object-contain absolute inset-0 bg-slate-50">
                                 </div>
 
-                                <!-- Tab Switcher -->
                                 <div class="flex rounded-xl bg-slate-100 p-1 mb-3">
                                     <button type="button" onclick="showUploadTab()" id="btnTabUpload" class="flex-1 py-2 text-xs font-bold rounded-lg shadow-sm bg-white text-slate-800 transition">Upload File</button>
                                     <button type="button" onclick="showLinkTab()" id="btnTabLink" class="flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 transition">Dùng URL</button>
                                 </div>
 
                                 <div id="uploadPane">
-                                    <input type="file" class="block w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100 cursor-pointer" name="thumbnail" id="fileInput" accept="image/*" onchange="previewFile()">
+                                    <input type="file" class="block w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100 cursor-pointer"
+                                           name="thumbnail" id="fileInput" accept="image/*" onchange="previewFile()">
+                                    <p class="text-[10px] text-slate-400 mt-2 italic">Hỗ trợ định dạng: PNG, JPG, JPEG, WEBP.</p>
                                 </div>
                                 <div id="linkPane" class="hidden">
-                                    <input type="text" class="block w-full rounded-lg border-slate-200 shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 text-sm py-2 px-3 transition outline-none" id="urlInput" placeholder="https://example.com/image.jpg" onchange="previewUrl()">
+                                    <input type="text" class="block w-full rounded-lg border-slate-200 shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 text-sm py-2 px-3 transition outline-none"
+                                           name="thumbnailUrl" id="urlInput" placeholder="https://example.com/image.jpg" oninput="previewUrl()">
+                                    <p class="text-[10px] text-slate-400 mt-2 italic">Dán đường dẫn ảnh trực tiếp vào đây.</p>
                                 </div>
                             </div>
 
-                            <!-- Category Section -->
                             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
-                                <label class="block text-sm font-bold text-slate-700 mb-2">2. Danh mục</label>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">2. Danh mục <span class="text-red-500">*</span></label>
                                 <div class="relative">
                                     <select name="blogCategoryId" id="blogCategoryId" required class="block w-full rounded-xl border-slate-200 shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 text-sm py-2.5 px-3 bg-white outline-none appearance-none font-medium">
                                         <option value="">-- Chọn chủ đề --</option>
@@ -302,14 +255,12 @@
                                 </div>
                             </div>
 
-                            <!-- Note -->
                             <div class="bg-blue-50/80 p-4 rounded-2xl border border-blue-100 text-xs text-blue-800 leading-relaxed font-medium">
                                 <strong class="block mb-1 flex items-center gap-1"><i class="fas fa-circle-info"></i> Lưu ý:</strong>
-                                Bài viết sẽ ở trạng thái <span class="text-yellow-600 bg-yellow-100 px-1 rounded border border-yellow-200">Chờ duyệt</span> sau khi lưu. Admin sẽ kiểm duyệt nội dung của bạn.
+                                Bài viết sẽ ở trạng thái <span class="text-yellow-600 bg-yellow-100 px-1 rounded border border-yellow-200">Chờ duyệt</span> sau khi lưu.
                             </div>
                         </div>
 
-                        <!-- Right Column: Content -->
                         <div class="lg:col-span-2 flex flex-col h-full">
                             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 h-full flex flex-col">
                                 <div class="flex items-center gap-2 mb-4">
@@ -319,13 +270,13 @@
 
                                 <div class="mb-5">
                                     <label class="block text-sm font-bold text-slate-700 mb-1">Tiêu đề bài viết <span class="text-red-500">*</span></label>
-                                    <input type="text" name="title" id="blogTitle" required placeholder="Ví dụ: Hướng dẫn học Spring Boot cho người mới..."
+                                    <input type="text" name="title" id="blogTitle" required placeholder="Ví dụ: Hướng dẫn học Spring Boot..."
                                            class="block w-full rounded-xl border-slate-200 bg-slate-50 focus:bg-white shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 text-base py-3 px-4 font-bold transition outline-none placeholder-slate-400 text-slate-800">
                                 </div>
 
                                 <div class="mb-5">
                                     <label class="block text-sm font-bold text-slate-700 mb-1">Mô tả ngắn (Summary)</label>
-                                    <textarea name="brief" id="blogBrief" rows="3" placeholder="Giới thiệu sơ lược về nội dung bài viết (hiển thị ở danh sách)..."
+                                    <textarea name="brief" id="blogBrief" rows="3" placeholder="Tóm tắt nội dung..."
                                               class="block w-full rounded-xl border-slate-200 bg-slate-50 focus:bg-white shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 text-sm py-3 px-4 transition outline-none placeholder-slate-400 resize-none font-medium"></textarea>
                                 </div>
 
@@ -339,7 +290,6 @@
                     </div>
                 </div>
 
-                <!-- Modal Footer -->
                 <div class="px-6 py-4 bg-white border-t border-slate-200 flex sm:flex-row-reverse gap-3 rounded-b-[1.5rem]">
                     <button type="submit" class="inline-flex w-full sm:w-auto justify-center rounded-xl bg-brand-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-brand-500/30 hover:bg-brand-700 transition hover:-translate-y-0.5 items-center gap-2">
                         <span>Lưu & Gửi duyệt</span>
@@ -354,7 +304,6 @@
     </div>
 </div>
 
-<!-- ================= SCRIPTS ================= -->
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 <script>
     // Init AOS
@@ -362,49 +311,74 @@
         AOS.init({ once: true, offset: 50, duration: 800 });
     });
 
+    // Global Vars
+    const DEFAULT_IMG = "https://via.placeholder.com/400x250?text=Preview";
     const modal = document.getElementById('userBlogModal');
     const previewImg = document.getElementById('previewImage');
     const errorAlert = document.getElementById('jsErrorAlert');
     const errorMsgText = document.getElementById('errorMsgText');
+    const fileInput = document.getElementById('fileInput');
+    const urlInput = document.getElementById('urlInput');
 
     // UI Tab Switcher
     function showUploadTab() {
         document.getElementById('uploadPane').classList.remove('hidden');
         document.getElementById('linkPane').classList.add('hidden');
 
-        const btnUp = document.getElementById('btnTabUpload');
-        const btnLink = document.getElementById('btnTabLink');
-
-        btnUp.className = 'flex-1 py-2 text-xs font-bold rounded-lg shadow-sm bg-white text-slate-800 transition';
-        btnLink.className = 'flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 transition';
+        document.getElementById('btnTabUpload').className = 'flex-1 py-2 text-xs font-bold rounded-lg shadow-sm bg-white text-slate-800 transition';
+        document.getElementById('btnTabLink').className = 'flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 transition';
     }
 
     function showLinkTab() {
         document.getElementById('uploadPane').classList.add('hidden');
         document.getElementById('linkPane').classList.remove('hidden');
 
-        const btnUp = document.getElementById('btnTabUpload');
-        const btnLink = document.getElementById('btnTabLink');
+        document.getElementById('btnTabUpload').className = 'flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 transition';
+        document.getElementById('btnTabLink').className = 'flex-1 py-2 text-xs font-bold rounded-lg shadow-sm bg-white text-slate-800 transition';
+    }
 
-        btnLink.className = 'flex-1 py-2 text-xs font-bold rounded-lg shadow-sm bg-white text-slate-800 transition';
-        btnUp.className = 'flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 transition';
+    // --- Image Handling Logic (FIXED) ---
+    function previewFile() {
+        const file = fileInput.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => previewImg.src = e.target.result;
+            reader.readAsDataURL(file);
+
+            // Xóa URL input khi chọn File để tránh nhầm lẫn Backend
+            urlInput.value = "";
+        } else {
+            previewImg.src = DEFAULT_IMG;
+        }
+    }
+
+    function previewUrl() {
+        const url = urlInput.value.trim();
+        if (url) {
+            previewImg.src = url;
+            // Xóa File input khi nhập URL
+            fileInput.value = "";
+        } else {
+            previewImg.src = DEFAULT_IMG;
+        }
     }
 
     // Modal Controls
     function openModalAdd() {
         document.getElementById('modalTitle').innerHTML = '<i class="fas fa-pen-nib text-brand-600"></i> Viết bài mới';
 
-        // Reset inputs
+        // Reset Inputs
         document.getElementById('blogId').value = "";
-        document.getElementById('currentThumbnailUrl').value = "";
         document.getElementById('blogTitle').value = "";
         document.getElementById('blogBrief').value = "";
         document.getElementById('blogContent').value = "";
         document.getElementById('blogCategoryId').value = "";
-        document.getElementById('fileInput').value = "";
-        document.getElementById('urlInput').value = "";
 
+        // Reset Image Inputs
+        fileInput.value = "";
+        urlInput.value = "";
         previewImg.src = "https://via.placeholder.com/400x250?text=New+Post";
+
         errorAlert.classList.add('hidden');
         showUploadTab();
 
@@ -423,19 +397,29 @@
                 return res.json();
             })
             .then(data => {
+                // Fill Info
                 document.getElementById('blogId').value = data.id;
                 document.getElementById('blogTitle').value = data.title;
                 document.getElementById('blogBrief').value = data.brief || "";
                 document.getElementById('blogContent').value = data.content || "";
                 document.getElementById('blogCategoryId').value = data.blogCategoryId || "";
-                document.getElementById('currentThumbnailUrl').value = data.thumbnailUrl;
+
+                // --- Image Logic For Edit ---
+                // Luôn xóa input để đảm bảo logic "Rỗng = Không đổi"
+                fileInput.value = "";
+                urlInput.value = "";
 
                 if (data.thumbnailUrl) {
                     previewImg.src = data.thumbnailUrl;
-                    document.getElementById('urlInput').value = data.thumbnailUrl;
-                    showLinkTab();
+
+                    // Logic chuyển tab thông minh
+                    if (data.thumbnailUrl.startsWith('http')) {
+                        showLinkTab();
+                    } else {
+                        showUploadTab();
+                    }
                 } else {
-                    previewImg.src = "https://via.placeholder.com/400x250?text=No+Thumbnail";
+                    previewImg.src = DEFAULT_IMG;
                     showUploadTab();
                 }
 
@@ -450,26 +434,6 @@
     function closeModal() {
         modal.classList.add('hidden');
         document.body.classList.remove('modal-active');
-    }
-
-    // Preview Logic
-    function previewFile() {
-        const file = document.getElementById('fileInput').files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => previewImg.src = e.target.result;
-            reader.readAsDataURL(file);
-            document.getElementById('urlInput').value = "";
-        }
-    }
-    function previewUrl() {
-        const url = document.getElementById('urlInput').value.trim();
-        if (url) {
-            previewImg.src = url;
-            document.getElementById('fileInput').value = "";
-        } else {
-            previewImg.src = "https://via.placeholder.com/400x250?text=No+Image";
-        }
     }
 
     // Validate

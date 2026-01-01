@@ -181,20 +181,21 @@ public class BlogService {
 
             // --- XỬ LÝ ẢNH (FILE & LINK) ---
 
-            // Ưu tiên 1: Upload File mới (Nếu người dùng chọn file)
+            System.out.println("File nhận được: " + (dto.getThumbnail() != null ? dto.getThumbnail().getOriginalFilename() : "NULL"));
+            System.out.println("Link nhận được: '" + dto.getThumbnailUrl() + "'"); // Có dấu nháy đơn để xem có khoảng trắng không
+            // 1. Ưu tiên File Upload
             if (dto.getThumbnail() != null && !dto.getThumbnail().isEmpty()) {
                 String fileName = saveFile(dto.getThumbnail());
-                // Lưu đường dẫn web (URL) vào DB (map với resource handler)
                 blog.setThumbnailUrl("/uploads/blogs/" + fileName);
             }
-            // Ưu tiên 2: Lưu Link ảnh (URL)
-            // - Nếu người dùng nhập link ảnh online vào tab URL
-            // - Hoặc nếu người dùng giữ nguyên ảnh cũ (frontend gửi lại link cũ)
-            else if (dto.getThumbnailUrl() != null) {
-                // Trim() để xóa khoảng trắng thừa, đảm bảo link sạch
+           // 2. Nếu không có File, kiểm tra Link (Phải KHÁC NULL và KHÔNG RỖNG)
+            else if (dto.getThumbnailUrl() != null && !dto.getThumbnailUrl().trim().isEmpty()) {
+                // Chỉ cập nhật nếu người dùng thực sự nhập gì đó
                 String url = dto.getThumbnailUrl().trim();
                 blog.setThumbnailUrl(url);
             }
+
+
 
             // Logic Status cho User/Admin (khi sửa bài của chính mình)
             if (isAdmin) {

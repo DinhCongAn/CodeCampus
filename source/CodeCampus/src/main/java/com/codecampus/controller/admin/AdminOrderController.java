@@ -131,4 +131,47 @@ public class AdminOrderController {
 
         return ResponseEntity.ok(data);
     }
+
+
+    /**
+     * Chức năng: Cập nhật trạng thái đơn hàng thủ công (cho Admin)
+     */
+    @PostMapping("/orders/update-status")
+    public String updateOrderStatus(
+            @RequestParam("id") Integer id,
+            @RequestParam("status") String newStatus,
+            RedirectAttributes redirectAttributes) {
+        try {
+            Registration reg = registrationRepository.findById(id).orElse(null);
+
+            if (reg != null) {
+                String oldStatus = reg.getStatus();
+
+                // Cập nhật trạng thái mới
+                reg.setStatus(newStatus);
+                reg.setUpdatedAt(LocalDateTime.now());
+
+                // Logic phụ: Nếu chuyển sang COMPLETED mà chưa có ngày kích hoạt,
+                // có thể tự động set ValidFrom/ValidTo nếu cần (tùy nghiệp vụ của bạn)
+                // Ví dụ:
+                /*
+                if ("COMPLETED".equals(newStatus) && reg.getValidFrom() == null) {
+                    reg.setValidFrom(LocalDateTime.now());
+                    reg.setValidTo(LocalDateTime.now().plusMonths(reg.getPricePackage().getDurationMonths()));
+                }
+                */
+
+                registrationRepository.save(reg);
+
+                redirectAttributes.addFlashAttribute("successMessage",
+                        "Đã cập nhật đơn #" + reg.getOrderCode() + ": " + oldStatus + " -> " + newStatus);
+            } else {
+                redirectAttributes.addFlashAttribute("errorMessage", "Không tìm thấy đơn hàng.");
+            }
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi cập nhật: " + e.getMessage());
+        }
+
+        return "redirect:/admin/orders";
+    }
 }

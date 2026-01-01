@@ -2,6 +2,7 @@ package com.codecampus.controller;
 
 import com.codecampus.dto.ContactDTO;
 import com.codecampus.service.EmailService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 public class PageController {
@@ -72,12 +74,49 @@ public class PageController {
         // Bạn có thể load danh sách thông báo từ DB tại đây nếu muốn
         return "notifications"; // Cần tạo file templates/notifications.html
     }
-    // Xử lý khi bấm nút Subscribe
     @PostMapping("/subscribe")
-    public String subscribeNewsletter(@RequestParam("email") String email) {
-        // 1. Gửi email thông báo cho bạn
-        emailService.sendSubscriptionEmail(email);
-        // 2. Quay lại trang chủ và hiện thông báo thành công
-        return "redirect:/home?subscribed";
+    public String subscribeNewsletter(
+            @RequestParam("email") String email,
+            HttpServletRequest request,
+            RedirectAttributes redirectAttributes
+    ) {
+        // 1. Null / blank check
+        if (email == null || email.trim().isEmpty()) {
+            redirectAttributes.addAttribute("error", "empty-email");
+            return "redirect:" + request.getHeader("Referer");
+        }
+
+        email = email.trim();
+
+        // 2. Length check (chuẩn RFC ~ 254)
+        if (email.length() > 254) {
+            redirectAttributes.addAttribute("error", "email-too-long");
+            return "redirect:" + request.getHeader("Referer");
+        }
+
+        // 3. Regex check (vừa đủ, không overkill)
+        String EMAIL_REGEX = "^[^\\s@]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
+        if (!email.matches(EMAIL_REGEX)) {
+            redirectAttributes.addAttribute("error", "invalid-email");
+            return "redirect:" + request.getHeader("Referer");
+        }
+
+        // 4. Domain basic sanity check (chặn abc@localhost, abc@.)
+        String domain = email.substring(email.indexOf("@") + 1);
+        if (!domain.contains(".")) {
+            redirectAttributes.addAttribute("error", "invalid-domain");
+            return "redirect:" + request.getHeader("Referer");
+        }
+
+        // 5. Gửi mail an toàn
+        try {
+            emailService.sendSubscriptionEmail(email);
+            redirectAttributes.addAttribute("subscribed", "true");
+        } catch (Exception e) {
+            redirectAttributes.addAttribute("error", "send-failed");
+        }
+
+        return "redirect:" + request.getHeader("Referer");
     }
+
 }
