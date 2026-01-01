@@ -174,7 +174,7 @@ GO
 -- 8. Bảng users (Mật khẩu: 123456)
 DECLARE @passwordHash VARCHAR(255) = '$2a$10$v60kNSroGckGc.E.jEeOpeMhN11ZWR.xId1PM.aF3.G.yOKb/1Ew.';
 INSERT INTO users (email, password_hash, full_name, gender, mobile, role_id, avatar, [address], status) VALUES
-('admin@codecampus.vn', @passwordHash, N'Admin Quản Trị', N'Nam', '0987654321', 1, N'https://i.pravatar.cc/150?img=1', N'123 Đường Admin, TP. HCM', 'active'),
+('andche186895@fpt.edu.vn', @passwordHash, N'Admin Quản Trị', N'Nam', '0987654321', 1, N'https://i.pravatar.cc/150?img=1', N'123 Đường Admin, TP. HCM', 'active'),
 ('teacher1@codecampus.vn', @passwordHash, N'Giảng viên Vũ', N'Nam', '0912345678', 2, N'https://i.pravatar.cc/150?img=2', N'456 Đường GV, Hà Nội', 'active'),
 ('teacher2@codecampus.vn', @passwordHash, N'Giảng viên Hoa', N'Nữ', '0912345679', 2, N'https://i.pravatar.cc/150?img=3', N'789 Đường GV, Đà Nẵng', 'active'),
 ('student1@gmail.com', @passwordHash, N'Nguyễn Văn An', N'Nam', '0905111222', 3, N'https://i.pravatar.cc/150?img=4', N'11 Đường Học Viên, Cần Thơ', 'active'),
