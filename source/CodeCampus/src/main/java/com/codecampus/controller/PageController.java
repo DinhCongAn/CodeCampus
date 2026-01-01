@@ -14,6 +14,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 public class PageController {
+
     @Autowired
     private EmailService emailService;
 
@@ -21,66 +22,66 @@ public class PageController {
     @GetMapping("/ai-tools")
     public String showAiToolsPage(Model model) {
         model.addAttribute("pageTitle", "Kho công cụ AI - CodeCampus");
-        return "/support/ai-tools"; // Trả về file templates/ai-tools.html
+        return "support/ai-tools";
     }
 
     // 2. Trang Giới thiệu
     @GetMapping("/about")
     public String showAboutPage(Model model) {
         model.addAttribute("pageTitle", "Về chúng tôi - CodeCampus");
-        return "/support/about"; // Trả về file templates/about.html
+        return "support/about";
     }
 
     // 3. Trang Liên hệ
     @GetMapping("/contact")
     public String showContactPage(Model model) {
-        model.addAttribute("contactDTO", new ContactDTO()); // Tạo object rỗng để hứng form
+        model.addAttribute("contactDTO", new ContactDTO());
         model.addAttribute("pageTitle", "Liên hệ - CodeCampus");
-        return "/support/contact"; // Trả về file templates/contact.html
+        return "support/contact";
     }
-    // Xử lý khi bấm nút Gửi
+
+    // Xử lý gửi form liên hệ
     @PostMapping("/contact")
     public String submitContact(@ModelAttribute ContactDTO contactDTO) {
-        // Gọi service gửi mail
         emailService.sendContactEmail(contactDTO);
-
-        // Chuyển hướng lại trang contact kèm thông báo thành công
         return "redirect:/contact?success";
     }
 
     // 4. Trang Điều khoản & Chính sách
     @GetMapping("/terms")
     public String showTermsPage() {
-        return "/support/terms";
+        return "support/terms";
     }
 
     // 5. Trang Tuyển dụng
     @GetMapping("/careers")
     public String showCareersPage(Model model) {
         model.addAttribute("pageTitle", "Cơ hội việc làm - CodeCampus");
-        return "/support/careers"; // Cần tạo file templates/careers.html
+        return "support/careers";
     }
 
     // 6. Trang Chính sách bảo mật
     @GetMapping("/privacy")
     public String showPrivacyPage(Model model) {
         model.addAttribute("pageTitle", "Chính sách bảo mật - CodeCampus");
-        return "/support/privacy"; // Cần tạo file templates/privacy.html
+        return "support/privacy";
     }
-    // Trang Thông báo
+
+    // 7. Trang Thông báo
     @GetMapping("/notifications")
     public String showNotificationsPage(Model model) {
         model.addAttribute("pageTitle", "Thông báo - CodeCampus");
-        // Bạn có thể load danh sách thông báo từ DB tại đây nếu muốn
-        return "notifications"; // Cần tạo file templates/notifications.html
+        return "notifications";
     }
+
+    // 8. Xử lý đăng ký nhận tin (Newsletter)
     @PostMapping("/subscribe")
     public String subscribeNewsletter(
             @RequestParam("email") String email,
             HttpServletRequest request,
             RedirectAttributes redirectAttributes
     ) {
-        // 1. Null / blank check
+        // Kiểm tra null hoặc rỗng
         if (email == null || email.trim().isEmpty()) {
             redirectAttributes.addAttribute("error", "empty-email");
             return "redirect:" + request.getHeader("Referer");
@@ -88,27 +89,27 @@ public class PageController {
 
         email = email.trim();
 
-        // 2. Length check (chuẩn RFC ~ 254)
+        // Kiểm tra độ dài chuẩn
         if (email.length() > 254) {
             redirectAttributes.addAttribute("error", "email-too-long");
             return "redirect:" + request.getHeader("Referer");
         }
 
-        // 3. Regex check (vừa đủ, không overkill)
+        // Kiểm tra định dạng Email (Regex)
         String EMAIL_REGEX = "^[^\\s@]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
         if (!email.matches(EMAIL_REGEX)) {
             redirectAttributes.addAttribute("error", "invalid-email");
             return "redirect:" + request.getHeader("Referer");
         }
 
-        // 4. Domain basic sanity check (chặn abc@localhost, abc@.)
+        // Kiểm tra tên miền cơ bản
         String domain = email.substring(email.indexOf("@") + 1);
         if (!domain.contains(".")) {
             redirectAttributes.addAttribute("error", "invalid-domain");
             return "redirect:" + request.getHeader("Referer");
         }
 
-        // 5. Gửi mail an toàn
+        // Gửi email
         try {
             emailService.sendSubscriptionEmail(email);
             redirectAttributes.addAttribute("subscribed", "true");
@@ -118,5 +119,4 @@ public class PageController {
 
         return "redirect:" + request.getHeader("Referer");
     }
-
 }
